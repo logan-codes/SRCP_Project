@@ -41,9 +41,9 @@ const LandingPage = () => {
                             Established 1987
                         </span>
                         <h1 className="mt-8 text-5xl md:text-6xl font-extrabold text-white font-heading tracking-tight leading-tight">
-                            Sathyabama Research & <br className="hidden md:block" />
+                            Sathyabama Research, Collaboration <br className="hidden md:block" />
                             <span className="text-secondary">
-                                Collaboration Portal
+                                and Guide Selection Portal
                             </span>
                         </h1>
                         <p className="mt-6 max-w-2xl mx-auto text-xl text-slate-200">

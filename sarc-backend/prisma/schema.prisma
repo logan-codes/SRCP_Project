@@ -36,6 +36,12 @@ model User {
 
   notifications Notification[] @relation("UserNotifications")
 
+  guideTeamsLed         GuideTeam[] @relation("GuideTeamLeader")
+  guideTeamsAssigned    GuideTeam[] @relation("GuideAssigned")
+  guideTeamMemberships  GuideTeamMember[]
+  facultyGuideSlot      FacultyGuideSlot?
+  facultyTeamSelections FacultyTeamSelection[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -177,6 +183,7 @@ model Notification {
   id        Int      @id @default(autoincrement())
   userId    Int
   user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  title     String?  // Optional title for the notification
   type      String   // e.g., APPLICATION_SUBMITTED, APPLICATION_STATUS_CHANGED
   message   String
   read      Boolean  @default(false)
@@ -230,3 +237,83 @@ model Milestone {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum GuideSelectionStatus {
+  PENDING
+  FACULTY_SELECTED
+  ACCEPTED
+  STUDENT_SELECTED
+  FINALIZED
+}
+
+enum GuideSelectionPhase {
+  CLOSED
+  FACULTY_SELECTION
+  STUDENT_SELECTION
+  COMPLETED
+}
+
+model GuideTeam {
+  id            String               @id @default(uuid())
+  teamId        String               @unique   // e.g. "TEAM-2024-A3F9"
+  teamName      String
+  projectTitle  String
+  description   String
+  domain        String
+  leaderId      Int
+  leader        User                 @relation("GuideTeamLeader", fields: [leaderId], references: [id])
+  members       GuideTeamMember[]
+  guideId       Int?
+  guide         User?                @relation("GuideAssigned", fields: [guideId], references: [id])
+  guideStatus   GuideSelectionStatus @default(PENDING)
+  isFinalized   Boolean              @default(false)
+  createdAt     DateTime             @default(now())
+  facultySelections FacultyTeamSelection[]
+}
+
+model GuideTeamMember {
+  id           String       @id @default(uuid())
+  teamId       String
+  team         GuideTeam    @relation(fields: [teamId], references: [id])
+  studentId    Int
+  student      User         @relation(fields: [studentId], references: [id])
+  isLeader     Boolean      @default(false)
+  inviteStatus InviteStatus @default(PENDING)
+  invitedAt    DateTime     @default(now())
+  respondedAt  DateTime?
+
+  @@unique([teamId, studentId])
+}
+
+model FacultyGuideSlot {
+  id         String @id @default(uuid())
+  facultyId  Int    @unique
+  faculty    User   @relation(fields: [facultyId], references: [id])
+  totalSlots Int    @default(7)
+  usedSlots  Int    @default(0)
+}
+
+model FacultyTeamSelection {
+  id         String       @id @default(uuid())
+  facultyId  Int
+  faculty    User         @relation(fields: [facultyId], references: [id])
+  teamId     String
+  team       GuideTeam    @relation(fields: [teamId], references: [id])
+  status     InviteStatus @default(PENDING)
+  selectedAt DateTime     @default(now())
+  respondedAt DateTime?
+
+  @@unique([facultyId, teamId])
+}
+
+model GuideSelectionConfig {
+  id    String              @id @default("singleton")
+  phase GuideSelectionPhase @default(CLOSED)
+}
+

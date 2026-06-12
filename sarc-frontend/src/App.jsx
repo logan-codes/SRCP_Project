@@ -18,6 +18,19 @@ import FacultyDirectory from './pages/shared/FacultyDirectory';
 import FacultyProfileView from './pages/shared/FacultyProfileView';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 
+// Guide Selection Pages
+import GuideTeamCreate from './pages/student/GuideTeamCreate';
+import GuideTeamMy from './pages/student/GuideTeamMy';
+import GuideInvites from './pages/student/GuideInvites';
+import TeamInvites from './pages/student/TeamInvites';
+import GuideSelect from './pages/student/GuideSelect';
+import FacultyTeamSelect from './pages/faculty/FacultyTeamSelect';
+import FacultyMyPicks from './pages/faculty/FacultyMyPicks';
+import GuideAdminConfig from './pages/admin/GuideAdminConfig';
+import AdminUserManagement from './pages/admin/AdminUserManagement';
+import AdminTeamFinalization from './pages/admin/AdminTeamFinalization';
+import GuideDashboard from './pages/shared/GuideDashboard';
+
 function App() {
     return (
         <div className="min-h-screen relative bg-canvas">
@@ -50,6 +63,19 @@ function App() {
                 <Route path="/faculty/applications" element={<FacultyApplications />} />
                 <Route path="/faculty/teams" element={<TeamFormation />} />
                 <Route path="/faculty/milestones" element={<Milestones />} />
+
+                {/* Guide Selection Routes */}
+                <Route path="/guide/team/create" element={<DashboardLayout><GuideTeamCreate /></DashboardLayout>} />
+                <Route path="/guide/team/my" element={<DashboardLayout><GuideTeamMy /></DashboardLayout>} />
+                <Route path="/guide/invites" element={<DashboardLayout><GuideInvites /></DashboardLayout>} />
+                <Route path="/guide/invites/team" element={<DashboardLayout><TeamInvites /></DashboardLayout>} />
+                <Route path="/guide/select" element={<DashboardLayout><GuideSelect /></DashboardLayout>} />
+                <Route path="/guide/faculty/select" element={<DashboardLayout><FacultyTeamSelect /></DashboardLayout>} />
+                <Route path="/guide/faculty/my-picks" element={<DashboardLayout><FacultyMyPicks /></DashboardLayout>} />
+                <Route path="/admin/guide/config" element={<DashboardLayout><GuideAdminConfig /></DashboardLayout>} />
+                <Route path="/admin/users" element={<DashboardLayout><AdminUserManagement /></DashboardLayout>} />
+                <Route path="/admin/teams/finalize" element={<DashboardLayout><AdminTeamFinalization /></DashboardLayout>} />
+                <Route path="/guide/dashboard" element={<DashboardLayout><GuideDashboard /></DashboardLayout>} />
             </Routes>
         </div>
     );

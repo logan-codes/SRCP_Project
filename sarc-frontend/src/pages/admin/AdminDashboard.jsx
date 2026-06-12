@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, StatWidget } from '../../components/widgets/DashboardWidgets';
 import { Users, BookOpen, Activity, AlertTriangle, ArrowRight } from 'lucide-react';
@@ -7,20 +7,45 @@ import {
     PieChart, Pie, Cell, Legend
 } from 'recharts';
 
-const departmentData = [
-    { name: 'Computer Sci', projects: 45 },
-    { name: 'Engineering', projects: 32 },
-    { name: 'Biology', projects: 28 },
-    { name: 'Physics', projects: 15 },
-    { name: 'Business', projects: 12 },
-];
-
-const participationData = [
-    { name: 'Active Students', value: 850, color: '#800000' }, // Primary Maroon
-    { name: 'Inactive/Browsing', value: 350, color: '#FFD700' }, // Secondary Gold
-];
-
 const AdminDashboard = () => {
+    const [analytics, setAnalytics] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            try {
+                const token = localStorage.getItem('sarc_token');
+                const res = await fetch('http://localhost:5000/api/users/analytics', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setAnalytics(data);
+                }
+            } catch (error) {
+                console.error("Error fetching analytics", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAnalytics();
+    }, []);
+
+    if (loading || !analytics) {
+        return (
+            <DashboardLayout>
+                <div className="p-8 text-center text-text-secondary">Loading dashboard...</div>
+            </DashboardLayout>
+        );
+    }
+
+    const { stats, departmentData, participationData, recentFlags } = analytics;
+
+    const participationPercentage = participationData.length > 0 && participationData[0].name === 'Active Students' 
+        ? Math.round((participationData[0].value / Math.max(1, participationData[0].value + participationData[1].value)) * 100) 
+        : 0;
+
     return (
         <DashboardLayout>
             <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-primary/10 pb-6">
@@ -34,10 +59,10 @@ const AdminDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatWidget title="Total Users" value="1,285" icon={Users} trend={12} />
-                <StatWidget title="Active Projects" value="240" icon={BookOpen} trend={5} />
-                <StatWidget title="Success Rate" value="88%" icon={Activity} trend={2} />
-                <StatWidget title="System Alerts" value="3" icon={AlertTriangle} trend={-15} />
+                <StatWidget title="Total Users" value={stats.totalUsers} icon={Users} trend={0} />
+                <StatWidget title="Active Projects" value={stats.activeProjects} icon={BookOpen} trend={0} />
+                <StatWidget title="Success Rate" value={stats.successRate} icon={Activity} trend={0} />
+                <StatWidget title="System Alerts" value={stats.systemAlerts} icon={AlertTriangle} trend={0} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
@@ -94,7 +119,7 @@ const AdminDashboard = () => {
                         </ResponsiveContainer>
                         {/* Center Text */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center -translate-y-4 pointer-events-none">
-                            <span className="text-4xl font-black text-slate-800 tracking-tight">70%</span>
+                            <span className="text-4xl font-black text-slate-800 tracking-tight">{participationPercentage}%</span>
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Active</span>
                         </div>
                     </div>
@@ -117,26 +142,24 @@ const AdminDashboard = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 pb-2">
-                            <tr className="hover:bg-slate-50 transition-colors">
-                                <td className="py-5 px-6 text-sm font-bold font-heading text-slate-800">Profile Report</td>
-                                <td className="py-5 px-6 text-sm text-slate-600 font-medium">Inappropriate content in student bio (ID: #4092)</td>
-                                <td className="py-5 px-6">
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-200 shadow-sm">Pending Review</span>
-                                </td>
-                                <td className="py-5 px-6 text-right">
-                                    <button className="text-sm font-bold text-primary hover:underline flex items-center gap-1 justify-end w-full">Investigate <ArrowRight size={14} /></button>
-                                </td>
-                            </tr>
-                            <tr className="hover:bg-slate-50 transition-colors">
-                                <td className="py-5 px-6 text-sm font-bold font-heading text-slate-800">System Alert</td>
-                                <td className="py-5 px-6 text-sm text-slate-600 font-medium">API rate limit exceeded on Recommendation Engine</td>
-                                <td className="py-5 px-6">
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 shadow-sm">Resolved</span>
-                                </td>
-                                <td className="py-5 px-6 text-right">
-                                    <button className="text-sm font-bold text-slate-400 hover:text-slate-600 w-full text-right transition-colors">View Logs</button>
-                                </td>
-                            </tr>
+                            {recentFlags.length > 0 ? (
+                                recentFlags.map((flag, index) => (
+                                    <tr key={index} className="hover:bg-slate-50 transition-colors">
+                                        <td className="py-5 px-6 text-sm font-bold font-heading text-slate-800">{flag.type}</td>
+                                        <td className="py-5 px-6 text-sm text-slate-600 font-medium">{flag.details}</td>
+                                        <td className="py-5 px-6">
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-200 shadow-sm">{flag.status}</span>
+                                        </td>
+                                        <td className="py-5 px-6 text-right">
+                                            <button className="text-sm font-bold text-primary hover:underline flex items-center gap-1 justify-end w-full">Investigate <ArrowRight size={14} /></button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="4" className="py-5 px-6 text-center text-sm text-slate-500">No recent moderation flags. System is healthy.</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

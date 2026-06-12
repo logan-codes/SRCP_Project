@@ -22,6 +22,7 @@ app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/teams', require('./routes/teamRoutes'));
 app.use('/api/milestones', require('./routes/milestoneRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/guide', require('./routes/guideRoutes'));
 
 // Basic Route for testing
 app.get('/', (req, res) => {

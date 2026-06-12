@@ -83,7 +83,7 @@ const Register = () => {
                             Create an Account
                         </h2>
                         <p className="mt-2 text-sm text-slate-600">
-                            Join the Sathyabama Research Collaboration Portal
+                            Join the Sathyabama Research, Collaboration and Guide Selection Portal
                         </p>
                     </div>
 

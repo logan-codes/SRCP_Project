@@ -238,7 +238,7 @@ const AdminUserManagement = () => {
                             : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border'
                         }`}
                     >
-                        {role.charAt(0) + role.slice(1).toLowerCase()}s
+                        {role === 'FACULTY' ? 'Faculty' : role.charAt(0) + role.slice(1).toLowerCase() + 's'}
                     </button>
                 ))}
             </div>
@@ -275,13 +275,15 @@ const AdminUserManagement = () => {
                                                     <td className="p-4 text-sm text-text-primary font-medium">{user.fullName}</td>
                                                     <td className="p-4 text-sm text-text-secondary">{user.email}</td>
                                                     <td className="p-4 text-sm text-text-secondary">{new Date(user.createdAt).toLocaleDateString()}</td>
-                                                    <td className="p-4 text-sm text-right">
-                                                        <button onClick={() => handleOpenModal('EDIT', user)} className="p-1.5 text-text-secondary hover:text-accent transition-colors mr-2">
-                                                            <Edit className="w-4 h-4" />
-                                                        </button>
-                                                        <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 text-text-secondary hover:text-red-500 transition-colors">
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
+                                                    <td className="p-4 text-sm">
+                                                        <div className="flex justify-end gap-2">
+                                                            <button onClick={() => handleOpenModal('EDIT', user)} className="p-1.5 text-text-secondary hover:text-accent transition-colors">
+                                                                <Edit className="w-4 h-4" />
+                                                            </button>
+                                                            <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 text-text-secondary hover:text-red-500 transition-colors">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -319,13 +321,15 @@ const AdminUserManagement = () => {
                                             <td className="p-4 text-sm text-text-secondary">{user.facultyProfile?.department || '-'}</td>
                                             <td className="p-4 text-sm text-text-secondary">{user.facultyProfile?.designation || '-'}</td>
                                             <td className="p-4 text-sm text-text-secondary">{new Date(user.createdAt).toLocaleDateString()}</td>
-                                            <td className="p-4 text-sm text-right">
-                                                <button onClick={() => handleOpenModal('EDIT', user)} className="p-1.5 text-text-secondary hover:text-accent transition-colors mr-2">
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 text-text-secondary hover:text-red-500 transition-colors">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                            <td className="p-4 text-sm">
+                                                <div className="flex justify-end gap-2">
+                                                    <button onClick={() => handleOpenModal('EDIT', user)} className="p-1.5 text-text-secondary hover:text-accent transition-colors">
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 text-text-secondary hover:text-red-500 transition-colors">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -359,13 +363,15 @@ const AdminUserManagement = () => {
                                             <td className="p-4 text-sm text-text-secondary">{user.email}</td>
                                             <td className="p-4 text-sm text-text-secondary">{user.adminProfile?.department || '-'}</td>
                                             <td className="p-4 text-sm text-text-secondary">{new Date(user.createdAt).toLocaleDateString()}</td>
-                                            <td className="p-4 text-sm text-right">
-                                                <button onClick={() => handleOpenModal('EDIT', user)} className="p-1.5 text-text-secondary hover:text-accent transition-colors mr-2">
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 text-text-secondary hover:text-red-500 transition-colors">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                            <td className="p-4 text-sm">
+                                                <div className="flex justify-end gap-2">
+                                                    <button onClick={() => handleOpenModal('EDIT', user)} className="p-1.5 text-text-secondary hover:text-accent transition-colors">
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 text-text-secondary hover:text-red-500 transition-colors">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

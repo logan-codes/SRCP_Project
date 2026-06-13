@@ -59,6 +59,17 @@ const Navbar = () => {
         navigate('/');
     };
 
+    const handleProjectsClick = (e) => {
+        e.preventDefault();
+        if (isLoggedIn) {
+            const role = localStorage.getItem('sarc_role');
+            const path = role === 'ADMIN' ? '/admin' : (role === 'FACULTY' ? '/faculty/projects' : '/student/projects');
+            navigate(path);
+        } else {
+            alert("Please log in to browse research projects.");
+        }
+    };
+
     const unreadCount = notifications.filter(n => !n.read).length;
 
     const role = localStorage.getItem('sarc_role');
@@ -74,19 +85,18 @@ const Navbar = () => {
             </div>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
-                    <div className="flex-shrink-0 flex items-center">
+                    <div className="flex items-center">
                         <Link to={isLoggedIn ? dashboardPath : "/"} className="text-xl md:text-2xl font-bold font-heading text-primary flex items-center gap-3">
                             <img src="/images/logo.jpg" alt="Sathyabama Logo" className="h-12 w-auto object-contain" />
-                            SATHYABAMA <span className="text-slate-500 font-normal text-sm hidden lg:inline border-l border-slate-300 ml-3 pl-3">SARC Portal</span>
+                            <span className="hidden sm:inline">SATHYABAMA</span> <span className="text-slate-500 font-normal text-sm hidden lg:inline border-l border-slate-300 ml-3 pl-3">SARC Portal</span>
                         </Link>
-                    </div>
-                    <div className="hidden md:flex items-center space-x-8">
-                        <a href="#about" className="text-slate-700 hover:text-primary font-medium transition-colors">About</a>
-                        <a href="#projects" className="text-slate-700 hover:text-primary font-medium transition-colors">Research Projects</a>
-                        <a href="#industry" className="text-slate-700 hover:text-primary font-medium transition-colors">Industry Collaboration</a>
-                        {isLoggedIn && (
-                            <Link to={dashboardPath} className="text-primary font-bold transition-colors border-l pl-8 border-slate-200">Dashboard</Link>
-                        )}
+                        <div className="hidden md:flex items-center space-x-8 ml-10 border-l border-slate-200 pl-8">
+                            <a href="#about" className="text-slate-700 hover:text-primary font-medium transition-colors">About</a>
+                            <button onClick={handleProjectsClick} className="text-slate-700 hover:text-primary font-medium transition-colors cursor-pointer">Research Projects</button>
+                            {isLoggedIn && (
+                                <Link to={dashboardPath} className="text-primary font-bold transition-colors">Dashboard</Link>
+                            )}
+                        </div>
                     </div>
                     <div className="flex items-center space-x-4">
                         {isLoggedIn ? (

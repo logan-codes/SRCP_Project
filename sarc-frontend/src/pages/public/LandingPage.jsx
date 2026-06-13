@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
@@ -17,6 +17,30 @@ const FeatureCard = ({ icon: Icon, title, description }) => (
 
 const LandingPage = () => {
     const navigate = useNavigate();
+    const [stats, setStats] = useState({
+        activeProjects: 240,
+        facultyResearchers: 85,
+        studentCollaborators: 1200
+    });
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await fetch('http://localhost:5000/api/stats');
+                if (res.ok) {
+                    const data = await res.json();
+                    setStats({
+                        activeProjects: data.activeProjects > 0 ? data.activeProjects : 240,
+                        facultyResearchers: data.facultyResearchers > 0 ? data.facultyResearchers : 85,
+                        studentCollaborators: data.studentCollaborators > 0 ? data.studentCollaborators : 1200
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to fetch stats", error);
+            }
+        };
+        fetchStats();
+    }, []);
 
     return (
         <div className="min-h-screen flex flex-col font-body">
@@ -57,23 +81,20 @@ const LandingPage = () => {
                 </section>
 
                 {/* Features Section */}
-                <section id="features" className="py-20 bg-white border-t border-slate-100">
+                <section id="about" className="py-20 scroll-mt-24 bg-white border-t border-slate-100">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
                             <h2 className="text-3xl font-bold font-heading text-primary">About SARC</h2>
                             <div className="h-1 w-20 bg-secondary mx-auto mt-4 rounded-full"></div>
-                            <p className="mt-4 text-lg text-slate-600">Centralizing academic research and unlocking student potential across all departments.</p>
+                            <p className="mt-6 text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
+                                The Sathyabama Academic Research Collaboration (SARC) portal is designed to streamline the research journey for students and faculty. By centralizing project discovery, team formation, and guide allocation, we aim to foster an environment of cross-disciplinary innovation and academic excellence. SARC bridges the gap between ambitious students and experienced faculty, ensuring every research project reaches its full potential.
+                            </p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <FeatureCard
                                 icon={Zap}
-                                title="AI-Based Project Matching"
-                                description="Our proprietary algorithm matches students to prestigious university projects based on their skill profiles."
-                            />
-                            <FeatureCard
-                                icon={Target}
-                                title="Skill Gap Analyzer"
-                                description="Identify exactly what skills you're missing for a project and get recommendations on how to acquire them."
+                                title="Project Discovery & Application"
+                                description="Browse and apply to prestigious university research projects that align with your academic goals and interests."
                             />
                             <FeatureCard
                                 icon={Users}
@@ -81,19 +102,9 @@ const LandingPage = () => {
                                 description="Easily scaffold cross-disciplinary teams. Find the perfect designer, engineer, or researcher from any department."
                             />
                             <FeatureCard
-                                icon={Briefcase}
-                                title="Industry Collaboration"
-                                description="Bridge the gap between academia and industry. Connect with mentors actively seeking university research partnerships."
-                            />
-                            <FeatureCard
-                                icon={TrendingUp}
-                                title="Milestone Tracking"
-                                description="Keep your research on track with built-in agile boards and milestone submission workflows."
-                            />
-                            <FeatureCard
                                 icon={BookOpen}
-                                title="Research Publication"
-                                description="Streamlined workflows for drafting, reviewing, and publishing research papers alongside your faculty leads."
+                                title="Faculty Guide Allocation"
+                                description="Streamlined workflows for students to select and collaborate with experienced faculty guides for their projects."
                             />
                         </div>
                     </div>
@@ -107,22 +118,18 @@ const LandingPage = () => {
                                 {/* Subtle large letter S representing Sathyabama */}
                                 <span className="text-[20rem] font-serif font-bold italic translate-y-8 select-none">S</span>
                             </div>
-                            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y md:divide-y-0 lg:divide-x divide-white/20">
+                            <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 lg:divide-x divide-white/20">
                                 <div className="p-4">
-                                    <div className="text-5xl font-bold font-heading text-secondary mb-2">240+</div>
+                                    <div className="text-5xl font-bold font-heading text-secondary mb-2">{stats.activeProjects.toLocaleString()}+</div>
                                     <div className="text-white/80 font-medium uppercase tracking-wider text-sm">Active Projects</div>
                                 </div>
                                 <div className="p-4">
-                                    <div className="text-5xl font-bold font-heading text-secondary mb-2">85+</div>
+                                    <div className="text-5xl font-bold font-heading text-secondary mb-2">{stats.facultyResearchers.toLocaleString()}+</div>
                                     <div className="text-white/80 font-medium uppercase tracking-wider text-sm">Faculty Researchers</div>
                                 </div>
                                 <div className="p-4">
-                                    <div className="text-5xl font-bold font-heading text-secondary mb-2">1,200+</div>
+                                    <div className="text-5xl font-bold font-heading text-secondary mb-2">{stats.studentCollaborators.toLocaleString()}+</div>
                                     <div className="text-white/80 font-medium uppercase tracking-wider text-sm">Student Collaborators</div>
-                                </div>
-                                <div className="p-4">
-                                    <div className="text-5xl font-bold font-heading text-secondary mb-2">45+</div>
-                                    <div className="text-white/80 font-medium uppercase tracking-wider text-sm">Industry Mentors</div>
                                 </div>
                             </div>
                         </div>

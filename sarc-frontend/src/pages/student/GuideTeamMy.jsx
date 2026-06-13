@@ -9,6 +9,23 @@ const GuideTeamMy = () => {
     const [inviteLoading, setInviteLoading] = useState(false);
     const [message, setMessage] = useState('');
 
+    const [isEditing, setIsEditing] = useState(false);
+    const [editData, setEditData] = useState({
+        teamName: '', projectTitle: '', description: '', domain: ''
+    });
+    const [editLoading, setEditLoading] = useState(false);
+
+    const getUserId = () => {
+        try {
+            const token = localStorage.getItem('sarc_token');
+            if(!token) return null;
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload.user.id;
+        } catch (e) {
+            return null;
+        }
+    };
+
     const fetchMyTeam = async () => {
         try {
             const token = localStorage.getItem('sarc_token');
@@ -18,6 +35,12 @@ const GuideTeamMy = () => {
             if (res.ok) {
                 const data = await res.json();
                 setTeam(data);
+                setEditData({
+                    teamName: data.teamName,
+                    projectTitle: data.projectTitle,
+                    description: data.description,
+                    domain: data.domain
+                });
             } else {
                 setTeam(null);
             }
@@ -32,6 +55,32 @@ const GuideTeamMy = () => {
     useEffect(() => {
         fetchMyTeam();
     }, []);
+
+    const handleEditSubmit = async (e) => {
+        e.preventDefault();
+        setEditLoading(true);
+        try {
+            const token = localStorage.getItem('sarc_token');
+            const res = await fetch('http://localhost:5000/api/guide/teams/my', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(editData)
+            });
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.message || 'Failed to update team');
+            }
+            setIsEditing(false);
+            fetchMyTeam();
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            setEditLoading(false);
+        }
+    };
 
     const handleInvite = async (e) => {
         e.preventDefault();
@@ -81,14 +130,59 @@ const GuideTeamMy = () => {
 
     const activeMembersCount = team.members?.filter(m => m.inviteStatus === 'PENDING' || m.inviteStatus === 'ACCEPTED').length || 0;
     const canInvite = activeMembersCount < 2 && !team.isFinalized; // Max 2 members
+    const isLeader = team.leaderId === getUserId();
+    const canEdit = isLeader && !team.isFinalized;
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
-            <h1 className="text-3xl font-bold text-text-primary mb-8">My Guide Team</h1>
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-bold text-text-primary">My Guide Team</h1>
+                {canEdit && !isEditing && (
+                    <Button onClick={() => setIsEditing(true)} variant="outline">
+                        Edit Team
+                    </Button>
+                )}
+            </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
-                    <TeamCard team={team} showStatus={true} />
+                    {isEditing ? (
+                        <div className="bg-surface/50 border border-border rounded-2xl p-6 shadow-sm">
+                            <h2 className="text-xl font-bold mb-4">Edit Team Details</h2>
+                            <form onSubmit={handleEditSubmit} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Team Name</label>
+                                    <input type="text" value={editData.teamName} onChange={e => setEditData({...editData, teamName: e.target.value})} className="w-full bg-canvas border border-border rounded-xl px-4 py-2" required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Project Title</label>
+                                    <input type="text" value={editData.projectTitle} onChange={e => setEditData({...editData, projectTitle: e.target.value})} className="w-full bg-canvas border border-border rounded-xl px-4 py-2" required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Domain</label>
+                                    <select value={editData.domain} onChange={e => setEditData({...editData, domain: e.target.value})} className="w-full bg-canvas border border-border rounded-xl px-4 py-2" required>
+                                        <option value="AI/ML">AI / Machine Learning</option>
+                                        <option value="Web Development">Web Development</option>
+                                        <option value="Mobile Development">Mobile App Development</option>
+                                        <option value="Cybersecurity">Cybersecurity</option>
+                                        <option value="IoT">Internet of Things (IoT)</option>
+                                        <option value="Blockchain">Blockchain</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Description</label>
+                                    <textarea value={editData.description} onChange={e => setEditData({...editData, description: e.target.value})} className="w-full bg-canvas border border-border rounded-xl px-4 py-2 min-h-[100px]" required />
+                                </div>
+                                <div className="flex gap-2 justify-end pt-4">
+                                    <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+                                    <Button type="submit" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save Changes'}</Button>
+                                </div>
+                            </form>
+                        </div>
+                    ) : (
+                        <TeamCard team={team} showStatus={true} />
+                    )}
                 </div>
                 
                 <div>

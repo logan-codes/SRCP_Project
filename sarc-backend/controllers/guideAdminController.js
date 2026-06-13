@@ -211,8 +211,8 @@ exports.finalizeAllTeams = async (req, res) => {
         await prisma.$transaction(async (tx) => {
             for (const team of teams) {
                 const acceptedCount = team.members.filter(m => m.inviteStatus === 'ACCEPTED').length;
-                // Only finalize teams with 2 or 3 accepted members
-                if (acceptedCount >= 2 && acceptedCount <= 3 && !team.isFinalized) {
+                // Only finalize teams with 1 or 2 accepted members
+                if (acceptedCount >= 1 && acceptedCount <= 2 && !team.isFinalized) {
                     await tx.guideTeam.update({
                         where: { id: team.id },
                         data: { isFinalized: true }

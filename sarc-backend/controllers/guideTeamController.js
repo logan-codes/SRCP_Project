@@ -71,6 +71,38 @@ exports.createTeam = async (req, res) => {
     }
 };
 
+exports.updateTeam = async (req, res) => {
+    try {
+        const { teamName, projectTitle, description, domain } = req.body;
+        const leaderId = req.user.id;
+        
+        const team = await prisma.guideTeam.findFirst({
+            where: { leaderId }
+        });
+
+        if (!team) return res.status(404).json({ message: 'Team not found' });
+        
+        if (team.isFinalized) {
+            return res.status(400).json({ message: 'Cannot edit a finalized team' });
+        }
+
+        const updatedTeam = await prisma.guideTeam.update({
+            where: { id: team.id },
+            data: {
+                teamName: teamName || team.teamName,
+                projectTitle: projectTitle || team.projectTitle,
+                description: description || team.description,
+                domain: domain || team.domain
+            }
+        });
+
+        res.json({ message: 'Team updated successfully', team: updatedTeam });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error updating team' });
+    }
+};
+
 exports.inviteMember = async (req, res) => {
     try {
         const { teamId, registerNumberOrEmail } = req.body;

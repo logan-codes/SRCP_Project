@@ -73,7 +73,7 @@ const AdminTeamFinalization = () => {
     };
 
     const handleFinalizeAll = async () => {
-        if (!window.confirm('Are you sure you want to finalize all teams that have the required number of accepted members (2-3)?')) return;
+        if (!window.confirm('Are you sure you want to finalize all teams that have the required number of accepted members (1-2)?')) return;
 
         try {
             const token = localStorage.getItem('sarc_token');
@@ -175,7 +175,7 @@ const AdminTeamFinalization = () => {
                             {filteredTeams.map(team => {
                                 const totalMembers = team.members.length;
                                 const acceptedCount = team.members.filter(m => m.inviteStatus === 'ACCEPTED').length;
-                                const isReady = acceptedCount >= 2 && acceptedCount <= 3;
+                                const isReady = acceptedCount >= 1 && acceptedCount <= 2;
 
                                 return (
                                     <tr key={team.id} className={`border-b border-border/50 hover:bg-surface/80 transition-colors ${team.isFinalized ? 'bg-green-500/5' : ''}`}>

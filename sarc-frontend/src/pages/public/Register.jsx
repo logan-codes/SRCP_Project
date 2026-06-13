@@ -31,7 +31,7 @@ const Register = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const roleParam = params.get('role');
-        if (roleParam && ['student', 'faculty', 'industry', 'admin'].includes(roleParam)) {
+        if (roleParam && ['student', 'faculty', 'admin'].includes(roleParam)) {
             setFormData(prev => ({ ...prev, role: roleParam }));
         }
     }, [location]);
@@ -108,7 +108,6 @@ const Register = () => {
                                     >
                                         <option value="student">Student</option>
                                         <option value="faculty">Faculty</option>
-                                        <option value="industry">Industry Mentor</option>
                                         <option value="admin">System Admin</option>
                                     </select>
                                     <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">

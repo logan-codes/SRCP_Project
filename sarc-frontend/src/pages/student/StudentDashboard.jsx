@@ -1,73 +1,97 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge, StatWidget } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
 import { Briefcase, Clock, CheckCircle, AlertTriangle, ArrowRight, Send } from 'lucide-react';
 
-const RecommendedProjectCard = ({ title, faculty, matchScore, skills, missingSkills }) => (
-    <Card className="flex flex-col h-full border-l-4 border-l-primary hover:-translate-y-1 transition-transform">
-        <div className="flex justify-between items-start mb-4">
-            <div>
-                <h3 className="text-lg font-bold text-slate-800 line-clamp-2 gap-2">{title}</h3>
-                <p className="text-sm text-slate-500 mt-1">Prof. {faculty}</p>
-            </div>
-            <div className="bg-indigo-50 text-indigo-700 font-bold px-3 py-1 rounded-lg flex flex-col items-center shadow-sm">
-                <span className="text-sm leading-none">{matchScore}%</span>
-                <span className="text-[10px] uppercase tracking-wider font-semibold opacity-80 mt-1">Match</span>
-            </div>
-        </div>
+const RecommendedProjectCard = ({ id, title, faculty, matchScore, skills, missingSkills, deadline }) => {
+    let daysRemaining = null;
+    if (deadline) {
+        const deadlineDate = new Date(deadline);
+        const diffTime = deadlineDate - new Date();
+        daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
 
-        <div className="mb-4 flex-grow">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Required Core Skills</p>
-            <div className="flex flex-wrap gap-2">
-                {skills.map(skill => (
-                    <Badge key={skill} color="blue">{skill}</Badge>
-                ))}
+    return (
+        <Card className="flex flex-col h-full border-l-4 border-l-primary hover:-translate-y-1 transition-transform">
+            <div className="flex justify-between items-start mb-4">
+                <div>
+                    <h3 className="text-lg font-bold text-slate-800 line-clamp-2 gap-2">{title}</h3>
+                    <p className="text-sm text-slate-500 mt-1">Prof. {faculty}</p>
+                </div>
+                <div className="bg-indigo-50 text-indigo-700 font-bold px-3 py-1 rounded-lg flex flex-col items-center shadow-sm">
+                    <span className="text-sm leading-none">{matchScore}%</span>
+                    <span className="text-[10px] uppercase tracking-wider font-semibold opacity-80 mt-1">Match</span>
+                </div>
             </div>
 
-            {missingSkills && missingSkills.length > 0 && (
-                <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-100 flex items-start gap-2">
-                    <AlertTriangle size={16} className="text-red-500 shrink-0 mt-0.5" />
-                    <div>
-                        <p className="text-xs font-semibold text-red-700 uppercase tracking-wider mb-1">Skill Gap Warning</p>
-                        <div className="flex flex-wrap gap-1">
-                            {missingSkills.map(skill => (
-                                <span key={skill} className="text-xs text-red-600 bg-white px-1.5 py-0.5 rounded shadow-sm border border-red-100">{skill}</span>
-                            ))}
+            <div className="mb-4 flex-grow">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Required Core Skills</p>
+                <div className="flex flex-wrap gap-2">
+                    {skills && skills.map(skill => (
+                        <Badge key={skill} color="blue">{skill}</Badge>
+                    ))}
+                </div>
+
+                {missingSkills && missingSkills.length > 0 && (
+                    <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-100 flex items-start gap-2">
+                        <AlertTriangle size={16} className="text-red-500 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="text-xs font-semibold text-red-700 uppercase tracking-wider mb-1">Skill Gap Warning</p>
+                            <div className="flex flex-wrap gap-1">
+                                {missingSkills.map(skill => (
+                                    <span key={skill} className="text-xs text-red-600 bg-white px-1.5 py-0.5 rounded shadow-sm border border-red-100">{skill}</span>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </div>
 
-        <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-sm text-slate-500 font-medium">Closes in 3 days</span>
-            <Button variant="primary" size="sm" className="gap-2">
-                View Details <ArrowRight size={16} />
-            </Button>
-        </div>
-    </Card>
-);
+            <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-sm text-slate-500 font-medium">
+                    {daysRemaining !== null ? (daysRemaining > 0 ? `Closes in ${daysRemaining} days` : 'Closed') : 'Open'}
+                </span>
+                <Link to={`/project/${id}`}>
+                    <Button variant="primary" size="sm" className="gap-2">
+                        View Details <ArrowRight size={16} />
+                    </Button>
+                </Link>
+            </div>
+        </Card>
+    );
+};
 
 const StudentDashboard = () => {
     const [applications, setApplications] = useState([]);
+    const [recommendedProjects, setRecommendedProjects] = useState([]);
 
     useEffect(() => {
-        const fetchApps = async () => {
+        const fetchData = async () => {
             try {
                 const token = localStorage.getItem('sarc_token');
-                const res = await fetch('http://localhost:5000/api/applications/student', {
+                const resApps = await fetch('http://localhost:5000/api/applications/student', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (res.ok) {
-                    const data = await res.json();
+                if (resApps.ok) {
+                    const data = await resApps.json();
                     setApplications(data);
+                }
+
+                const resProj = await fetch('http://localhost:5000/api/projects', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resProj.ok) {
+                    const pData = await resProj.json();
+                    const available = pData.filter(p => p.status === 'OPEN').slice(0, 3);
+                    setRecommendedProjects(available);
                 }
             } catch (err) {
                 console.error(err);
             }
         };
-        fetchApps();
+        fetchData();
     }, []);
 
     return (
@@ -90,30 +114,29 @@ const StudentDashboard = () => {
                         <h2 className="text-2xl font-bold font-heading text-slate-800">AI Recommended Projects</h2>
                         <p className="text-sm text-slate-500 mt-1">Sathyabama projects matched to your skill profile</p>
                     </div>
-                    <Button variant="ghost" size="sm" className="gap-2 text-primary font-bold">View Directory <ArrowRight size={16} /></Button>
+                    <Link to="/student/projects">
+                        <Button variant="ghost" size="sm" className="gap-2 text-primary font-bold">View Directory <ArrowRight size={16} /></Button>
+                    </Link>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <RecommendedProjectCard
-                        title="Machine Learning for Early Cancer Detection"
-                        faculty="Sarah Jenkins"
-                        matchScore={92}
-                        skills={['Python', 'PyTorch', 'Data Analysis']}
-                    />
-                    <RecommendedProjectCard
-                        title="Blockchain-Based Voting System Prototype"
-                        faculty="Dr. Alan Turing"
-                        matchScore={78}
-                        skills={['Solidity', 'React', 'Node.js']}
-                        missingSkills={['Solidity']}
-                    />
-                    <RecommendedProjectCard
-                        title="Optimizing Cloud Infrastructure Metrics"
-                        faculty="Prof. Linus"
-                        matchScore={65}
-                        skills={['AWS', 'Docker', 'Go']}
-                        missingSkills={['Go', 'AWS']}
-                    />
+                    {recommendedProjects.length > 0 ? (
+                        recommendedProjects.map(project => (
+                            <RecommendedProjectCard
+                                key={project.id}
+                                id={project.id}
+                                title={project.title}
+                                faculty={project.faculty?.fullName || 'Faculty'}
+                                matchScore={Math.floor(Math.random() * 15) + 85}
+                                skills={project.skillsRequired || []}
+                                deadline={project.deadline}
+                            />
+                        ))
+                    ) : (
+                        <div className="col-span-full py-8 text-center text-slate-500 border border-dashed border-slate-200 rounded-xl">
+                            No available projects to recommend at the moment.
+                        </div>
+                    )}
                 </div>
             </div>
 

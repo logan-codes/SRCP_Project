@@ -18,6 +18,7 @@ router.post('/teams/invite', authMiddleware, isStudent, guideTeamController.invi
 router.put('/teams/invite/respond', authMiddleware, isStudent, guideTeamController.respondToInvite);
 router.get('/teams/invites/my', authMiddleware, isStudent, guideTeamController.getMyPendingInvites);
 router.get('/teams/my', authMiddleware, isStudent, guideTeamController.getMyTeam);
+router.put('/teams/my', authMiddleware, isStudent, guideTeamController.updateTeam);
 router.get('/teams/invites/faculty', authMiddleware, isStudent, guideTeamController.getMyGuideInvites); // Helper for Phase 2
 
 // -----------------------------------------------------

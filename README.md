@@ -1,4 +1,4 @@
-# 🎓 SARC – Student Academic Research Collaboration Platform
+# 🎓 SARCG – Student Academic Research Collaboration Platform
 
 > A full-stack web application that connects **students**, **faculty**, and **industry professionals** for seamless research project collaboration, application management, and team formation.
 
@@ -25,7 +25,7 @@
 
 ## 📖 About the Project
 
-**SARC (Student Academic Research Collaboration)** is a platform designed to bridge the gap between students seeking research opportunities and faculty members offering research projects. It provides a structured workflow for:
+**SARCG (Student Academic Research Collaboration)** is a platform designed to bridge the gap between students seeking research opportunities and faculty members offering research projects. It provides a structured workflow for:
 
 - Faculty posting research/industry projects
 - Students browsing and applying to projects

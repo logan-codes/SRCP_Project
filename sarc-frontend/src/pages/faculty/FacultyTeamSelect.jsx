@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
 import TeamCard from '../../components/guide/TeamCard';
 import Button from '../../components/common/Button';
 
 const FacultyTeamSelect = () => {
     const [teams, setTeams] = useState([]);
+    const [filteredTeams, setFilteredTeams] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [selectedTeamIds, setSelectedTeamIds] = useState([]);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
@@ -21,6 +24,7 @@ const FacultyTeamSelect = () => {
                 if (!res.ok) throw new Error('Failed to fetch teams');
                 const data = await res.json();
                 setTeams(data);
+                setFilteredTeams(data);
             } catch (error) {
                 console.error(error);
                 setMessage('Error loading available teams.');
@@ -31,6 +35,27 @@ const FacultyTeamSelect = () => {
 
         fetchTeams();
     }, []);
+
+    useEffect(() => {
+        if (!searchQuery) {
+            setFilteredTeams(teams);
+            return;
+        }
+        
+        const q = searchQuery.toLowerCase();
+        const filtered = teams.filter(team => {
+            if (team.teamName?.toLowerCase().includes(q) || team.teamId?.toLowerCase().includes(q)) return true;
+            if (team.members) {
+                return team.members.some(m => {
+                    const studentName = m.student?.fullName?.toLowerCase() || '';
+                    const registerNo = m.student?.studentProfile?.studentId?.toLowerCase() || m.student?.email?.toLowerCase() || '';
+                    return studentName.includes(q) || registerNo.includes(q);
+                });
+            }
+            return false;
+        });
+        setFilteredTeams(filtered);
+    }, [searchQuery, teams]);
 
     const handleToggleSelect = (team) => {
         if (selectedTeamIds.includes(team.id)) {
@@ -104,13 +129,26 @@ const FacultyTeamSelect = () => {
                 </div>
             )}
 
-            {teams.length === 0 ? (
+            <div className="mb-8 relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-text-secondary" />
+                </div>
+                <input
+                    type="text"
+                    placeholder="Search by team name, team ID, student name, or register number..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-surface border border-border rounded-xl pl-11 pr-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                />
+            </div>
+
+            {filteredTeams.length === 0 ? (
                 <div className="text-center py-12 bg-surface/50 border border-border rounded-2xl">
                     <p className="text-text-secondary">No available teams to select at this moment.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {teams.map(team => {
+                    {filteredTeams.map(team => {
                         const isSelected = selectedTeamIds.includes(team.id);
                         return (
                             <div key={team.id} className="relative">

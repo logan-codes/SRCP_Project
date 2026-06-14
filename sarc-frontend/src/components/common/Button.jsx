@@ -15,6 +15,8 @@ const Button = ({ children, variant = 'primary', size = 'md', className = '', ..
         outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-white',
         ghost: 'text-slate-600 hover:text-primary hover:bg-slate-100',
         secondary: 'bg-secondary text-primary-dark hover:bg-secondary-light shadow-sm font-bold',
+        danger: 'bg-red-600 text-white hover:bg-red-700 shadow-sm',
+        'danger-outline': 'border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300',
     };
 
     return (

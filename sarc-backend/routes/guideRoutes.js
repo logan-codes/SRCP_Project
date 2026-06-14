@@ -4,6 +4,7 @@ const authMiddleware = require('../middleware/auth');
 const guideTeamController = require('../controllers/guideTeamController');
 const facultyGuideController = require('../controllers/facultyGuideController');
 const guideAdminController = require('../controllers/guideAdminController');
+const upload = require('../middleware/upload');
 
 // Helper to check roles
 const isStudent = authMiddleware.checkRole('STUDENT');
@@ -13,7 +14,7 @@ const isAdmin = authMiddleware.checkRole('ADMIN');
 // -----------------------------------------------------
 // Phase 1 — Team Formation (Student)
 // -----------------------------------------------------
-router.post('/teams', authMiddleware, isStudent, guideTeamController.createTeam);
+router.post('/teams', authMiddleware, isStudent, upload.single('abstractFile'), guideTeamController.createTeam);
 router.post('/teams/invite', authMiddleware, isStudent, guideTeamController.inviteMember);
 router.put('/teams/invite/respond', authMiddleware, isStudent, guideTeamController.respondToInvite);
 router.get('/teams/invites/my', authMiddleware, isStudent, guideTeamController.getMyPendingInvites);

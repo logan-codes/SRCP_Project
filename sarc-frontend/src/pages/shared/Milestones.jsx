@@ -16,12 +16,16 @@ const Milestones = ({ projectId }) => {
         const fetchMilestones = async () => {
             try {
                 if (!projectId) {
-                    // Provide some gorgeous mock data for demonstration when accessed from sidebar
-                    setMilestones([
-                        { id: 1, title: 'Project Proposal Submission', description: 'Submit detailed lit review and methodology.', dueDate: new Date(Date.now() + 86400000 * 5).toISOString(), status: 'PENDING', project: { title: 'AI Cancer Detection' } },
-                        { id: 2, title: 'Mid-term Prototype Review', description: 'Working MVP demo to faculty.', dueDate: new Date(Date.now() + 86400000 * 30).toISOString(), status: 'PENDING', project: { title: 'AI Cancer Detection' } },
-                        { id: 3, title: 'Initial Setup', description: 'Repo setup and environment config.', dueDate: new Date(Date.now() - 86400000 * 5).toISOString(), status: 'COMPLETED', project: { title: 'AI Cancer Detection' } },
-                    ]);
+                    const token = localStorage.getItem('sarc_token');
+                    const globalRes = await fetch('http://localhost:5000/api/global-milestones', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (globalRes.ok) {
+                        const data = await globalRes.json();
+                        setMilestones(data);
+                    } else {
+                        setMilestones([]);
+                    }
                     setLoading(false);
                     return;
                 }
@@ -97,7 +101,7 @@ const Milestones = ({ projectId }) => {
                                     <h3 className="text-xl font-bold text-slate-800 font-heading mb-2">{m.title}</h3>
                                     <p className="text-slate-600 text-sm mb-4">{m.description}</p>
                                     
-                                    {m.project && <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest border-t border-slate-100 pt-3">{m.project.title}</p>}
+                                    {(m.project || !projectId) && <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest border-t border-slate-100 pt-3">{m.project?.title || 'SARCG Timeline'}</p>}
                                     
                                     {!isCompleted && role === 'STUDENT' && (
                                         <Button className="w-full mt-4 bg-white shadow-sm hover:shadow" variant="outline" size="sm">

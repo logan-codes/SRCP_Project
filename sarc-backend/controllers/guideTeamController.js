@@ -49,6 +49,7 @@ exports.createTeam = async (req, res) => {
                 projectTitle,
                 description,
                 domain,
+                abstractFile: req.file ? req.file.filename : null,
                 leaderId: studentId,
                 members: {
                     create: {
@@ -390,6 +391,7 @@ exports.getAvailableFaculty = async (req, res) => {
         const available = slots.map(slot => ({
             facultyId: slot.facultyId,
             name: slot.faculty.fullName,
+            profilePhoto: slot.faculty.profilePhoto,
             department: slot.faculty.facultyProfile?.department,
             researchAreas: slot.faculty.facultyProfile?.researchAreas || [],
             totalSlots: slot.totalSlots,

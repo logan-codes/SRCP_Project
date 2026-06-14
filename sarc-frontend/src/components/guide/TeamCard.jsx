@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, FileText, LayoutTemplate, MapPin } from 'lucide-react';
+import { Users, FileText, LayoutTemplate, MapPin, Award } from 'lucide-react';
 import Button from '../common/Button';
 
 const TeamCard = ({ team, onAction, actionLabel, showStatus, onReject }) => {
@@ -40,6 +40,32 @@ const TeamCard = ({ team, onAction, actionLabel, showStatus, onReject }) => {
                         Members: {team.members?.length || 0}
                     </p>
                 </div>
+
+                {team.abstractFile && (
+                    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/50">
+                        <FileText className="w-4 h-4 text-accent flex-shrink-0" />
+                        <a 
+                            href={`http://localhost:5000/uploads/${team.abstractFile}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-accent hover:underline font-medium"
+                        >
+                            View Project Abstract
+                        </a>
+                    </div>
+                )}
+
+                {team.guide && (
+                    <div className="mt-4 p-3 bg-gradient-to-r from-accent/5 to-transparent border border-accent/20 rounded-xl flex items-center gap-3">
+                        <div className="bg-accent/10 p-2 rounded-lg">
+                            <Award className="w-5 h-5 text-accent" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-0.5">Assigned Guide</p>
+                            <p className="text-sm font-bold text-text-primary">{team.guide.fullName}</p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {team.members && team.members.length > 0 && (
@@ -47,11 +73,16 @@ const TeamCard = ({ team, onAction, actionLabel, showStatus, onReject }) => {
                     <p className="text-xs text-text-secondary mb-2 uppercase tracking-wider">Team Members</p>
                     <ul className="space-y-1">
                         {team.members.map((member) => (
-                            <li key={member.id} className="text-sm text-text-primary flex items-center justify-between">
-                                <span>{member.student?.fullName || 'Student'} {member.isLeader ? '👑' : ''}</span>
-                                <span className={`text-xs ${
-                                    member.inviteStatus === 'ACCEPTED' ? 'text-green-500' :
-                                    member.inviteStatus === 'PENDING' ? 'text-yellow-500' : 'text-red-500'
+                            <li key={member.id} className="text-sm text-text-primary flex items-center justify-between py-1 border-b border-border/30 last:border-0">
+                                <div className="flex flex-col">
+                                    <span>{member.student?.fullName || 'Student'} {member.isLeader ? '👑' : ''}</span>
+                                    {member.student?.studentProfile?.studentId && (
+                                        <span className="text-xs text-text-secondary">{member.student.studentProfile.studentId}</span>
+                                    )}
+                                </div>
+                                <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${
+                                    member.inviteStatus === 'ACCEPTED' ? 'bg-green-500/10 text-green-500' :
+                                    member.inviteStatus === 'PENDING' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-red-500/10 text-red-500'
                                 }`}>
                                     {member.inviteStatus}
                                 </span>

@@ -10,8 +10,6 @@ const path = require('path');
 // Middleware
 app.use(cors());
 app.use(express.json());
-
-// Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
@@ -24,10 +22,11 @@ app.use('/api/milestones', require('./routes/milestoneRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/guide', require('./routes/guideRoutes'));
 app.use('/api/stats', require('./routes/statsRoutes'));
+app.use('/api/global-milestones', require('./routes/globalMilestoneRoutes'));
 
 // Basic Route for testing
 app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to the SARC API' });
+    res.json({ message: 'Welcome to the SARCG API' });
 });
 
 // Start the server

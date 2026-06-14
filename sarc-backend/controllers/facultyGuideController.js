@@ -12,7 +12,16 @@ exports.getFinalizedTeams = async (req, res) => {
                 leader: { select: { id: true, fullName: true, email: true } },
                 members: {
                     where: { inviteStatus: 'ACCEPTED' },
-                    include: { student: { select: { id: true, fullName: true, email: true } } }
+                    include: { 
+                        student: { 
+                            select: { 
+                                id: true, 
+                                fullName: true, 
+                                email: true,
+                                studentProfile: true
+                            } 
+                        } 
+                    }
                 }
             }
         });
@@ -104,7 +113,7 @@ exports.getMySelections = async (req, res) => {
                         leader: true,
                         members: {
                             where: { inviteStatus: 'ACCEPTED' },
-                            include: { student: true }
+                            include: { student: { include: { studentProfile: true } } }
                         }
                     }
                 }

@@ -6,6 +6,8 @@ const upload = require('../middleware/upload');
 
 router.post('/register', authController.register);
 router.post('/login', authController.login);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password', authController.resetPassword);
 router.get('/me', auth, authController.getMe);
 router.put('/profile', auth, upload.fields([
     { name: 'profilePhoto', maxCount: 1 },

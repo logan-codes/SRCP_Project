@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FacultyGuideCard from '../../components/guide/FacultyGuideCard';
+import { Search } from 'lucide-react';
 
 const GuideSelect = () => {
     const navigate = useNavigate();
     const [facultyList, setFacultyList] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [team, setTeam] = useState(null);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
@@ -97,6 +99,21 @@ const GuideSelect = () => {
                 </div>
             )}
 
+            {!hasGuide && facultyList.length > 0 && (
+                <div className="mb-6 relative max-w-md">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Search className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search by name or department..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white"
+                    />
+                </div>
+            )}
+
             {hasGuide ? (
                 <div className="bg-surface/50 border border-border p-8 rounded-2xl text-center">
                     <h2 className="text-2xl font-bold text-green-500 mb-2">Guide Selected ✅</h2>
@@ -104,7 +121,10 @@ const GuideSelect = () => {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {facultyList.map(faculty => (
+                    {facultyList.filter(f => 
+                        f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (f.department && f.department.toLowerCase().includes(searchTerm.toLowerCase()))
+                    ).map(faculty => (
                         <FacultyGuideCard
                             key={faculty.facultyId}
                             faculty={faculty}

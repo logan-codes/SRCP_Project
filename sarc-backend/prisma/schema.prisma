@@ -29,6 +29,9 @@ model User {
   role         Role    @default(STUDENT)
   profilePhoto String?
 
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+
   studentProfile  StudentProfile?
   facultyProfile  FacultyProfile?
   industryProfile IndustryProfile?
@@ -52,6 +55,7 @@ model StudentProfile {
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   studentId            String?
+  batch                String?
   department           String?
   yearOfStudy          String?
   section              String?
@@ -273,6 +277,7 @@ model GuideTeam {
   guide         User?                @relation("GuideAssigned", fields: [guideId], references: [id])
   guideStatus   GuideSelectionStatus @default(PENDING)
   isFinalized   Boolean              @default(false)
+  abstractFile  String?
   createdAt     DateTime             @default(now())
   facultySelections FacultyTeamSelection[]
 }
@@ -317,3 +322,12 @@ model GuideSelectionConfig {
   phase GuideSelectionPhase @default(CLOSED)
 }
 
+model GlobalMilestone {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  dueDate     DateTime
+  status      String   @default("PENDING") // PENDING, COMPLETED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

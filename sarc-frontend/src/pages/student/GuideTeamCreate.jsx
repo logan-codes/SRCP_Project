@@ -11,6 +11,7 @@ const GuideTeamCreate = () => {
         domain: '',
         inviteMember: ''
     });
+    const [abstractFile, setAbstractFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -25,18 +26,22 @@ const GuideTeamCreate = () => {
 
         try {
             const token = localStorage.getItem('sarc_token');
+
+            const submitData = new FormData();
+            submitData.append('teamName', formData.teamName);
+            submitData.append('projectTitle', formData.projectTitle);
+            submitData.append('description', formData.description);
+            submitData.append('domain', formData.domain);
+            if (abstractFile) {
+                submitData.append('abstractFile', abstractFile);
+            }
+
             const res = await fetch('http://localhost:5000/api/guide/teams', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    teamName: formData.teamName,
-                    projectTitle: formData.projectTitle,
-                    description: formData.description,
-                    domain: formData.domain
-                })
+                body: submitData
             });
 
             if (!res.ok) {
@@ -142,6 +147,16 @@ const GuideTeamCreate = () => {
                         <option value="Blockchain">Blockchain</option>
                         <option value="Other">Other</option>
                     </select>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-text-primary mb-2">Project Abstract (PDF) <span className="text-text-secondary text-xs font-normal">(Optional)</span></label>
+                    <input 
+                        type="file" 
+                        accept="application/pdf"
+                        onChange={(e) => setAbstractFile(e.target.files[0])}
+                        className="w-full bg-canvas border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent/10 file:text-accent hover:file:bg-accent/20"
+                    />
                 </div>
 
                 <div className="pt-4 border-t border-border">

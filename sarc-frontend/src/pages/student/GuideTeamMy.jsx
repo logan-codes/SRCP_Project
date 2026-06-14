@@ -136,7 +136,7 @@ const GuideTeamMy = () => {
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
             <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold text-text-primary">My Guide Team</h1>
+                <h1 className="text-3xl font-bold text-text-primary">My Team</h1>
                 {canEdit && !isEditing && (
                     <Button onClick={() => setIsEditing(true)} variant="outline">
                         Edit Team

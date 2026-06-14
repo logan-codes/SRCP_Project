@@ -67,7 +67,7 @@ const AuthPage = () => {
                         </div>
                         <h2 className="text-3xl md:text-4xl font-extrabold font-heading text-slate-900 tracking-tight">
                             Welcome to the <br className="sm:hidden" />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-dark to-accent">Sathyabama</span> SARC Portal
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-dark to-accent">Sathyabama</span> SARCG Portal
                         </h2>
                         <p className="mt-4 text-lg text-slate-700 max-w-2xl mx-auto font-medium">
                             Please select your role to login or register for a new account.

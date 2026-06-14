@@ -84,10 +84,10 @@ const LandingPage = () => {
                 <section id="about" className="py-20 scroll-mt-24 bg-white border-t border-slate-100">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
-                            <h2 className="text-3xl font-bold font-heading text-primary">About SARC</h2>
+                            <h2 className="text-3xl font-bold font-heading text-primary">About SARCG</h2>
                             <div className="h-1 w-20 bg-secondary mx-auto mt-4 rounded-full"></div>
                             <p className="mt-6 text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
-                                The Sathyabama Academic Research Collaboration (SARC) portal is designed to streamline the research journey for students and faculty. By centralizing project discovery, team formation, and guide allocation, we aim to foster an environment of cross-disciplinary innovation and academic excellence. SARC bridges the gap between ambitious students and experienced faculty, ensuring every research project reaches its full potential.
+                                The Sathyabama Academic Research Collaboration and Guide Selection (SARCG) portal is designed to streamline the research journey for students and faculty. By centralizing project discovery, team formation, and guide allocation, we aim to foster an environment of cross-disciplinary innovation and academic excellence. SARCG bridges the gap between ambitious students and experienced faculty, ensuring every research project reaches its full potential.
                             </p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -114,9 +114,13 @@ const LandingPage = () => {
                 <section className="py-20 bg-canvas">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="bg-gradient-to-br from-primary to-primary-dark rounded-3xl p-12 text-center text-white relative overflow-hidden shadow-2xl border border-primary-dark">
-                            <div className="absolute inset-0 top-0 left-0 w-full h-full opacity-10 flex items-center justify-center">
-                                {/* Subtle large letter S representing Sathyabama */}
-                                <span className="text-[20rem] font-serif font-bold italic translate-y-8 select-none">S</span>
+                            <div className="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden pointer-events-none">
+                                {/* Elegant watermark */}
+                                <span 
+                                    className="text-[6rem] md:text-[9rem] font-serif font-bold italic tracking-widest select-none whitespace-nowrap text-white opacity-5 mix-blend-overlay"
+                                >
+                                    SATHYABAMA
+                                </span>
                             </div>
                             <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 lg:divide-x divide-white/20">
                                 <div className="p-4">

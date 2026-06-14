@@ -4,6 +4,8 @@ import LandingPage from './pages/public/LandingPage';
 import AuthPage from './pages/public/AuthPage';
 import Login from './pages/public/Login';
 import Register from './pages/public/Register';
+import ForgotPassword from './pages/public/ForgotPassword';
+import ResetPassword from './pages/public/ResetPassword';
 import StudentDashboard from './pages/student/StudentDashboard';
 import FacultyDashboard from './pages/faculty/FacultyDashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -29,6 +31,7 @@ import FacultyMyPicks from './pages/faculty/FacultyMyPicks';
 import GuideAdminConfig from './pages/admin/GuideAdminConfig';
 import AdminUserManagement from './pages/admin/AdminUserManagement';
 import AdminTeamFinalization from './pages/admin/AdminTeamFinalization';
+import AdminMilestonesConfig from './pages/admin/AdminMilestonesConfig';
 import GuideDashboard from './pages/shared/GuideDashboard';
 
 function App() {
@@ -39,6 +42,8 @@ function App() {
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
                 <Route path="/student" element={<StudentDashboard />} />
                 <Route path="/student/projects" element={<BrowseProjects />} />
@@ -75,6 +80,7 @@ function App() {
                 <Route path="/admin/guide/config" element={<DashboardLayout><GuideAdminConfig /></DashboardLayout>} />
                 <Route path="/admin/users" element={<DashboardLayout><AdminUserManagement /></DashboardLayout>} />
                 <Route path="/admin/teams/finalize" element={<DashboardLayout><AdminTeamFinalization /></DashboardLayout>} />
+                <Route path="/admin/milestones/config" element={<DashboardLayout><AdminMilestonesConfig /></DashboardLayout>} />
                 <Route path="/guide/dashboard" element={<DashboardLayout><GuideDashboard /></DashboardLayout>} />
             </Routes>
         </div>

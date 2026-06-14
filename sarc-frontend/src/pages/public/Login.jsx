@@ -70,7 +70,7 @@ const Login = () => {
                             Welcome Back
                         </h2>
                         <p className="mt-2 text-sm text-slate-600">
-                            Please sign in to your SARC account
+                            Please sign in to your SARCG account
                         </p>
                     </div>
 
@@ -131,9 +131,9 @@ const Login = () => {
                                 </div>
 
                                 <div className="text-sm">
-                                    <a href="#" className="font-medium text-primary hover:text-primary-dark">
+                                    <Link to="/forgot-password" className="font-medium text-primary hover:text-primary-dark">
                                         Forgot your password?
-                                    </a>
+                                    </Link>
                                 </div>
                             </div>
 

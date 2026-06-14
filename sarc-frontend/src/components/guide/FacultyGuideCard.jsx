@@ -11,8 +11,23 @@ const FacultyGuideCard = ({ faculty, onSelect, isSelectable, isSelected }) => {
                 </div>
             )}
             
-            <h3 className="text-lg font-bold text-text-primary">{faculty.name}</h3>
-            <p className="text-sm text-text-secondary mb-4">{faculty.department}</p>
+            <div className="flex items-start gap-3 mb-4">
+                {faculty.profilePhoto ? (
+                    <img 
+                        src={faculty.profilePhoto.startsWith('http') ? faculty.profilePhoto : `http://localhost:5000/uploads/${faculty.profilePhoto.split(/[\\/]/).pop()}`} 
+                        alt={faculty.name} 
+                        className="w-12 h-12 rounded-full object-cover border border-primary/20 shrink-0"
+                    />
+                ) : (
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg border border-primary/20 shrink-0">
+                        {faculty.name.charAt(0)}
+                    </div>
+                )}
+                <div>
+                    <h3 className="text-lg font-bold text-text-primary leading-tight">{faculty.name}</h3>
+                    <p className="text-sm text-text-secondary mt-1">{faculty.department}</p>
+                </div>
+            </div>
             
             <div className="mb-4">
                 <p className="text-xs text-text-secondary uppercase mb-1">Research Areas</p>

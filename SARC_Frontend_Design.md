@@ -1,4 +1,4 @@
-# SARC: Smart Academic Research & Collaboration Portal
+# SARCG: Smart Academic Research & Collaboration Portal
 **Frontend Architecture & Design Document**
 
 ## 🎨 1. Design System Guidelines
@@ -116,7 +116,7 @@ src/
 ## 📐 5. Complete Page Layout Structure
 
 ### 1️⃣ Landing Page
-*   **Navbar:** Logo (SARC), Login, Sign Up.
+*   **Navbar:** Logo (SARCG), Login, Sign Up.
 *   **Hero Section:** 
     *   *Headline:* “Empowering Research Collaboration Through AI”
     *   *Visual:* Abstract nodes/connections or 3D illustration.

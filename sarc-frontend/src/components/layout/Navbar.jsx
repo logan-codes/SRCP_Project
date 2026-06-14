@@ -67,6 +67,7 @@ const Navbar = () => {
             navigate(path);
         } else {
             alert("Please log in to browse research projects.");
+            navigate('/login');
         }
     };
 
@@ -88,7 +89,7 @@ const Navbar = () => {
                     <div className="flex items-center">
                         <Link to={isLoggedIn ? dashboardPath : "/"} className="text-xl md:text-2xl font-bold font-heading text-primary flex items-center gap-3">
                             <img src="/images/logo.jpg" alt="Sathyabama Logo" className="h-12 w-auto object-contain" />
-                            <span className="hidden sm:inline">SATHYABAMA</span> <span className="text-slate-500 font-normal text-sm hidden lg:inline border-l border-slate-300 ml-3 pl-3">SARC Portal</span>
+                            <span className="hidden sm:inline">SATHYABAMA</span> <span className="text-slate-500 font-normal text-sm hidden lg:inline border-l border-slate-300 ml-3 pl-3">SARCG Portal</span>
                         </Link>
                         <div className="hidden md:flex items-center space-x-8 ml-10 border-l border-slate-200 pl-8">
                             <a href="#about" className="text-slate-700 hover:text-primary font-medium transition-colors">About</a>
@@ -149,7 +150,7 @@ const Navbar = () => {
                                         </div>
                                     )}
                                 </div>
-                                <Button variant="outline" className="hidden sm:flex text-slate-600 gap-2 font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200" onClick={handleLogout}>
+                                <Button variant="danger-outline" className="hidden sm:flex gap-2 font-bold" onClick={handleLogout}>
                                     <LogOut size={16} /> Logout
                                 </Button>
                             </>

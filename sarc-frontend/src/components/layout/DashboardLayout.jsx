@@ -19,7 +19,6 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
                     { name: 'Browse Projects', icon: Compass, path: `/${basePath}/projects` },
                     { name: 'Student Applications', icon: Send, path: `/${basePath}/applications` },
                     { name: 'Team Formation', icon: Users, path: `/${basePath}/teams` },
-                    { name: 'Milestones', icon: Flag, path: `/${basePath}/milestones` },
                     { name: 'Profile', icon: User, path: `/${basePath}/profile` },
                 ]
             },
@@ -40,6 +39,7 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
                     { name: 'Dashboard', icon: LayoutDashboard, path: `/${basePath}` },
                     { name: 'User Management', icon: Users, path: '/admin/users' },
                     { name: 'Team Finalization', icon: Check, path: '/admin/teams/finalize' },
+                    { name: 'Global Milestones', icon: Flag, path: '/admin/milestones/config' },
                     { name: 'Profile', icon: User, path: `/${basePath}/profile` },
                 ]
             },
@@ -69,7 +69,6 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
             {
                 title: 'Guide Selection',
                 links: [
-                    { name: 'Guide Dashboard', icon: LayoutDashboard, path: '/guide/dashboard' },
                     { name: 'Project Team', icon: Users, path: '/guide/team/my' },
                     { name: 'Team Invites', icon: Bell, path: '/guide/invites/team' },
                     { name: 'Select Guide', icon: User, path: '/guide/select' },
@@ -103,26 +102,27 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
                     </button>
                 </div>
 
-                <div className="p-4 overflow-y-auto max-h-[calc(100vh-4rem)]">
+                <div className="p-5 overflow-y-auto max-h-[calc(100vh-4rem)] space-y-8">
                     {menuSections.map((section, idx) => (
-                        <div key={section.title} className={idx > 0 ? "mt-6" : ""}>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-2">
+                        <div key={section.title}>
+                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-4 px-3 flex items-center gap-3">
                                 {section.title}
+                                <span className="h-px bg-slate-100 flex-1"></span>
                             </p>
-                            <nav className="space-y-1">
+                            <nav className="space-y-1.5">
                                 {section.links.map((link) => {
                                     const isActive = location.pathname === link.path || (link.path === `/${basePath}` && location.pathname === `/${basePath}`);
                                     return (
                                         <Link
                                             key={link.name}
                                             to={link.path}
-                                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-all ${isActive
-                                                ? 'bg-primary/5 text-primary border-r-4 border-r-primary'
-                                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                            className={`flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 group ${isActive
+                                                ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md shadow-primary/30 transform scale-[1.02]'
+                                                : 'text-slate-500 hover:bg-slate-50 hover:text-primary hover:translate-x-1'
                                                 }`}
                                         >
-                                            <link.icon size={18} className={isActive ? 'text-primary' : 'text-slate-400'} />
-                                            {link.name}
+                                            <link.icon size={20} className={`transition-colors ${isActive ? 'text-secondary-light' : 'text-slate-400 group-hover:text-primary'}`} />
+                                            <span>{link.name}</span>
                                         </Link>
                                     );
                                 })}
@@ -225,7 +225,7 @@ export const DashboardLayout = ({ children }) => {
         window.location.href = '/login';
     };
 
-    const unreadCount = notifications.filter(n => !n.isRead).length;
+    const unreadCount = notifications.filter(n => !n.read).length;
 
     return (
         <div className="min-h-screen bg-canvas flex font-body">
@@ -273,7 +273,7 @@ export const DashboardLayout = ({ children }) => {
                                             <div className="p-4 text-center text-sm text-slate-500">No notifications</div>
                                         ) : (
                                             notifications.map(notif => (
-                                                <div key={notif.id} className={`p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors ${!notif.isRead ? 'bg-primary/5' : ''}`}>
+                                                <div key={notif.id} className={`p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors ${!notif.read ? 'bg-primary/5' : ''}`}>
                                                     <div className="flex justify-between items-start gap-2">
                                                         <div>
                                                             <p className="text-sm font-medium text-slate-900">{notif.title}</p>
@@ -282,7 +282,7 @@ export const DashboardLayout = ({ children }) => {
                                                                 {new Date(notif.createdAt).toLocaleDateString()}
                                                             </span>
                                                         </div>
-                                                        {!notif.isRead && (
+                                                        {!notif.read && (
                                                             <button 
                                                                 onClick={() => markAsRead(notif.id)}
                                                                 className="text-primary hover:bg-primary/10 p-1 rounded-md transition-colors"
@@ -302,11 +302,19 @@ export const DashboardLayout = ({ children }) => {
 
                         <div className="relative" ref={profileRef}>
                             <div
-                                className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-secondary font-bold text-sm border border-secondary/50 shadow-sm cursor-pointer hover:bg-primary-dark transition-colors"
+                                className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-secondary font-bold text-sm border border-secondary/50 shadow-sm cursor-pointer hover:bg-primary-dark transition-colors overflow-hidden shrink-0"
                                 title="User Profile"
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                             >
-                                {userInitials}
+                                {userData?.profilePhoto ? (
+                                    <img 
+                                        src={userData.profilePhoto.startsWith('http') ? userData.profilePhoto : `http://localhost:5000/uploads/${userData.profilePhoto.split(/[\\/]/).pop()}`} 
+                                        alt="Profile" 
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    userInitials
+                                )}
                             </div>
 
                             {isProfileOpen && (

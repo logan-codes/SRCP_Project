@@ -13,7 +13,10 @@ const AdminUserManagement = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('CREATE'); // CREATE or EDIT
-    const [currentUser, setCurrentUser] = useState({ fullName: '', email: '', role: 'STUDENT', password: '' });
+    const [currentUser, setCurrentUser] = useState({ fullName: '', email: '', role: 'STUDENT', password: '', department: '', batch: '', section: '' });
+
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [importData, setImportData] = useState({ department: '', batch: '', section: '', file: null });
 
     const fetchUsers = async () => {
         try {
@@ -39,9 +42,15 @@ const AdminUserManagement = () => {
     const handleOpenModal = (mode, user = null) => {
         setModalMode(mode);
         if (mode === 'EDIT' && user) {
-            setCurrentUser({ ...user, password: '' });
+            setCurrentUser({ 
+                ...user, 
+                password: '',
+                department: user.studentProfile?.department || user.facultyProfile?.department || user.adminProfile?.department || '',
+                batch: user.studentProfile?.batch || '',
+                section: user.studentProfile?.section || ''
+            });
         } else {
-            setCurrentUser({ fullName: '', email: '', role: activeTab, password: '' });
+            setCurrentUser({ fullName: '', email: '', role: activeTab, password: '', department: '', batch: '', section: '' });
         }
         setIsModalOpen(true);
     };
@@ -101,9 +110,17 @@ const AdminUserManagement = () => {
 
     const getBatchString = (user) => {
         const dept = user.studentProfile?.department;
-        const year = user.studentProfile?.yearOfStudy;
-        if (!dept && !year) return 'Unassigned Batch';
-        return `${dept || 'Unknown Dept'} - ${year || 'Unknown Year'}`;
+        const batch = user.studentProfile?.batch;
+        const section = user.studentProfile?.section;
+        
+        if (!dept && !batch && !section) return 'Unassigned Batch';
+        
+        const parts = [];
+        if (dept) parts.push(dept);
+        if (batch) parts.push(`Batch ${batch}`);
+        if (section) parts.push(`Section ${section}`);
+        
+        return parts.length > 0 ? parts.join(' - ') : 'Unassigned Batch';
     };
 
     // Filter by role and search term
@@ -130,9 +147,13 @@ const AdminUserManagement = () => {
         return groups;
     }, [activeUsers, activeTab]);
 
-    const handleExcelUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    const executeExcelUpload = async (e) => {
+        e.preventDefault();
+        const file = importData.file;
+        if (!file) {
+            setMessage({ text: 'Please select a file to import', type: 'error' });
+            return;
+        }
 
         const reader = new FileReader();
         reader.onload = async (evt) => {
@@ -153,8 +174,10 @@ const AdminUserManagement = () => {
                     email: row.Email || row.email || '',
                     password: row.Password || row.password || 'password123',
                     role: (row.Role || row.role || activeTab).toUpperCase(),
-                    department: row.Department || row.department || '',
-                    yearOfStudy: row.Batch || row.YearOfStudy || row.yearOfStudy || '',
+                    department: row.Department || row.department || importData.department || '',
+                    yearOfStudy: row.YearOfStudy || row.yearOfStudy || '',
+                    batch: row.Batch || row.batch || importData.batch || '',
+                    section: row.Section || row.section || importData.section || '',
                     designation: row.Designation || row.designation || ''
                 })).filter(u => u.email && u.fullName);
 
@@ -179,6 +202,8 @@ const AdminUserManagement = () => {
                 if (!res.ok) throw new Error(result.message);
 
                 setMessage({ text: `Imported ${result.createdCount} users successfully. ${result.errors?.length > 0 ? result.errors.length + ' duplicates/errors occurred.' : ''}`, type: 'success' });
+                setIsImportModalOpen(false);
+                setImportData({ department: '', batch: '', section: '', file: null });
                 fetchUsers();
             } catch (error) {
                 console.error(error);
@@ -186,7 +211,6 @@ const AdminUserManagement = () => {
             }
         };
         reader.readAsBinaryString(file);
-        e.target.value = null; // reset input
     };
 
     if (loading) return <div className="p-8 text-center text-text-secondary">Loading...</div>;
@@ -210,10 +234,9 @@ const AdminUserManagement = () => {
                             className="w-full pl-10 pr-4 py-2 bg-canvas border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent text-sm"
                         />
                     </div>
-                    <label className="flex items-center gap-2 px-4 py-2 bg-surface border border-border hover:bg-surface/80 rounded-xl font-medium text-text-primary text-sm cursor-pointer transition-colors">
+                    <button onClick={() => setIsImportModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-surface border border-border hover:bg-surface/80 rounded-xl font-medium text-text-primary text-sm cursor-pointer transition-colors">
                         <Upload className="w-4 h-4" /> Import Excel
-                        <input type="file" accept=".xlsx, .xls, .csv" onChange={handleExcelUpload} className="hidden" />
-                    </label>
+                    </button>
                     <Button onClick={() => handleOpenModal('CREATE')} className="flex items-center gap-2">
                         <Plus className="w-4 h-4" /> Add User
                     </Button>
@@ -425,6 +448,42 @@ const AdminUserManagement = () => {
                                     <option value="INDUSTRY">INDUSTRY</option>
                                 </select>
                             </div>
+                            
+                            {currentUser.role === 'STUDENT' && (
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-text-secondary mb-1">Department</label>
+                                        <input 
+                                            type="text" 
+                                            value={currentUser.department || ''}
+                                            onChange={(e) => setCurrentUser({...currentUser, department: e.target.value})}
+                                            placeholder="e.g. CSE"
+                                            className="w-full bg-canvas border border-border rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:border-accent"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-text-secondary mb-1">Batch</label>
+                                        <input 
+                                            type="text" 
+                                            value={currentUser.batch || ''}
+                                            onChange={(e) => setCurrentUser({...currentUser, batch: e.target.value})}
+                                            placeholder="e.g. 2026"
+                                            className="w-full bg-canvas border border-border rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:border-accent"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-text-secondary mb-1">Section</label>
+                                        <input 
+                                            type="text" 
+                                            value={currentUser.section || ''}
+                                            onChange={(e) => setCurrentUser({...currentUser, section: e.target.value})}
+                                            placeholder="e.g. A"
+                                            className="w-full bg-canvas border border-border rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:border-accent"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                             <div>
                                 <label className="block text-sm font-medium text-text-secondary mb-1">
                                     Password {modalMode === 'EDIT' && <span className="text-xs font-normal opacity-70">(Leave blank to keep unchanged)</span>}
@@ -441,6 +500,91 @@ const AdminUserManagement = () => {
                             <div className="pt-4 flex justify-end gap-3">
                                 <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
                                 <Button type="submit">Save User</Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Import Modal */}
+            {isImportModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-surface border border-border w-full max-w-md rounded-2xl overflow-hidden shadow-2xl">
+                        <div className="flex justify-between items-center p-6 border-b border-border">
+                            <h2 className="text-xl font-bold text-text-primary">Import {activeTab.charAt(0) + activeTab.slice(1).toLowerCase()}s from Excel</h2>
+                            <button onClick={() => setIsImportModalOpen(false)} className="text-text-secondary hover:text-text-primary">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <form onSubmit={executeExcelUpload} className="p-6 space-y-4">
+                            <div className="relative group">
+                                <label className="flex flex-col items-center justify-center w-full h-32 px-4 transition bg-canvas border-2 border-border border-dashed rounded-xl appearance-none cursor-pointer hover:border-accent hover:bg-surface focus:outline-none">
+                                    <span className="flex items-center space-x-2">
+                                        <Upload className="w-6 h-6 text-text-secondary group-hover:text-accent transition-colors" />
+                                        <span className="font-medium text-text-secondary">
+                                            {importData.file ? importData.file.name : "Drop files to attach, or browse"}
+                                        </span>
+                                    </span>
+                                    <input 
+                                        type="file" 
+                                        name="file_upload" 
+                                        className="hidden" 
+                                        accept=".xlsx, .xls, .csv" 
+                                        required
+                                        onChange={(e) => setImportData({...importData, file: e.target.files[0]})}
+                                    />
+                                </label>
+                            </div>
+
+                            {activeTab === 'STUDENT' && (
+                                <div className="bg-canvas rounded-xl p-4 border border-border">
+                                    <div className="text-sm font-medium text-text-primary mb-1">
+                                        Batch Assignment
+                                    </div>
+                                    <div className="text-xs text-text-secondary mb-4">
+                                        These values are mandatory and will be assigned to all imported students.
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-medium text-text-secondary mb-1">Department</label>
+                                            <input 
+                                                type="text" 
+                                                required
+                                                value={importData.department}
+                                                onChange={(e) => setImportData({...importData, department: e.target.value})}
+                                                placeholder="e.g. CSE"
+                                                className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary focus:outline-none focus:border-accent text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-text-secondary mb-1">Batch</label>
+                                            <input 
+                                                type="text" 
+                                                required
+                                                value={importData.batch}
+                                                onChange={(e) => setImportData({...importData, batch: e.target.value})}
+                                                placeholder="e.g. 2026"
+                                                className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary focus:outline-none focus:border-accent text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-text-secondary mb-1">Section</label>
+                                            <input 
+                                                type="text" 
+                                                required
+                                                value={importData.section}
+                                                onChange={(e) => setImportData({...importData, section: e.target.value})}
+                                                placeholder="e.g. A"
+                                                className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary focus:outline-none focus:border-accent text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <div className="pt-4 flex justify-end gap-3">
+                                <Button type="button" variant="outline" onClick={() => setIsImportModalOpen(false)}>Cancel</Button>
+                                <Button type="submit">Import Data</Button>
                             </div>
                         </form>
                     </div>

@@ -100,7 +100,7 @@ exports.getAllUsers = async (req, res) => {
                 email: true,
                 role: true,
                 createdAt: true,
-                studentProfile: { select: { department: true, yearOfStudy: true } },
+                studentProfile: { select: { department: true, yearOfStudy: true, batch: true, section: true } },
                 facultyProfile: { select: { department: true, designation: true } },
                 adminProfile: { select: { department: true } }
             },
@@ -138,7 +138,14 @@ exports.createUser = async (req, res) => {
         // Create profile associated with user
         const prismaRole = role || 'STUDENT';
         if (prismaRole === 'STUDENT') {
-            await prisma.studentProfile.create({ data: { userId: newUser.id } });
+            await prisma.studentProfile.create({ 
+                data: { 
+                    userId: newUser.id,
+                    department: req.body.department,
+                    batch: req.body.batch,
+                    section: req.body.section
+                } 
+            });
         } else if (prismaRole === 'FACULTY') {
             await prisma.facultyProfile.create({ data: { userId: newUser.id } });
         } else if (prismaRole === 'INDUSTRY') {
@@ -186,7 +193,7 @@ exports.bulkCreateUsers = async (req, res) => {
                 });
                 
                 if (prismaRole === 'STUDENT') {
-                    await prisma.studentProfile.create({ data: { userId: newUser.id, department: u.department, yearOfStudy: u.yearOfStudy } });
+                    await prisma.studentProfile.create({ data: { userId: newUser.id, department: u.department, yearOfStudy: u.yearOfStudy, batch: u.batch, section: u.section } });
                 } else if (prismaRole === 'FACULTY') {
                     await prisma.facultyProfile.create({ data: { userId: newUser.id, department: u.department, designation: u.designation } });
                 } else if (prismaRole === 'INDUSTRY') {
@@ -225,6 +232,23 @@ exports.updateUser = async (req, res) => {
             data: updateData,
             select: { id: true, fullName: true, email: true, role: true, createdAt: true }
         });
+        
+        if (updateData.role === 'STUDENT') {
+            await prisma.studentProfile.upsert({
+                where: { userId: updatedUser.id },
+                update: {
+                    department: req.body.department,
+                    batch: req.body.batch,
+                    section: req.body.section
+                },
+                create: {
+                    userId: updatedUser.id,
+                    department: req.body.department,
+                    batch: req.body.batch,
+                    section: req.body.section
+                }
+            });
+        }
         res.json(updatedUser);
     } catch (error) {
         console.error(error);

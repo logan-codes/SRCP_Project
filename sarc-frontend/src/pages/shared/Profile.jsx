@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
-import { User, Mail, Building, FileText, Save, CheckCircle, Camera, Link as LinkIcon, Phone, Plus, Trash2 } from 'lucide-react';
+import { User, Mail, Building, FileText, Save, CheckCircle, Camera, Link as LinkIcon, Phone, Plus, Trash2, X } from 'lucide-react';
+import AvatarEditor from 'react-avatar-editor';
 
 const Profile = () => {
     const defaultProfilePhoto = "https://ui-avatars.com/api/?name=User&background=random";
@@ -19,6 +20,12 @@ const Profile = () => {
     const [profilePhotoFile, setProfilePhotoFile] = useState(null);
     const [profilePhotoPreview, setProfilePhotoPreview] = useState('');
     const [resumeFile, setResumeFile] = useState(null);
+
+    // Image Cropper State
+    const [showCropModal, setShowCropModal] = useState(false);
+    const [tempImgSrc, setTempImgSrc] = useState(null);
+    const [scale, setScale] = useState(1);
+    const editorRef = useRef(null);
 
     const fileInputRef = useRef(null);
     const resumeInputRef = useRef(null);
@@ -87,8 +94,24 @@ const Profile = () => {
     const handlePhotoChange = (e) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            setProfilePhotoFile(file);
-            setProfilePhotoPreview(URL.createObjectURL(file));
+            setTempImgSrc(URL.createObjectURL(file));
+            setShowCropModal(true);
+            // Reset input so the same file can be selected again if cancelled
+            e.target.value = '';
+        }
+    };
+
+    const handleCropSave = () => {
+        if (editorRef.current) {
+            const canvas = editorRef.current.getImageScaledToCanvas();
+            canvas.toBlob((blob) => {
+                const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+                setProfilePhotoFile(file);
+                setProfilePhotoPreview(URL.createObjectURL(file));
+                setShowCropModal(false);
+                setTempImgSrc(null);
+                setScale(1);
+            }, 'image/jpeg', 0.95);
         }
     };
 
@@ -153,6 +176,49 @@ const Profile = () => {
                     <p className="text-slate-600">Update your personal information, photo, and details.</p>
                 </div>
             </div>
+
+            {/* Crop Modal */}
+            {showCropModal && (
+                <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+                        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <h3 className="font-bold text-slate-800">Crop Profile Photo</h3>
+                            <button onClick={() => { setShowCropModal(false); setTempImgSrc(null); setScale(1); }} className="text-slate-400 hover:text-slate-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6 flex flex-col items-center">
+                            <AvatarEditor
+                                ref={editorRef}
+                                image={tempImgSrc}
+                                width={200}
+                                height={200}
+                                border={50}
+                                borderRadius={100}
+                                color={[255, 255, 255, 0.6]}
+                                scale={scale}
+                                rotate={0}
+                            />
+                            <div className="w-full mt-6">
+                                <label className="block text-sm font-medium text-slate-700 mb-2 text-center">Zoom / Scale</label>
+                                <input
+                                    type="range"
+                                    value={scale}
+                                    min="1"
+                                    max="3"
+                                    step="0.01"
+                                    onChange={(e) => setScale(parseFloat(e.target.value))}
+                                    className="w-full accent-primary cursor-pointer"
+                                />
+                            </div>
+                        </div>
+                        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                            <Button variant="ghost" onClick={() => { setShowCropModal(false); setTempImgSrc(null); setScale(1); }}>Cancel</Button>
+                            <Button variant="primary" onClick={handleCropSave}>Crop & Save</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <Card className="p-6">
                 {successMsg && (

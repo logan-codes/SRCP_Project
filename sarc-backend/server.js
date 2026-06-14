@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -7,9 +8,14 @@ dotenv.config();
 const app = express();
 const path = require('path');
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Security Middleware
+app.use(helmet({ crossOriginResourcePolicy: false })); // allow images to load locally if needed
+app.use(cors({
+    origin: process.env.CORS_ALLOWED_ORIGIN || 'http://localhost:5173',
+    credentials: true,
+}));
+app.use(express.json({ limit: '10kb' })); // Prevent payload exhaustion
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes

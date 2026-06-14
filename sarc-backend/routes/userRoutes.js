@@ -9,11 +9,11 @@ router.get('/faculty', getAllFaculty);
 router.get('/faculty/:id', getFacultyById);
 
 // Admin user management routes
-router.get('/analytics', require('../controllers/userController').getAnalytics);
-router.get('/all', getAllUsers);
-router.post('/bulk', require('../controllers/userController').bulkCreateUsers);
-router.post('/', createUser);
-router.put('/:id', updateUser);
-router.delete('/:id', deleteUser);
+router.get('/analytics', auth.checkRole('ADMIN'), require('../controllers/userController').getAnalytics);
+router.get('/all', auth.checkRole('ADMIN'), getAllUsers);
+router.post('/bulk', auth.checkRole('ADMIN'), require('../controllers/userController').bulkCreateUsers);
+router.post('/', auth.checkRole('ADMIN'), createUser);
+router.put('/:id', auth.checkRole('ADMIN'), updateUser);
+router.delete('/:id', auth.checkRole('ADMIN'), deleteUser);
 
 module.exports = router;

@@ -74,7 +74,7 @@ const AuthPage = () => {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
                         <RoleCard
                             icon={GraduationCap}
                             title="Student Access"
@@ -86,12 +86,6 @@ const AuthPage = () => {
                             title="Faculty Portal"
                             description="Post new projects, review student applications, and track milestones."
                             role="faculty"
-                        />
-                        <RoleCard
-                            icon={Shield}
-                            title="System Admin"
-                            description="Monitor analytics, manage users, and review moderation flags."
-                            role="admin"
                         />
                     </div>
                 </div>

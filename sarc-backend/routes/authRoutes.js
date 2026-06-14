@@ -3,11 +3,22 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const rateLimit = require('express-rate-limit');
 
-router.post('/register', authController.register);
-router.post('/login', authController.login);
-router.post('/forgot-password', authController.forgotPassword);
-router.post('/reset-password', authController.resetPassword);
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 20, // Limit each IP to 20 requests per windowMs
+    message: { message: 'Too many requests from this IP, please try again after 15 minutes' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+router.post('/register', authLimiter, authController.register);
+router.post('/verify-email', authLimiter, authController.verifyEmail);
+router.post('/login', authLimiter, authController.login);
+router.post('/forgot-password', authLimiter, authController.forgotPassword);
+router.post('/reset-password', authLimiter, authController.resetPassword);
+router.post('/refresh-token', authController.refreshToken);
 router.get('/me', auth, authController.getMe);
 router.put('/profile', auth, upload.fields([
     { name: 'profilePhoto', maxCount: 1 },

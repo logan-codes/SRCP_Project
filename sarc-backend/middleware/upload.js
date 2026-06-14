@@ -21,28 +21,38 @@ const storage = multer.diskStorage({
 });
 
 // File filter based on type (images, pdfs, docs)
+// File filter based on type
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = [
-        'image/jpeg',
-        'image/png',
-        'image/jpg',
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-powerpoint',
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-    ];
-    if (allowedTypes.includes(file.mimetype)) {
-        cb(null, true);
+    // strict validation based on field name
+    if (file.fieldname === 'profilePhoto') {
+        const allowedImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (allowedImageTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type for profile photo. Only JPEG, PNG allowed.'), false);
+        }
+    } else if (file.fieldname === 'resumeFile') {
+        const allowedResumeTypes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+        if (allowedResumeTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type for resume. Only PDF and DOC/DOCX allowed.'), false);
+        }
     } else {
-        cb(new Error('Invalid file type. Only JPEG, PNG, PDF, DOC, and PPT are allowed.'), false);
+        cb(new Error('Unexpected field'), false);
     }
 };
 
 const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+    limits: { 
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    }
 });
 
 module.exports = upload;

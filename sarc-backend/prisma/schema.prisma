@@ -29,6 +29,12 @@ model User {
   role         Role    @default(STUDENT)
   profilePhoto String?
 
+  isEmailVerified        Boolean   @default(false)
+  emailVerificationToken String?
+  failedLoginAttempts    Int       @default(0)
+  lockoutUntil           DateTime?
+  refreshToken           String?
+
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
 

@@ -53,10 +53,9 @@ const Register = () => {
             const data = await response.json();
 
             if (response.ok) {
-                localStorage.setItem('sarc_token', data.token);
-                if (data.user.role === 'FACULTY') navigate('/faculty');
-                else if (data.user.role === 'ADMIN') navigate('/admin');
-                else navigate('/student');
+                // We no longer get a token/user back immediately. Show success and redirect to login.
+                alert(data.message || 'Registration successful. Please check your email to verify your account.');
+                navigate('/login');
             } else {
                 setError(data.message || 'Registration failed');
             }
@@ -108,7 +107,6 @@ const Register = () => {
                                     >
                                         <option value="student">Student</option>
                                         <option value="faculty">Faculty</option>
-                                        <option value="admin">System Admin</option>
                                     </select>
                                     <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                                         <ChevronDown className="h-4 w-4 text-slate-400" />

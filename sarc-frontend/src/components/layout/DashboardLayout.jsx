@@ -198,9 +198,15 @@ export const DashboardLayout = ({ children }) => {
                         }
                         setUserInitials(initials.toUpperCase());
                     }
+                } else {
+                    // Token is invalid or user was deleted from DB. Force logout.
+                    localStorage.removeItem('sarc_token');
+                    window.location.href = '/login';
                 }
             } catch (err) {
                 console.error("Error fetching user data", err);
+                localStorage.removeItem('sarc_token');
+                window.location.href = '/login';
             }
         };
         fetchUser();

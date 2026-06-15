@@ -19,13 +19,13 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10kb' })); // Prevent payload exhaustion
 
-// Rate Limiting (100 requests per 15 minutes per IP)
-const limiter = rateLimit({
-    max: 100,
+// Rate Limiting (Brute Force Protection for Auth)
+const authLimiter = rateLimit({
+    max: 100, // 100 login attempts per 15 mins
     windowMs: 15 * 60 * 1000,
-    message: 'Too many requests from this IP, please try again in an hour!'
+    message: { message: 'Too many login attempts from this IP, please try again after 15 minutes.' }
 });
-app.use('/api', limiter);
+app.use('/api/auth', authLimiter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

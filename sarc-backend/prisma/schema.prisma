@@ -86,7 +86,7 @@ model FacultyProfile {
   userId Int  @unique
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  facultyId         String?
+  employeeId        String?
   department        String?
   designation       String?
   researchAreas     String[]

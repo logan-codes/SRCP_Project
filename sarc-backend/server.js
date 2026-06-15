@@ -17,7 +17,7 @@ app.use(cors({
     origin: process.env.CORS_ALLOWED_ORIGIN || 'http://localhost:5173',
     credentials: true,
 }));
-app.use(express.json({ limit: '10kb' })); // Prevent payload exhaustion
+app.use(express.json({ limit: '5mb' })); // Increased limit for bulk imports
 
 // Rate Limiting (Brute Force Protection for Auth)
 const authLimiter = rateLimit({
@@ -44,6 +44,21 @@ app.use('/api/global-milestones', require('./routes/globalMilestoneRoutes'));
 // Basic Route for testing
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to the SARCG API' });
+});
+
+// Global error handler to ensure JSON responses
+app.use((err, req, res, next) => {
+    console.error('Unhandled Error:', err.stack);
+    
+    // Check if headers have already been sent to the client
+    if (res.headersSent) {
+        return next(err);
+    }
+    
+    // Send JSON response
+    res.status(err.status || 500).json({ 
+        message: err.message || 'Internal Server Error' 
+    });
 });
 
 // Start the server

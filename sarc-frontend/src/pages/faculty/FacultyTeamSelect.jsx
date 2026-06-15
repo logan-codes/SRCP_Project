@@ -118,7 +118,7 @@ const FacultyTeamSelect = () => {
                         onClick={handleSubmitSelections} 
                         disabled={selectedTeamIds.length === 0 || isSubmitting}
                     >
-                        {isSubmitting ? 'Sending...' : 'Send Invitations'}
+                        {isSubmitting ? 'Assigning...' : 'Assign Teams'}
                     </Button>
                 </div>
             </div>

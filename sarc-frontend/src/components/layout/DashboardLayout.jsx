@@ -72,7 +72,6 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
                     { name: 'Project Team', icon: Users, path: '/guide/team/my' },
                     { name: 'Team Invites', icon: Bell, path: '/guide/invites/team' },
                     { name: 'Select Guide', icon: User, path: '/guide/select' },
-                    { name: 'Guide Invites', icon: Bell, path: '/guide/invites' },
                 ]
             }
         ];

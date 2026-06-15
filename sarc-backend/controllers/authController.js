@@ -281,7 +281,7 @@ exports.updateProfile = async (req, res) => {
         const {
             fullName, department, bio, companyName, designation, skills,
             studentId, yearOfStudy, section, programmingLanguages, projectsCompleted, githubLink, areasOfInterest,
-            facultyId, researchAreas, yearsOfExperience, contactNumber, linkedin, pastProjects
+            employeeId, researchAreas, yearsOfExperience, contactNumber, linkedin, pastProjects
         } = req.body;
 
         const profilePhoto = req.files && req.files['profilePhoto'] ? req.files['profilePhoto'][0].filename : undefined;
@@ -333,7 +333,7 @@ exports.updateProfile = async (req, res) => {
             await prisma.facultyProfile.update({
                 where: { userId: req.user.id },
                 data: {
-                    department, bio, designation, facultyId,
+                    department, bio, designation, employeeId,
                     researchAreas: parsedResearchAreas !== undefined ? parsedResearchAreas : undefined,
                     yearsOfExperience: yearsOfExperience ? parseInt(yearsOfExperience) : undefined,
                     skills: parsedSkills !== undefined ? parsedSkills : undefined,

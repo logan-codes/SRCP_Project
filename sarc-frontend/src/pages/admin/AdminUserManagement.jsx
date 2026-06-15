@@ -9,6 +9,11 @@ const AdminUserManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [message, setMessage] = useState({ text: '', type: '' });
     
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(0);
+    const limit = 20;
+
     const [activeTab, setActiveTab] = useState('STUDENT'); // STUDENT, FACULTY, ADMIN
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,14 +24,24 @@ const AdminUserManagement = () => {
     const [importData, setImportData] = useState({ department: '', batch: '', section: '', file: null });
 
     const fetchUsers = async () => {
+        setLoading(true);
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/users/all', {
+            const query = new URLSearchParams({
+                page: currentPage,
+                limit,
+                role: activeTab,
+                search: searchTerm
+            }).toString();
+
+            const res = await fetch(`http://localhost:5000/api/users/all?${query}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!res.ok) throw new Error('Failed to fetch users');
             const data = await res.json();
-            setUsers(data);
+            setUsers(data.users || []);
+            setTotalPages(data.totalPages || 1);
+            setTotalUsers(data.total || 0);
         } catch (error) {
             console.error(error);
             setMessage({ text: error.message, type: 'error' });
@@ -36,8 +51,22 @@ const AdminUserManagement = () => {
     };
 
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        const delayDebounceFn = setTimeout(() => {
+            fetchUsers();
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [currentPage, activeTab, searchTerm]);
+
+    const handleTabChange = (role) => {
+        setActiveTab(role);
+        setCurrentPage(1);
+    };
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    };
 
     const handleOpenModal = (mode, user = null) => {
         setModalMode(mode);
@@ -108,44 +137,7 @@ const AdminUserManagement = () => {
         }
     };
 
-    const getBatchString = (user) => {
-        const dept = user.studentProfile?.department;
-        const batch = user.studentProfile?.batch;
-        const section = user.studentProfile?.section;
-        
-        if (!dept && !batch && !section) return 'Unassigned Batch';
-        
-        const parts = [];
-        if (dept) parts.push(dept);
-        if (batch) parts.push(`Batch ${batch}`);
-        if (section) parts.push(`Section ${section}`);
-        
-        return parts.length > 0 ? parts.join(' - ') : 'Unassigned Batch';
-    };
 
-    // Filter by role and search term
-    const activeUsers = useMemo(() => {
-        const roleUsers = users.filter(u => u.role === activeTab);
-        if (!searchTerm) return roleUsers;
-        
-        const lower = searchTerm.toLowerCase();
-        return roleUsers.filter(u => 
-            u.fullName.toLowerCase().includes(lower) || 
-            u.email.toLowerCase().includes(lower)
-        );
-    }, [users, activeTab, searchTerm]);
-
-    // Group students by batch
-    const groupedStudents = useMemo(() => {
-        if (activeTab !== 'STUDENT') return {};
-        const groups = {};
-        activeUsers.forEach(user => {
-            const batch = getBatchString(user);
-            if (!groups[batch]) groups[batch] = [];
-            groups[batch].push(user);
-        });
-        return groups;
-    }, [activeUsers, activeTab]);
 
     const executeExcelUpload = async (e) => {
         e.preventDefault();
@@ -230,7 +222,7 @@ const AdminUserManagement = () => {
                             type="text" 
                             placeholder="Search users..." 
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={handleSearchChange}
                             className="w-full pl-10 pr-4 py-2 bg-canvas border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent text-sm"
                         />
                     </div>
@@ -254,7 +246,7 @@ const AdminUserManagement = () => {
                 {['STUDENT', 'FACULTY', 'ADMIN'].map(role => (
                     <button
                         key={role}
-                        onClick={() => setActiveTab(role)}
+                        onClick={() => handleTabChange(role)}
                         className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
                             activeTab === role 
                             ? 'border-accent text-accent bg-accent/5' 
@@ -266,144 +258,91 @@ const AdminUserManagement = () => {
                 ))}
             </div>
 
-            {/* Content Based on Tab */}
-            {activeTab === 'STUDENT' && (
-                <div className="space-y-8">
-                    {Object.keys(groupedStudents).length === 0 ? (
-                        <div className="p-8 text-center text-text-secondary bg-surface/50 border border-border rounded-2xl">
-                            No students found.
+            {/* Unified Data Table Based on Tab */}
+            <div className="bg-surface/50 border border-border rounded-2xl overflow-hidden mb-6">
+                <div className="px-6 py-4 bg-surface border-b border-border flex justify-between items-center">
+                    <h3 className="font-bold text-text-primary">
+                        {activeTab === 'FACULTY' ? 'Faculty' : activeTab.charAt(0) + activeTab.slice(1).toLowerCase() + 's'}
+                    </h3>
+                    <span className="text-xs font-bold bg-accent/10 text-accent px-2 py-1 rounded-md">
+                        {totalUsers} Total
+                    </span>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-surface border-b border-border">
+                                <th className="p-4 text-sm font-medium text-text-secondary">Name</th>
+                                <th className="p-4 text-sm font-medium text-text-secondary">Email</th>
+                                {activeTab === 'STUDENT' && <th className="p-4 text-sm font-medium text-text-secondary">Dept & Batch</th>}
+                                {activeTab === 'FACULTY' && <th className="p-4 text-sm font-medium text-text-secondary">Department</th>}
+                                {activeTab === 'FACULTY' && <th className="p-4 text-sm font-medium text-text-secondary">Designation</th>}
+                                {activeTab === 'ADMIN' && <th className="p-4 text-sm font-medium text-text-secondary">Department</th>}
+                                <th className="p-4 text-sm font-medium text-text-secondary">Joined</th>
+                                <th className="p-4 text-sm font-medium text-text-secondary text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {users.length === 0 ? (
+                                <tr><td colSpan="7" className="p-8 text-center text-text-secondary">No users found.</td></tr>
+                            ) : (
+                                users.map(user => (
+                                    <tr key={user.id} className="border-b border-border/50 hover:bg-surface/80">
+                                        <td className="p-4 text-sm text-text-primary font-medium">{user.fullName}</td>
+                                        <td className="p-4 text-sm text-text-secondary">{user.email}</td>
+                                        {activeTab === 'STUDENT' && (
+                                            <td className="p-4 text-sm text-text-secondary">
+                                                {user.studentProfile?.department ? `${user.studentProfile.department} ` : ''}
+                                                {user.studentProfile?.batch ? `Batch ${user.studentProfile.batch}` : '-'}
+                                            </td>
+                                        )}
+                                        {activeTab === 'FACULTY' && <td className="p-4 text-sm text-text-secondary">{user.facultyProfile?.department || '-'}</td>}
+                                        {activeTab === 'FACULTY' && <td className="p-4 text-sm text-text-secondary">{user.facultyProfile?.designation || '-'}</td>}
+                                        {activeTab === 'ADMIN' && <td className="p-4 text-sm text-text-secondary">{user.adminProfile?.department || '-'}</td>}
+                                        <td className="p-4 text-sm text-text-secondary">{new Date(user.createdAt).toLocaleDateString()}</td>
+                                        <td className="p-4 text-sm">
+                                            <div className="flex justify-end gap-2">
+                                                <button onClick={() => handleOpenModal('EDIT', user)} className="p-1.5 text-text-secondary hover:text-accent transition-colors">
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 text-text-secondary hover:text-red-500 transition-colors">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-surface/30">
+                        <span className="text-sm text-text-secondary">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <div className="flex gap-2">
+                            <Button 
+                                variant="outline" 
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1 text-sm"
+                            >
+                                Previous
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="px-3 py-1 text-sm"
+                            >
+                                Next
+                            </Button>
                         </div>
-                    ) : (
-                        Object.entries(groupedStudents).map(([batchName, batchUsers]) => (
-                            <div key={batchName} className="bg-surface/50 border border-border rounded-2xl overflow-hidden">
-                                <div className="px-6 py-4 bg-surface border-b border-border flex justify-between items-center">
-                                    <h3 className="font-bold text-text-primary">{batchName}</h3>
-                                    <span className="text-xs font-bold bg-accent/10 text-accent px-2 py-1 rounded-md">
-                                        {batchUsers.length} Students
-                                    </span>
-                                </div>
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead>
-                                            <tr className="border-b border-border">
-                                                <th className="p-4 text-sm font-medium text-text-secondary">Name</th>
-                                                <th className="p-4 text-sm font-medium text-text-secondary">Email</th>
-                                                <th className="p-4 text-sm font-medium text-text-secondary">Joined</th>
-                                                <th className="p-4 text-sm font-medium text-text-secondary text-right">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {batchUsers.map(user => (
-                                                <tr key={user.id} className="border-b border-border/50 hover:bg-surface/80">
-                                                    <td className="p-4 text-sm text-text-primary font-medium">{user.fullName}</td>
-                                                    <td className="p-4 text-sm text-text-secondary">{user.email}</td>
-                                                    <td className="p-4 text-sm text-text-secondary">{new Date(user.createdAt).toLocaleDateString()}</td>
-                                                    <td className="p-4 text-sm">
-                                                        <div className="flex justify-end gap-2">
-                                                            <button onClick={() => handleOpenModal('EDIT', user)} className="p-1.5 text-text-secondary hover:text-accent transition-colors">
-                                                                <Edit className="w-4 h-4" />
-                                                            </button>
-                                                            <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 text-text-secondary hover:text-red-500 transition-colors">
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'FACULTY' && (
-                <div className="bg-surface/50 border border-border rounded-2xl overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-surface border-b border-border">
-                                    <th className="p-4 text-sm font-medium text-text-secondary">Name</th>
-                                    <th className="p-4 text-sm font-medium text-text-secondary">Email</th>
-                                    <th className="p-4 text-sm font-medium text-text-secondary">Department</th>
-                                    <th className="p-4 text-sm font-medium text-text-secondary">Designation</th>
-                                    <th className="p-4 text-sm font-medium text-text-secondary">Joined</th>
-                                    <th className="p-4 text-sm font-medium text-text-secondary text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {activeUsers.length === 0 ? (
-                                    <tr><td colSpan="6" className="p-8 text-center text-text-secondary">No faculty found.</td></tr>
-                                ) : (
-                                    activeUsers.map(user => (
-                                        <tr key={user.id} className="border-b border-border/50 hover:bg-surface/80">
-                                            <td className="p-4 text-sm text-text-primary font-medium">{user.fullName}</td>
-                                            <td className="p-4 text-sm text-text-secondary">{user.email}</td>
-                                            <td className="p-4 text-sm text-text-secondary">{user.facultyProfile?.department || '-'}</td>
-                                            <td className="p-4 text-sm text-text-secondary">{user.facultyProfile?.designation || '-'}</td>
-                                            <td className="p-4 text-sm text-text-secondary">{new Date(user.createdAt).toLocaleDateString()}</td>
-                                            <td className="p-4 text-sm">
-                                                <div className="flex justify-end gap-2">
-                                                    <button onClick={() => handleOpenModal('EDIT', user)} className="p-1.5 text-text-secondary hover:text-accent transition-colors">
-                                                        <Edit className="w-4 h-4" />
-                                                    </button>
-                                                    <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 text-text-secondary hover:text-red-500 transition-colors">
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
                     </div>
-                </div>
-            )}
-
-            {activeTab === 'ADMIN' && (
-                <div className="bg-surface/50 border border-border rounded-2xl overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-surface border-b border-border">
-                                    <th className="p-4 text-sm font-medium text-text-secondary">Name</th>
-                                    <th className="p-4 text-sm font-medium text-text-secondary">Email</th>
-                                    <th className="p-4 text-sm font-medium text-text-secondary">Department</th>
-                                    <th className="p-4 text-sm font-medium text-text-secondary">Joined</th>
-                                    <th className="p-4 text-sm font-medium text-text-secondary text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {activeUsers.length === 0 ? (
-                                    <tr><td colSpan="5" className="p-8 text-center text-text-secondary">No admins found.</td></tr>
-                                ) : (
-                                    activeUsers.map(user => (
-                                        <tr key={user.id} className="border-b border-border/50 hover:bg-surface/80">
-                                            <td className="p-4 text-sm text-text-primary font-medium">{user.fullName}</td>
-                                            <td className="p-4 text-sm text-text-secondary">{user.email}</td>
-                                            <td className="p-4 text-sm text-text-secondary">{user.adminProfile?.department || '-'}</td>
-                                            <td className="p-4 text-sm text-text-secondary">{new Date(user.createdAt).toLocaleDateString()}</td>
-                                            <td className="p-4 text-sm">
-                                                <div className="flex justify-end gap-2">
-                                                    <button onClick={() => handleOpenModal('EDIT', user)} className="p-1.5 text-text-secondary hover:text-accent transition-colors">
-                                                        <Edit className="w-4 h-4" />
-                                                    </button>
-                                                    <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 text-text-secondary hover:text-red-500 transition-colors">
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+                )}
+            </div>
 
             {/* User Modal */}
             {isModalOpen && (
@@ -450,7 +389,7 @@ const AdminUserManagement = () => {
                             </div>
                             
                             {currentUser.role === 'STUDENT' && (
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-text-secondary mb-1">Department</label>
                                         <input 
@@ -468,16 +407,6 @@ const AdminUserManagement = () => {
                                             value={currentUser.batch || ''}
                                             onChange={(e) => setCurrentUser({...currentUser, batch: e.target.value})}
                                             placeholder="e.g. 2026"
-                                            className="w-full bg-canvas border border-border rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:border-accent"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-text-secondary mb-1">Section</label>
-                                        <input 
-                                            type="text" 
-                                            value={currentUser.section || ''}
-                                            onChange={(e) => setCurrentUser({...currentUser, section: e.target.value})}
-                                            placeholder="e.g. A"
                                             className="w-full bg-canvas border border-border rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:border-accent"
                                         />
                                     </div>
@@ -544,7 +473,7 @@ const AdminUserManagement = () => {
                                     <div className="text-xs text-text-secondary mb-4">
                                         These values are mandatory and will be assigned to all imported students.
                                     </div>
-                                    <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-medium text-text-secondary mb-1">Department</label>
                                             <input 
@@ -564,17 +493,6 @@ const AdminUserManagement = () => {
                                                 value={importData.batch}
                                                 onChange={(e) => setImportData({...importData, batch: e.target.value})}
                                                 placeholder="e.g. 2026"
-                                                className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary focus:outline-none focus:border-accent text-sm"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-medium text-text-secondary mb-1">Section</label>
-                                            <input 
-                                                type="text" 
-                                                required
-                                                value={importData.section}
-                                                onChange={(e) => setImportData({...importData, section: e.target.value})}
-                                                placeholder="e.g. A"
                                                 className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary focus:outline-none focus:border-accent text-sm"
                                             />
                                         </div>

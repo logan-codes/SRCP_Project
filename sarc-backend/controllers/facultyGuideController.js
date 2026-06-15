@@ -61,6 +61,11 @@ exports.selectTeams = async (req, res) => {
 
         const faculty = await prisma.user.findUnique({ where: { id: facultyId } });
 
+        const slot = await prisma.facultyGuideSlot.findUnique({ where: { facultyId } });
+        if (!slot || slot.usedSlots + teamIds.length > slot.totalSlots) {
+            return res.status(400).json({ message: 'You do not have enough slots available to select these teams.' });
+        }
+
         // 2. Process each teamId
         for (const teamId of teamIds) {
             const team = await prisma.guideTeam.findUnique({ where: { id: teamId } });
@@ -73,22 +78,37 @@ exports.selectTeams = async (req, res) => {
                     data: {
                         facultyId,
                         teamId: team.id,
-                        status: 'PENDING'
+                        status: 'ACCEPTED',
+                        respondedAt: new Date()
                     }
                 });
 
                 await tx.guideTeam.update({
                     where: { id: team.id },
-                    data: { guideStatus: 'FACULTY_SELECTED' }
+                    data: { 
+                        guideId: facultyId,
+                        guideStatus: 'ACCEPTED' 
+                    }
+                });
+
+                await tx.facultyGuideSlot.update({
+                    where: { facultyId },
+                    data: { usedSlots: { increment: 1 } }
+                });
+
+                // Reject any other pending selections for this team just in case
+                await tx.facultyTeamSelection.updateMany({
+                     where: { teamId: team.id, status: 'PENDING' },
+                     data: { status: 'REJECTED', respondedAt: new Date() }
                 });
             });
 
             await prisma.notification.create({
                 data: {
                     userId: team.leaderId,
-                    title: "Guide Invitation",
-                    message: `Prof. ${faculty.fullName} has selected your team "${team.teamName}" as a guide project. Accept or Reject within the portal.`,
-                    type: "GUIDE_INVITE",
+                    title: "Guide Assigned",
+                    message: `Prof. ${faculty.fullName} has selected your team "${team.teamName}" and has been assigned as your guide.`,
+                    type: "GUIDE_ASSIGNED",
                     link: JSON.stringify({ teamId: team.teamId, facultyId })
                 }
             });

@@ -21,7 +21,7 @@ exports.getAllFaculty = async (req, res) => {
                 }
             }
         });
-        
+
         // Filter out personal details before sending
         const sanitizedFaculty = faculty.map(f => ({
             id: f.id,
@@ -93,20 +93,48 @@ exports.getAllUsers = async (req, res) => {
     try {
         if (req.user.role !== 'ADMIN') return res.status(403).json({ message: 'Forbidden' });
         
-        const users = await prisma.user.findMany({
-            select: {
-                id: true,
-                fullName: true,
-                email: true,
-                role: true,
-                createdAt: true,
-                studentProfile: { select: { department: true, yearOfStudy: true, batch: true, section: true } },
-                facultyProfile: { select: { department: true, designation: true } },
-                adminProfile: { select: { department: true } }
-            },
-            orderBy: { createdAt: 'desc' }
+        const { page = 1, limit = 20, search = '', role = 'STUDENT' } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+
+        const whereClause = {
+            role: role.toUpperCase()
+        };
+
+        if (search) {
+            whereClause.OR = [
+                { fullName: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } }
+            ];
+        }
+
+        const [users, total] = await prisma.$transaction([
+            prisma.user.findMany({
+                where: whereClause,
+                select: {
+                    id: true,
+                    fullName: true,
+                    email: true,
+                    role: true,
+                    createdAt: true,
+                    studentProfile: { select: { department: true, yearOfStudy: true, batch: true, section: true } },
+                    facultyProfile: { select: { department: true, designation: true } },
+                    adminProfile: { select: { department: true } }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take
+            }),
+            prisma.user.count({ where: whereClause })
+        ]);
+
+        res.json({
+            users,
+            total,
+            page: parseInt(page),
+            limit: take,
+            totalPages: Math.ceil(total / take)
         });
-        res.json(users);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server Error" });
@@ -117,14 +145,14 @@ exports.getAllUsers = async (req, res) => {
 exports.createUser = async (req, res) => {
     try {
         if (req.user.role !== 'ADMIN') return res.status(403).json({ message: 'Forbidden' });
-        
+
         const { fullName, email, password, role } = req.body;
-        
+
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) return res.status(400).json({ message: 'User with this email already exists' });
-        
+
         const hashedPassword = await bcrypt.hash(password, 10);
-        
+
         const newUser = await prisma.user.create({
             data: {
                 fullName,
@@ -134,17 +162,17 @@ exports.createUser = async (req, res) => {
             },
             select: { id: true, fullName: true, email: true, role: true, createdAt: true }
         });
-        
+
         // Create profile associated with user
         const prismaRole = role || 'STUDENT';
         if (prismaRole === 'STUDENT') {
-            await prisma.studentProfile.create({ 
-                data: { 
+            await prisma.studentProfile.create({
+                data: {
                     userId: newUser.id,
                     department: req.body.department,
                     batch: req.body.batch,
                     section: req.body.section
-                } 
+                }
             });
         } else if (prismaRole === 'FACULTY') {
             await prisma.facultyProfile.create({ data: { userId: newUser.id } });
@@ -164,7 +192,7 @@ exports.createUser = async (req, res) => {
 exports.bulkCreateUsers = async (req, res) => {
     try {
         if (req.user.role !== 'ADMIN') return res.status(403).json({ message: 'Forbidden' });
-        
+
         const { users } = req.body;
         if (!users || !Array.isArray(users)) return res.status(400).json({ message: 'Invalid payload' });
 
@@ -179,10 +207,10 @@ exports.bulkCreateUsers = async (req, res) => {
                     errors.push({ email: u.email, message: 'Email already exists' });
                     continue;
                 }
-                
+
                 const hashedPassword = await bcrypt.hash(u.password || 'password123', 10);
                 const prismaRole = u.role || 'STUDENT';
-                
+
                 const newUser = await prisma.user.create({
                     data: {
                         fullName: u.fullName,
@@ -191,7 +219,7 @@ exports.bulkCreateUsers = async (req, res) => {
                         role: prismaRole
                     }
                 });
-                
+
                 if (prismaRole === 'STUDENT') {
                     await prisma.studentProfile.create({ data: { userId: newUser.id, department: u.department, yearOfStudy: u.yearOfStudy, batch: u.batch, section: u.section } });
                 } else if (prismaRole === 'FACULTY') {
@@ -206,7 +234,7 @@ exports.bulkCreateUsers = async (req, res) => {
                 errors.push({ email: u.email, message: err.message });
             }
         }
-        
+
         res.status(201).json({ message: `Created ${createdCount} users`, createdCount, errors });
     } catch (error) {
         console.error(error);
@@ -218,21 +246,21 @@ exports.bulkCreateUsers = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         if (req.user.role !== 'ADMIN') return res.status(403).json({ message: 'Forbidden' });
-        
+
         const { id } = req.params;
         const { fullName, email, role, password } = req.body;
-        
+
         const updateData = { fullName, email, role };
         if (password && password.trim() !== '') {
             updateData.password = await bcrypt.hash(password, 10);
         }
-        
+
         const updatedUser = await prisma.user.update({
             where: { id: parseInt(id) },
             data: updateData,
             select: { id: true, fullName: true, email: true, role: true, createdAt: true }
         });
-        
+
         if (updateData.role === 'STUDENT') {
             await prisma.studentProfile.upsert({
                 where: { userId: updatedUser.id },
@@ -261,9 +289,9 @@ exports.updateUser = async (req, res) => {
 exports.deleteUser = async (req, res) => {
     try {
         if (req.user.role !== 'ADMIN') return res.status(403).json({ message: 'Forbidden' });
-        
+
         const { id } = req.params;
-        
+
         // Let Prisma's cascade delete handle related records
         await prisma.user.delete({
             where: { id: parseInt(id) }

@@ -13,7 +13,7 @@ const Profile = () => {
         // Student
         studentId: '', yearOfStudy: '', section: '', skills: '', programmingLanguages: '', projectsCompleted: '', githubLink: '', areasOfInterest: '',
         // Faculty
-        facultyId: '', designation: '', researchAreas: '', yearsOfExperience: '', contactNumber: '', linkedin: '', pastProjects: [],
+        employeeId: '', designation: '', researchAreas: '', yearsOfExperience: '', contactNumber: '', linkedin: '', pastProjects: [],
         profilePhoto: ''
     });
 
@@ -61,7 +61,7 @@ const Profile = () => {
                     projectsCompleted: profileObj.projectsCompleted || '',
                     githubLink: profileObj.githubLink || '',
                     areasOfInterest: profileObj.areasOfInterest ? profileObj.areasOfInterest.join(', ') : '',
-                    facultyId: profileObj.facultyId || '',
+                    employeeId: profileObj.employeeId || '',
                     designation: profileObj.designation || '',
                     researchAreas: profileObj.researchAreas ? profileObj.researchAreas.join(', ') : '',
                     yearsOfExperience: profileObj.yearsOfExperience || '',
@@ -330,7 +330,7 @@ const Profile = () => {
 
                         {isFaculty && (
                             <>
-                                <div><label className="block text-sm font-medium text-slate-700 mb-1">Faculty ID</label><input type="text" name="facultyId" value={profileData.facultyId} onChange={handleChange} className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
+                                <div><label className="block text-sm font-medium text-slate-700 mb-1">Employee ID</label><input type="text" name="employeeId" value={profileData.employeeId} onChange={handleChange} className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
                                 <div><label className="block text-sm font-medium text-slate-700 mb-1">Designation</label><input type="text" name="designation" value={profileData.designation} onChange={handleChange} placeholder="e.g. Associate Professor" className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
                                 <div><label className="block text-sm font-medium text-slate-700 mb-1">Years of Experience</label><input type="number" name="yearsOfExperience" value={profileData.yearsOfExperience} onChange={handleChange} className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
                                 <div><label className="block text-sm font-medium text-slate-700 mb-1">Research Areas / Specialization</label><input type="text" name="researchAreas" value={profileData.researchAreas} onChange={handleChange} placeholder="e.g. Machine Learning, IoT" className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>

@@ -80,7 +80,7 @@ const generateTokens = async (userId, role) => {
 // @access  Public
 exports.register = async (req, res) => {
     try {
-        const { fullName, email, password } = req.body;
+        const { fullName, email, password, role } = req.body;
 
         if (!isPasswordStrong(password)) {
             return res.status(400).json({ message: 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.' });
@@ -94,8 +94,9 @@ exports.register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Prevent Privilege Escalation
-        const prismaRole = 'STUDENT';
+        // Prevent Privilege Escalation - only allow STUDENT or FACULTY
+        const requestedRole = role ? role.toUpperCase() : 'STUDENT';
+        const prismaRole = requestedRole === 'ADMIN' ? 'STUDENT' : requestedRole;
 
         // Email Verification Token
         const verificationToken = crypto.randomBytes(32).toString('hex');

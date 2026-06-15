@@ -44,10 +44,10 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
                 ]
             },
             {
-                title: 'Guide Config',
+                title: 'Guide Selection Control',
                 links: [
                     { name: 'Guide Dashboard', icon: LayoutDashboard, path: '/guide/dashboard' },
-                    { name: 'Guide Config', icon: Settings, path: '/admin/guide/config' },
+                    { name: 'Guide Selection Control', icon: Settings, path: '/admin/guide/config' },
                 ]
             }
         ];

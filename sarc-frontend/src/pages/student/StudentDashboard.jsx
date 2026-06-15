@@ -66,11 +66,14 @@ const RecommendedProjectCard = ({ id, title, faculty, matchScore, skills, missin
 const StudentDashboard = () => {
     const [applications, setApplications] = useState([]);
     const [recommendedProjects, setRecommendedProjects] = useState([]);
+    const [deadlines, setDeadlines] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const token = localStorage.getItem('sarc_token');
+                
+                // Fetch Applications
                 const resApps = await fetch('http://localhost:5000/api/applications/student', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -79,6 +82,7 @@ const StudentDashboard = () => {
                     setApplications(data);
                 }
 
+                // Fetch Projects
                 const resProj = await fetch('http://localhost:5000/api/projects', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -87,12 +91,33 @@ const StudentDashboard = () => {
                     const available = pData.filter(p => p.status === 'OPEN').slice(0, 3);
                     setRecommendedProjects(available);
                 }
+
+                // Fetch Global Milestones (Deadlines)
+                const resDeadlines = await fetch('http://localhost:5000/api/global-milestones', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resDeadlines.ok) {
+                    const dData = await resDeadlines.json();
+                    // Filter out COMPLETED ones and sort by closest date
+                    const upcoming = dData.filter(d => d.status !== 'COMPLETED')
+                                          .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+                                          .slice(0, 3);
+                    setDeadlines(upcoming);
+                }
             } catch (err) {
                 console.error(err);
             }
         };
         fetchData();
     }, []);
+
+    const getMonthAndDay = (dateString) => {
+        const d = new Date(dateString);
+        return {
+            month: d.toLocaleString('default', { month: 'short' }),
+            day: d.getDate()
+        };
+    };
 
     return (
         <DashboardLayout>
@@ -171,26 +196,25 @@ const StudentDashboard = () => {
                         <Clock size={24} className="text-red-500" /> Upcoming Deadlines
                     </h2>
                     <div className="space-y-4">
-                        <div className="flex gap-4 p-4 border border-red-100 bg-red-50 rounded-xl hover:shadow-sm transition-shadow">
-                            <div className="bg-white p-3 rounded-xl shadow-sm border border-red-100 text-center min-w-[70px] flex flex-col justify-center">
-                                <span className="block text-xs font-bold text-red-500 uppercase tracking-widest">Oct</span>
-                                <span className="block text-2xl font-black text-slate-900">24</span>
-                            </div>
-                            <div className="flex flex-col justify-center">
-                                <h4 className="font-bold text-slate-900 text-lg">Submit Project Proposal</h4>
-                                <p className="text-sm text-slate-600 mt-1 font-medium">Blockchain Voting System</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-4 p-4 border border-slate-200 bg-canvas rounded-xl hover:shadow-sm transition-shadow">
-                            <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200 text-center min-w-[70px] flex flex-col justify-center">
-                                <span className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Nov</span>
-                                <span className="block text-2xl font-black text-slate-900">12</span>
-                            </div>
-                            <div className="flex flex-col justify-center">
-                                <h4 className="font-bold text-slate-900 text-lg">Mid-Semester Review</h4>
-                                <p className="text-sm text-slate-600 mt-1 font-medium">General requirement</p>
-                            </div>
-                        </div>
+                        {deadlines.length === 0 ? (
+                            <div className="text-center py-6 text-slate-500 text-sm">No upcoming deadlines configured by the administration.</div>
+                        ) : (
+                            deadlines.map((deadline) => {
+                                const { month, day } = getMonthAndDay(deadline.dueDate);
+                                return (
+                                    <div key={deadline.id} className="flex gap-4 p-4 border border-red-100 bg-red-50 rounded-xl hover:shadow-sm transition-shadow">
+                                        <div className="bg-white p-3 rounded-xl shadow-sm border border-red-100 text-center min-w-[70px] flex flex-col justify-center">
+                                            <span className="block text-xs font-bold text-red-500 uppercase tracking-widest">{month}</span>
+                                            <span className="block text-2xl font-black text-slate-900">{day}</span>
+                                        </div>
+                                        <div className="flex flex-col justify-center">
+                                            <h4 className="font-bold text-slate-900 text-lg">{deadline.title}</h4>
+                                            <p className="text-sm text-slate-600 mt-1 font-medium">{deadline.description}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
                     </div>
                 </Card>
             </div>

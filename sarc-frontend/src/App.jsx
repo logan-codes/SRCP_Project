@@ -20,7 +20,7 @@ import Milestones from './pages/shared/Milestones';
 import FacultyDirectory from './pages/shared/FacultyDirectory';
 import FacultyProfileView from './pages/shared/FacultyProfileView';
 import { DashboardLayout } from './components/layout/DashboardLayout';
-
+import ProtectedRoute from './components/auth/ProtectedRoute';
 // Guide Selection Pages
 import GuideTeamCreate from './pages/student/GuideTeamCreate';
 import GuideTeamMy from './pages/student/GuideTeamMy';
@@ -47,43 +47,43 @@ function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/verify-email" element={<VerifyEmail />} />
 
-                <Route path="/student" element={<StudentDashboard />} />
-                <Route path="/student/projects" element={<BrowseProjects />} />
-                <Route path="/faculty" element={<FacultyDashboard />} />
-                <Route path="/faculty/projects" element={<BrowseProjects />} />
-                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/student" element={<ProtectedRoute allowedRoles={['STUDENT']}><StudentDashboard /></ProtectedRoute>} />
+                <Route path="/student/projects" element={<ProtectedRoute allowedRoles={['STUDENT']}><BrowseProjects /></ProtectedRoute>} />
+                <Route path="/faculty" element={<ProtectedRoute allowedRoles={['FACULTY']}><FacultyDashboard /></ProtectedRoute>} />
+                <Route path="/faculty/projects" element={<ProtectedRoute allowedRoles={['FACULTY']}><BrowseProjects /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
 
                 {/* Shared authenticated routes */}
-                <Route path="/project/:id" element={<ProjectDetail />} />
-                <Route path="/student/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
-                <Route path="/faculty/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
-                <Route path="/admin/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
+                <Route path="/project/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
+                <Route path="/student/profile" element={<ProtectedRoute allowedRoles={['STUDENT']}><DashboardLayout><Profile /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/faculty/profile" element={<ProtectedRoute allowedRoles={['FACULTY']}><DashboardLayout><Profile /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['ADMIN']}><DashboardLayout><Profile /></DashboardLayout></ProtectedRoute>} />
                 
                 {/* New Feature Routes (Student) */}
-                <Route path="/student/applications" element={<StudentApplications />} />
-                <Route path="/student/teams" element={<TeamFormation />} />
-                <Route path="/student/milestones" element={<Milestones />} />
-                <Route path="/student/directory" element={<FacultyDirectory />} />
-                <Route path="/student/directory/:id" element={<FacultyProfileView />} />
+                <Route path="/student/applications" element={<ProtectedRoute allowedRoles={['STUDENT']}><StudentApplications /></ProtectedRoute>} />
+                <Route path="/student/teams" element={<ProtectedRoute allowedRoles={['STUDENT']}><TeamFormation /></ProtectedRoute>} />
+                <Route path="/student/milestones" element={<ProtectedRoute allowedRoles={['STUDENT']}><Milestones /></ProtectedRoute>} />
+                <Route path="/student/directory" element={<ProtectedRoute allowedRoles={['STUDENT']}><FacultyDirectory /></ProtectedRoute>} />
+                <Route path="/student/directory/:id" element={<ProtectedRoute allowedRoles={['STUDENT']}><FacultyProfileView /></ProtectedRoute>} />
 
                 {/* New Feature Routes (Faculty) */}
-                <Route path="/faculty/applications" element={<FacultyApplications />} />
-                <Route path="/faculty/teams" element={<TeamFormation />} />
-                <Route path="/faculty/milestones" element={<Milestones />} />
+                <Route path="/faculty/applications" element={<ProtectedRoute allowedRoles={['FACULTY']}><FacultyApplications /></ProtectedRoute>} />
+                <Route path="/faculty/teams" element={<ProtectedRoute allowedRoles={['FACULTY']}><TeamFormation /></ProtectedRoute>} />
+                <Route path="/faculty/milestones" element={<ProtectedRoute allowedRoles={['FACULTY']}><Milestones /></ProtectedRoute>} />
 
                 {/* Guide Selection Routes */}
-                <Route path="/guide/team/create" element={<DashboardLayout><GuideTeamCreate /></DashboardLayout>} />
-                <Route path="/guide/team/my" element={<DashboardLayout><GuideTeamMy /></DashboardLayout>} />
-                <Route path="/guide/invites" element={<DashboardLayout><GuideInvites /></DashboardLayout>} />
-                <Route path="/guide/invites/team" element={<DashboardLayout><TeamInvites /></DashboardLayout>} />
-                <Route path="/guide/select" element={<DashboardLayout><GuideSelect /></DashboardLayout>} />
-                <Route path="/guide/faculty/select" element={<DashboardLayout><FacultyTeamSelect /></DashboardLayout>} />
-                <Route path="/guide/faculty/my-picks" element={<DashboardLayout><FacultyMyPicks /></DashboardLayout>} />
-                <Route path="/admin/guide/config" element={<DashboardLayout><GuideAdminConfig /></DashboardLayout>} />
-                <Route path="/admin/users" element={<DashboardLayout><AdminUserManagement /></DashboardLayout>} />
-                <Route path="/admin/teams/finalize" element={<DashboardLayout><AdminTeamFinalization /></DashboardLayout>} />
-                <Route path="/admin/milestones/config" element={<DashboardLayout><AdminMilestonesConfig /></DashboardLayout>} />
-                <Route path="/guide/dashboard" element={<DashboardLayout><GuideDashboard /></DashboardLayout>} />
+                <Route path="/guide/team/create" element={<ProtectedRoute allowedRoles={['STUDENT']}><DashboardLayout><GuideTeamCreate /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/guide/team/my" element={<ProtectedRoute allowedRoles={['STUDENT']}><DashboardLayout><GuideTeamMy /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/guide/invites" element={<ProtectedRoute allowedRoles={['STUDENT']}><DashboardLayout><GuideInvites /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/guide/invites/team" element={<ProtectedRoute allowedRoles={['STUDENT']}><DashboardLayout><TeamInvites /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/guide/select" element={<ProtectedRoute allowedRoles={['STUDENT']}><DashboardLayout><GuideSelect /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/guide/faculty/select" element={<ProtectedRoute allowedRoles={['FACULTY']}><DashboardLayout><FacultyTeamSelect /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/guide/faculty/my-picks" element={<ProtectedRoute allowedRoles={['FACULTY']}><DashboardLayout><FacultyMyPicks /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/admin/guide/config" element={<ProtectedRoute allowedRoles={['ADMIN']}><DashboardLayout><GuideAdminConfig /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><DashboardLayout><AdminUserManagement /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/admin/teams/finalize" element={<ProtectedRoute allowedRoles={['ADMIN']}><DashboardLayout><AdminTeamFinalization /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/admin/milestones/config" element={<ProtectedRoute allowedRoles={['ADMIN']}><DashboardLayout><AdminMilestonesConfig /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/guide/dashboard" element={<ProtectedRoute><DashboardLayout><GuideDashboard /></DashboardLayout></ProtectedRoute>} />
             </Routes>
         </div>
     );

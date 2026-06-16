@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge } from '../../components/widgets/DashboardWidgets';
@@ -6,38 +7,29 @@ import Button from '../../components/common/Button';
 import { Users, Building, BookOpen, ArrowRight, Search } from 'lucide-react';
 
 const FacultyDirectory = () => {
-    const [faculty, setFaculty] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchFaculty = async () => {
-            try {
-                const token = localStorage.getItem('sarc_token');
-                const res = await fetch('http://localhost:5000/api/users/faculty', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setFaculty(data);
-                }
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchFaculty();
-    }, []);
+    const { data: faculty = [], isLoading: loading } = useQuery({
+        queryKey: ['facultyDirectory'],
+        queryFn: async () => {
+            const token = localStorage.getItem('sarc_token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/faculty`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Network response was not ok');
+            const data = await res.json();
+            return data.faculty || [];
+        }
+    });
 
-    const filteredFaculty = faculty.filter(prof => {
+    const filteredFaculty = (faculty || []).filter(prof => {
         const term = searchTerm.toLowerCase();
-        return prof.fullName.toLowerCase().includes(term) ||
+        return prof.fullName?.toLowerCase().includes(term) ||
             (prof.department && prof.department.toLowerCase().includes(term)) ||
             (prof.designation && prof.designation.toLowerCase().includes(term)) ||
-            (prof.researchAreas && prof.researchAreas.some(area => area.toLowerCase().includes(term))) ||
-            (prof.projects && prof.projects.some(project => project.title.toLowerCase().includes(term)));
+            (Array.isArray(prof.researchAreas) && prof.researchAreas.some(area => area && area.toLowerCase().includes(term))) ||
+            (Array.isArray(prof.projects) && prof.projects.some(project => project?.title?.toLowerCase().includes(term)));
     });
 
     return (
@@ -74,7 +66,7 @@ const FacultyDirectory = () => {
                     {filteredFaculty.map((prof) => (
                         <Card key={prof.id} className="flex flex-col h-full hover:-translate-y-1 hover:shadow-xl transition-all border-t-4 border-t-secondary cursor-pointer bg-white" onClick={() => navigate(`/student/directory/${prof.id}`)}>
                             <div className="flex items-start gap-4 mb-4">
-                                <img src={prof.profilePhoto ? `http://localhost:5000/uploads/${prof.profilePhoto}` : `https://ui-avatars.com/api/?name=${prof.fullName}&background=random`} alt={prof.fullName} className="w-16 h-16 rounded-full border-2 border-white shadow-sm object-cover bg-slate-100" />
+                                <img src={prof.profilePhoto ? `${import.meta.env.VITE_API_URL}/uploads/${prof.profilePhoto}` : `https://ui-avatars.com/api/?name=${prof.fullName}&background=random`} alt={prof.fullName} className="w-16 h-16 rounded-full border-2 border-white shadow-sm object-cover bg-slate-100" />
                                 <div>
                                     <h3 className="text-lg font-bold font-heading text-slate-900 group-hover:text-primary transition-colors line-clamp-1">{prof.fullName}</h3>
                                     <p className="text-sm font-medium text-slate-500 mb-1">{prof.designation || 'Faculty Member'}</p>
@@ -83,13 +75,13 @@ const FacultyDirectory = () => {
                             </div>
                             
                             <div className="flex-grow">
-                                {prof.researchAreas && prof.researchAreas.length > 0 && (
+                                {Array.isArray(prof.researchAreas) && prof.researchAreas.length > 0 && (
                                     <div className="mb-3">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Research Areas</p>
                                         <div className="flex flex-wrap gap-1.5">
-                                            {prof.researchAreas.slice(0, 3).map(area => (
-                                                <span key={area} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded border border-slate-200 line-clamp-1">{area}</span>
-                                            ))}
+                                            {prof.researchAreas.slice(0, 3).map((area, idx) => area ? (
+                                                <span key={`${area}-${idx}`} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded border border-slate-200 line-clamp-1">{area}</span>
+                                            ) : null)}
                                             {prof.researchAreas.length > 3 && <span className="px-1.5 py-0.5 bg-transparent text-slate-400 text-[10px] uppercase font-bold tracking-widest">+{prof.researchAreas.length - 3} More</span>}
                                         </div>
                                     </div>

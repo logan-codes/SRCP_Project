@@ -1,8 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
-const prisma = new PrismaClient();
-
+const prisma = require('./config/prismaClient');
 const facultyData = [
     {
         user: {

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge, StatWidget } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
@@ -29,29 +30,29 @@ const FacultyDashboard = () => {
     });
 
     useEffect(() => {
-        fetchData();
+        queryClient.invalidateQueries({ queryKey: ['faculty'] });
     }, []);
 
     const fetchData = async () => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const userRes = await fetch('http://localhost:5000/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+            const userRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
             const userData = await userRes.json();
 
-            const pRes = await fetch('http://localhost:5000/api/projects', { headers: { 'Authorization': `Bearer ${token}` } });
+            const pRes = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`, { headers: { 'Authorization': `Bearer ${token}` } });
             const pData = await pRes.json();
 
-            const iRes = await fetch('http://localhost:5000/api/projects/ideas', { headers: { 'Authorization': `Bearer ${token}` } });
+            const iRes = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/ideas`, { headers: { 'Authorization': `Bearer ${token}` } });
             const iData = await iRes.json();
 
-            const aRes = await fetch('http://localhost:5000/api/applications/faculty', { headers: { 'Authorization': `Bearer ${token}` } });
+            const aRes = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/faculty`, { headers: { 'Authorization': `Bearer ${token}` } });
             const aData = await aRes.json();
 
             if (pRes.ok && userRes.ok) {
-                setProjects(pData.filter(p => p.facultyId === userData.facultyProfile?.id));
+                setProjects((pData.projects || []).filter(p => p.facultyId === userData.facultyProfile?.id));
             }
             if (iRes.ok && userRes.ok) {
-                setIdeas(iData.filter(i => i.facultyId === userData.facultyProfile?.id));
+                setIdeas((iData.ideas || []).filter(i => i.facultyId === userData.facultyProfile?.id));
             }
             if (aRes.ok) setApplications(aData);
         } catch (error) {
@@ -71,7 +72,7 @@ const FacultyDashboard = () => {
             if (files.documentationFile) submitData.append('documentationFile', files.documentationFile);
             if (files.demoFile) submitData.append('demoFile', files.demoFile);
 
-            const response = await fetch('http://localhost:5000/api/projects', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: submitData
@@ -81,7 +82,7 @@ const FacultyDashboard = () => {
                 setIsCreateModalOpen(false);
                 setFormData({ title: '', description: '', skillsRequired: '', deadline: '', domain: '', problemStatement: '', technologies: '', expectedOutcome: '', numberOfStudents: '' });
                 setFiles({ ...files, proposalFile: null, documentationFile: null, demoFile: null });
-                fetchData();
+                queryClient.invalidateQueries({ queryKey: ['faculty'] });
             }
         } catch (error) {
             console.error("Error creating project", error);
@@ -96,7 +97,7 @@ const FacultyDashboard = () => {
             Object.keys(ideaData).forEach(key => submitData.append(key, ideaData[key]));
             if (files.supportingFile) submitData.append('supportingFile', files.supportingFile);
 
-            const response = await fetch('http://localhost:5000/api/projects/ideas', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/ideas`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: submitData
@@ -106,7 +107,7 @@ const FacultyDashboard = () => {
                 setIsCreateIdeaModalOpen(false);
                 setIdeaData({ title: '', description: '', suggestedTechnologies: '', difficultyLevel: 'Beginner', skillsRequired: '', numberOfStudents: '' });
                 setFiles({ ...files, supportingFile: null });
-                fetchData();
+                queryClient.invalidateQueries({ queryKey: ['faculty'] });
             }
         } catch (error) {
             console.error("Error creating idea", error);
@@ -128,7 +129,7 @@ const FacultyDashboard = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('sarc_token');
-            const response = await fetch(`http://localhost:5000/api/projects/${editingProject.id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/${editingProject.id}`, {
                 method: 'PUT',
                 headers: { 
                     'Authorization': `Bearer ${token}`,
@@ -145,7 +146,7 @@ const FacultyDashboard = () => {
             if (response.ok) {
                 setIsEditModalOpen(false);
                 setEditingProject(null);
-                fetchData();
+                queryClient.invalidateQueries({ queryKey: ['faculty'] });
             } else {
                 const data = await response.json();
                 alert(data.message || 'Failed to update project');
@@ -158,13 +159,13 @@ const FacultyDashboard = () => {
     const handleUpdateApplicationStatus = async (appId, newStatus) => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch(`http://localhost:5000/api/applications/${appId}/status`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/${appId}/status`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
             });
             if (res.ok) {
-                fetchData(); // Refresh list immediately
+                queryClient.invalidateQueries({ queryKey: ['faculty'] }); // Refresh list immediately
             }
         } catch (error) {
             console.error(error);
@@ -259,7 +260,7 @@ const FacultyDashboard = () => {
                                 <div key={app.id} className={`p-5 rounded-xl border ${app.status === 'PENDING' ? 'border-yellow-200 bg-yellow-50' : app.status === 'ACCEPTED' ? 'border-green-200 bg-green-50' : app.status === 'SHORTLISTED' ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-slate-50'} shadow-sm`}>
                                     <div className="flex flex-col md:flex-row gap-6">
                                         <div className="flex-shrink-0 relative">
-                                            <img src={app.student?.user?.profilePhoto ? `http://localhost:5000/uploads/${app.student.user.profilePhoto}` : `https://ui-avatars.com/api/?name=${app.student?.user?.fullName}&background=random`} alt="Student" className="w-16 h-16 rounded-full border-2 border-white shadow-sm object-cover" />
+                                            <img src={app.student?.user?.profilePhoto ? `${import.meta.env.VITE_API_URL}/uploads/${app.student.user.profilePhoto}` : `https://ui-avatars.com/api/?name=${app.student?.user?.fullName}&background=random`} alt="Student" className="w-16 h-16 rounded-full border-2 border-white shadow-sm object-cover" />
                                             {app.status === 'PENDING' && <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 border-2 border-white rounded-full"></span>}
                                         </div>
                                         <div className="flex-grow">
@@ -279,7 +280,7 @@ const FacultyDashboard = () => {
 
                                             <div className="mt-4 flex flex-wrap gap-4 items-center">
                                                 {(app.resumeFile || app.student?.resumeFile) && (
-                                                    <a href={`http://localhost:5000/uploads/${app.resumeFile || app.student?.resumeFile}`} target="_blank" download className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
+                                                    <a href={`${import.meta.env.VITE_API_URL}/uploads/${app.resumeFile || app.student?.resumeFile}`} target="_blank" download className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
                                                         <FileText size={16} /> View Resume
                                                     </a>
                                                 )}

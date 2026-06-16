@@ -12,7 +12,7 @@ const TeamFormation = () => {
         const fetchTeams = async () => {
             try {
                 const token = localStorage.getItem('sarc_token');
-                const res = await fetch('http://localhost:5000/api/teams', {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teams`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -31,7 +31,7 @@ const TeamFormation = () => {
     const handleJoinTeam = async (teamId) => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch(`http://localhost:5000/api/teams/${teamId}/join`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teams/${teamId}/join`, {
                 method: 'POST',
                 headers: { 
                     'Authorization': `Bearer ${token}`,

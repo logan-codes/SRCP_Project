@@ -1,6 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-
+const prisma = require('../config/prismaClient');
 // Create milestone (Faculty only)
 exports.createMilestone = async (req, res) => {
     try {

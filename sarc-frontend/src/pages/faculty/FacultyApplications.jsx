@@ -11,7 +11,7 @@ const FacultyApplications = () => {
     const fetchData = async () => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const aRes = await fetch('http://localhost:5000/api/applications/faculty', { headers: { 'Authorization': `Bearer ${token}` } });
+            const aRes = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/faculty`, { headers: { 'Authorization': `Bearer ${token}` } });
             if (aRes.ok) {
                 const aData = await aRes.json();
                 setApplications(aData);
@@ -30,7 +30,7 @@ const FacultyApplications = () => {
     const handleUpdateApplicationStatus = async (appId, newStatus) => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch(`http://localhost:5000/api/applications/${appId}/status`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/${appId}/status`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
@@ -65,7 +65,7 @@ const FacultyApplications = () => {
                         <div key={app.id} className={`p-6 rounded-2xl border-l-4 ${app.status === 'PENDING' ? 'border-yellow-400 bg-white shadow-md border-y border-r border-slate-200' : app.status === 'ACCEPTED' ? 'border-green-500 bg-green-50/30' : app.status === 'SHORTLISTED' ? 'border-blue-500 bg-blue-50/30' : 'border-slate-300 bg-slate-50'} transition-all`}>
                             <div className="flex flex-col md:flex-row gap-6">
                                 <div className="flex-shrink-0 relative">
-                                    <img src={app.student?.user?.profilePhoto ? `http://localhost:5000/uploads/${app.student.user.profilePhoto}` : `https://ui-avatars.com/api/?name=${app.student?.user?.fullName}&background=random`} alt="Student" className="w-20 h-20 rounded-2xl border-4 border-white shadow-sm object-cover" />
+                                    <img src={app.student?.user?.profilePhoto ? `${import.meta.env.VITE_API_URL}/uploads/${app.student.user.profilePhoto}` : `https://ui-avatars.com/api/?name=${app.student?.user?.fullName}&background=random`} alt="Student" className="w-20 h-20 rounded-2xl border-4 border-white shadow-sm object-cover" />
                                 </div>
                                 <div className="flex-grow">
                                     <div className="flex justify-between items-start mb-2">
@@ -96,7 +96,7 @@ const FacultyApplications = () => {
 
                                     <div className="mt-4 flex flex-wrap gap-4 items-center">
                                         {(app.resumeFile || app.student?.resumeFile) && (
-                                            <a href={`http://localhost:5000/uploads/${app.resumeFile || app.student?.resumeFile}`} target="_blank" download className="text-sm font-bold text-primary hover:text-primary-dark hover:bg-primary/5 px-4 py-2 rounded-lg border border-primary/20 transition-colors flex items-center gap-2">
+                                            <a href={`${import.meta.env.VITE_API_URL}/uploads/${app.resumeFile || app.student?.resumeFile}`} target="_blank" download className="text-sm font-bold text-primary hover:text-primary-dark hover:bg-primary/5 px-4 py-2 rounded-lg border border-primary/20 transition-colors flex items-center gap-2">
                                                 <FileText size={16} /> Download Resume
                                             </a>
                                         )}

@@ -20,7 +20,7 @@ const ProjectCard = ({ project }) => {
             <div className="flex justify-between items-start mb-4">
                 <div className="flex gap-3">
                     <img
-                        src={project.faculty?.profilePhoto ? `http://localhost:5000/uploads/${project.faculty.profilePhoto}` : defaultProfilePhoto}
+                        src={project.faculty?.profilePhoto ? `${import.meta.env.VITE_API_URL}/uploads/${project.faculty.profilePhoto}` : defaultProfilePhoto}
                         className="w-10 h-10 rounded-full border border-slate-200 shadow-sm object-cover"
                         alt="Faculty"
                     />
@@ -98,13 +98,13 @@ const BrowseProjects = () => {
 
     const fetchData = async () => {
         try {
-            const pRes = await fetch('http://localhost:5000/api/projects');
+            const pRes = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`);
             const pData = await pRes.json();
-            if (pRes.ok) setProjects(pData);
+            if (pRes.ok) setProjects(pData.projects || (Array.isArray(pData) ? pData : []));
 
-            const iRes = await fetch('http://localhost:5000/api/projects/ideas');
+            const iRes = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/ideas`);
             const iData = await iRes.json();
-            if (iRes.ok) setIdeas(iData);
+            if (iRes.ok) setIdeas(iData.ideas || (Array.isArray(iData) ? iData : []));
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -112,19 +112,19 @@ const BrowseProjects = () => {
         }
     };
 
-    const filteredProjects = projects.filter(project => {
+    const filteredProjects = (projects || []).filter(project => {
         const term = searchTerm.toLowerCase();
-        return project.title.toLowerCase().includes(term) ||
-            project.description.toLowerCase().includes(term) ||
+        return project.title?.toLowerCase().includes(term) ||
+            project.description?.toLowerCase().includes(term) ||
             (project.domain && project.domain.toLowerCase().includes(term)) ||
-            (project.faculty && project.faculty.fullName?.toLowerCase().includes(term));
+            (project.faculty?.fullName?.toLowerCase().includes(term));
     });
 
-    const filteredIdeas = ideas.filter(idea => {
+    const filteredIdeas = (ideas || []).filter(idea => {
         const term = searchTerm.toLowerCase();
-        return idea.title.toLowerCase().includes(term) ||
-            idea.description.toLowerCase().includes(term) ||
-            (idea.faculty && idea.faculty.fullName?.toLowerCase().includes(term));
+        return idea.title?.toLowerCase().includes(term) ||
+            idea.description?.toLowerCase().includes(term) ||
+            (idea.faculty?.fullName?.toLowerCase().includes(term));
     });
 
     return (
@@ -187,7 +187,7 @@ const BrowseProjects = () => {
                                 <p className="text-sm text-slate-600 mb-4 line-clamp-4">{idea.description}</p>
                                 {idea.supportingFile && (
                                     <div className="mt-auto">
-                                        <a href={`http://localhost:5000/uploads/${idea.supportingFile}`} download target="_blank" rel="noreferrer" className="text-primary text-sm font-bold hover:underline">Download Supporting File</a>
+                                        <a href={`${import.meta.env.VITE_API_URL}/uploads/${idea.supportingFile}`} download target="_blank" rel="noreferrer" className="text-primary text-sm font-bold hover:underline">Download Supporting File</a>
                                     </div>
                                 )}
                             </Card>

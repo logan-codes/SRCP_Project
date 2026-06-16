@@ -34,7 +34,7 @@ const AdminUserManagement = () => {
                 search: searchTerm
             }).toString();
 
-            const res = await fetch(`http://localhost:5000/api/users/all?${query}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/all?${query}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!res.ok) throw new Error('Failed to fetch users');
@@ -88,7 +88,7 @@ const AdminUserManagement = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('sarc_token');
-            const url = modalMode === 'CREATE' ? 'http://localhost:5000/api/users' : `http://localhost:5000/api/users/${currentUser.id}`;
+            const url = modalMode === 'CREATE' ? `${import.meta.env.VITE_API_URL}/api/users` : `${import.meta.env.VITE_API_URL}/api/users/${currentUser.id}`;
             const method = modalMode === 'CREATE' ? 'POST' : 'PUT';
 
             const payload = { ...currentUser };
@@ -120,7 +120,7 @@ const AdminUserManagement = () => {
         if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch(`http://localhost:5000/api/users/${id}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -136,8 +136,6 @@ const AdminUserManagement = () => {
             setMessage({ text: error.message, type: 'error' });
         }
     };
-
-
 
     const executeExcelUpload = async (e) => {
         e.preventDefault();
@@ -181,7 +179,7 @@ const AdminUserManagement = () => {
                 if (!window.confirm(`Are you sure you want to import ${usersPayload.length} users?`)) return;
 
                 const token = localStorage.getItem('sarc_token');
-                const res = await fetch('http://localhost:5000/api/users/bulk', {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/bulk`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

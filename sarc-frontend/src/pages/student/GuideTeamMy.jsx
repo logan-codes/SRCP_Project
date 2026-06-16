@@ -29,7 +29,7 @@ const GuideTeamMy = () => {
     const fetchMyTeam = async () => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/guide/teams/my', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/my`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -61,7 +61,7 @@ const GuideTeamMy = () => {
         setEditLoading(true);
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/guide/teams/my', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/my`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ const GuideTeamMy = () => {
 
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/guide/teams/invite', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/invite`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

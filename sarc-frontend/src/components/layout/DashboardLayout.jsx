@@ -162,7 +162,7 @@ export const DashboardLayout = ({ children }) => {
         try {
             const token = localStorage.getItem('sarc_token');
             if (!token) return;
-            const res = await fetch('http://localhost:5000/api/notifications', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notifications`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -180,7 +180,7 @@ export const DashboardLayout = ({ children }) => {
                 const token = localStorage.getItem('sarc_token');
                 if (!token) return;
 
-                const response = await fetch('http://localhost:5000/api/auth/me', {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -197,15 +197,14 @@ export const DashboardLayout = ({ children }) => {
                         }
                         setUserInitials(initials.toUpperCase());
                     }
-                } else {
+                } else if (response.status === 401 || response.status === 403) {
                     // Token is invalid or user was deleted from DB. Force logout.
                     localStorage.removeItem('sarc_token');
                     window.location.href = '/login';
                 }
             } catch (err) {
-                console.error("Error fetching user data", err);
-                localStorage.removeItem('sarc_token');
-                window.location.href = '/login';
+                console.error("Error fetching user data (possibly server offline):", err);
+                // Do NOT force logout on network errors (e.g. server restarting)
             }
         };
         fetchUser();
@@ -215,7 +214,7 @@ export const DashboardLayout = ({ children }) => {
     const markAsRead = async (id) => {
         try {
             const token = localStorage.getItem('sarc_token');
-            await fetch(`http://localhost:5000/api/notifications/${id}/read`, {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/notifications/${id}/read`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -313,7 +312,7 @@ export const DashboardLayout = ({ children }) => {
                             >
                                 {userData?.profilePhoto ? (
                                     <img 
-                                        src={userData.profilePhoto.startsWith('http') ? userData.profilePhoto : `http://localhost:5000/uploads/${userData.profilePhoto.split(/[\\/]/).pop()}`} 
+                                        src={userData.profilePhoto.startsWith('http') ? userData.profilePhoto : `${import.meta.env.VITE_API_URL}/uploads/${userData.profilePhoto.split(/[\\/]/).pop()}`} 
                                         alt="Profile" 
                                         className="w-full h-full object-cover"
                                     />

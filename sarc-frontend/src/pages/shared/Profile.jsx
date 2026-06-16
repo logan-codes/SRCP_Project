@@ -40,7 +40,7 @@ const Profile = () => {
     const fetchProfile = async () => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const response = await fetch('http://localhost:5000/api/auth/me', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -71,7 +71,7 @@ const Profile = () => {
                     profilePhoto: data.profilePhoto || ''
                 });
                 if (data.profilePhoto) {
-                    setProfilePhotoPreview(`http://localhost:5000/uploads/${data.profilePhoto}`);
+                    setProfilePhotoPreview(`${import.meta.env.VITE_API_URL}/uploads/${data.profilePhoto}`);
                 }
             }
         } catch (error) {
@@ -143,7 +143,7 @@ const Profile = () => {
             if (profilePhotoFile) formData.append('profilePhoto', profilePhotoFile);
             if (resumeFile) formData.append('resumeFile', resumeFile);
 
-            const response = await fetch('http://localhost:5000/api/auth/profile', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/profile`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData

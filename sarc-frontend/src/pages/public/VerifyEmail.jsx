@@ -22,7 +22,7 @@ const VerifyEmail = () => {
 
         const verifyAccount = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/auth/verify-email', {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/verify-email`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -73,11 +73,6 @@ const VerifyEmail = () => {
                             <Button variant="primary" onClick={() => navigate('/login')} className="w-full">
                                 Go to Login
                             </Button>
-                            {status === 'error' && (
-                                <Link to="/register" className="text-primary hover:underline text-sm font-medium">
-                                    Register a new account
-                                </Link>
-                            )}
                         </div>
                     )}
                 </div>

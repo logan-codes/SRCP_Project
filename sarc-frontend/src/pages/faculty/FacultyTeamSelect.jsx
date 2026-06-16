@@ -17,7 +17,7 @@ const FacultyTeamSelect = () => {
         const fetchTeams = async () => {
             try {
                 const token = localStorage.getItem('sarc_token');
-                const res = await fetch('http://localhost:5000/api/guide/faculty/teams', {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/faculty/teams`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -76,7 +76,7 @@ const FacultyTeamSelect = () => {
 
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/guide/faculty/select', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/faculty/select`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

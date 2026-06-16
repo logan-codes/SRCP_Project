@@ -9,7 +9,7 @@ const TeamInvites = () => {
     const fetchInvites = async () => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const teamRes = await fetch('http://localhost:5000/api/guide/teams/invites/my', { headers: { 'Authorization': `Bearer ${token}` } });
+            const teamRes = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/invites/my`, { headers: { 'Authorization': `Bearer ${token}` } });
             
             const teamData = teamRes.ok ? await teamRes.json() : [];
             setTeamInvites(Array.isArray(teamData) ? teamData : []);
@@ -27,7 +27,7 @@ const TeamInvites = () => {
     const respondToTeamInvite = async (teamId, action) => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/guide/teams/invite/respond', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/invite/respond`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

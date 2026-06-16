@@ -18,7 +18,7 @@ const GuideDashboard = () => {
                     setRole(payload.user.role);
                 }
 
-                const res = await fetch('http://localhost:5000/api/guide/dashboard', {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/dashboard`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 

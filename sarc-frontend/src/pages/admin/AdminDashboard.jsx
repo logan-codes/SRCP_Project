@@ -15,7 +15,7 @@ const AdminDashboard = () => {
         const fetchAnalytics = async () => {
             try {
                 const token = localStorage.getItem('sarc_token');
-                const res = await fetch('http://localhost:5000/api/users/analytics', {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/analytics`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {

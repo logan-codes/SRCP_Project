@@ -45,7 +45,7 @@ const TeamCard = ({ team, onAction, actionLabel, showStatus, onReject }) => {
                     <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/50">
                         <FileText className="w-4 h-4 text-accent flex-shrink-0" />
                         <a 
-                            href={`http://localhost:5000/uploads/${team.abstractFile}`}
+                            href={`${import.meta.env.VITE_API_URL}/uploads/${team.abstractFile}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-sm text-accent hover:underline font-medium"

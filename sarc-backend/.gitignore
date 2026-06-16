@@ -3,3 +3,17 @@ node_modules
 .env
 
 /generated/prisma
+
+# Uploads directory
+uploads/
+/uploads
+
+# Temporary and test scripts
+patch_*.cjs
+patch_*.js
+test*.js
+check_*.js
+update_*.cjs
+replace_*.js
+*.log
+*.txt

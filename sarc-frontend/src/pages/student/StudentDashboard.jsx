@@ -74,7 +74,7 @@ const StudentDashboard = () => {
                 const token = localStorage.getItem('sarc_token');
                 
                 // Fetch Applications
-                const resApps = await fetch('http://localhost:5000/api/applications/student', {
+                const resApps = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/student`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (resApps.ok) {
@@ -83,17 +83,18 @@ const StudentDashboard = () => {
                 }
 
                 // Fetch Projects
-                const resProj = await fetch('http://localhost:5000/api/projects', {
+                const resProj = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (resProj.ok) {
                     const pData = await resProj.json();
-                    const available = pData.filter(p => p.status === 'OPEN').slice(0, 3);
+                    const projectsArr = pData.projects || (Array.isArray(pData) ? pData : []);
+                    const available = projectsArr.filter(p => p.status === 'OPEN').slice(0, 3);
                     setRecommendedProjects(available);
                 }
 
                 // Fetch Global Milestones (Deadlines)
-                const resDeadlines = await fetch('http://localhost:5000/api/global-milestones', {
+                const resDeadlines = await fetch(`${import.meta.env.VITE_API_URL}/api/global-milestones`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (resDeadlines.ok) {

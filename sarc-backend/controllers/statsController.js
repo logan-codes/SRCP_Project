@@ -1,6 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-
+const prisma = require('../config/prismaClient');
 exports.getPortalStats = async (req, res) => {
     try {
         const activeProjects = await prisma.project.count({ where: { status: 'OPEN' } });

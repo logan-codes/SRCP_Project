@@ -11,7 +11,7 @@ const AdminTeamFinalization = () => {
     const fetchTeams = async () => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/guide/admin/teams', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/admin/teams`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!res.ok) throw new Error('Failed to fetch teams');
@@ -46,7 +46,7 @@ const AdminTeamFinalization = () => {
     const handleToggleFinalize = async (teamId, currentStatus) => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch(`http://localhost:5000/api/guide/admin/teams/${teamId}/finalize`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/admin/teams/${teamId}/finalize`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ const AdminTeamFinalization = () => {
 
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/guide/admin/teams/finalize-all', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/admin/teams/finalize-all`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -104,7 +104,7 @@ const AdminTeamFinalization = () => {
 
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch(`http://localhost:5000/api/guide/admin/teams/${teamId}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/admin/teams/${teamId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

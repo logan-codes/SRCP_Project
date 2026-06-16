@@ -18,7 +18,7 @@ const AdminMilestonesConfig = () => {
     const fetchMilestones = async () => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/global-milestones', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/global-milestones`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -46,8 +46,8 @@ const AdminMilestonesConfig = () => {
             const token = localStorage.getItem('sarc_token');
             const method = editingId ? 'PUT' : 'POST';
             const url = editingId 
-                ? `http://localhost:5000/api/global-milestones/${editingId}`
-                : 'http://localhost:5000/api/global-milestones';
+                ? `${import.meta.env.VITE_API_URL}/api/global-milestones/${editingId}`
+                : `${import.meta.env.VITE_API_URL}/api/global-milestones`;
             
             const res = await fetch(url, {
                 method,
@@ -84,7 +84,7 @@ const AdminMilestonesConfig = () => {
         if (!window.confirm("Are you sure you want to delete this milestone?")) return;
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch(`http://localhost:5000/api/global-milestones/${id}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/global-milestones/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

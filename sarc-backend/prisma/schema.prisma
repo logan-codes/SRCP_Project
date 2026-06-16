@@ -29,8 +29,6 @@ model User {
   role         Role    @default(STUDENT)
   profilePhoto String?
 
-  isEmailVerified        Boolean   @default(false)
-  emailVerificationToken String?
   failedLoginAttempts    Int       @default(0)
   lockoutUntil           DateTime?
   refreshToken           String?
@@ -50,6 +48,11 @@ model User {
   guideTeamMemberships  GuideTeamMember[]
   facultyGuideSlot      FacultyGuideSlot?
   facultyTeamSelections FacultyTeamSelection[]
+
+  
+  isFirstLogin          Boolean   @default(true)
+  accountStatus         String    @default("PENDING")
+  passwordChangedAt     DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -155,6 +158,8 @@ model Project {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([facultyId])
 }
 
 model ProjectIdea {
@@ -172,6 +177,8 @@ model ProjectIdea {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([facultyId])
 }
 
 model Application {
@@ -187,6 +194,9 @@ model Application {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([projectId])
 }
 
 model Notification {

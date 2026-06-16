@@ -9,7 +9,7 @@ const GuideInvites = () => {
     const fetchInvites = async () => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const facRes = await fetch('http://localhost:5000/api/guide/teams/invites/faculty', { headers: { 'Authorization': `Bearer ${token}` } });
+            const facRes = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/invites/faculty`, { headers: { 'Authorization': `Bearer ${token}` } });
 
             const facData = facRes.ok ? await facRes.json() : [];
 
@@ -28,7 +28,7 @@ const GuideInvites = () => {
     const respondToFacultyInvite = async (teamId, facultyId, action) => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch(`http://localhost:5000/api/guide/teams/${teamId}/respond-faculty`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/${teamId}/respond-faculty`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

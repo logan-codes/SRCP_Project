@@ -14,7 +14,7 @@ const StudentApplications = () => {
         const fetchApps = async () => {
             try {
                 const token = localStorage.getItem('sarc_token');
-                const res = await fetch('http://localhost:5000/api/applications/student', {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/student`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -84,7 +84,7 @@ const StudentApplications = () => {
                                     </div>
                                     <div className="md:w-64 flex flex-col justify-end border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 pl-0 md:pl-6">
                                         {app.resumeFile && (
-                                            <a href={`http://localhost:5000/uploads/${app.resumeFile}`} target="_blank" rel="noreferrer" className="w-full mb-3 flex items-center justify-center gap-2 py-2 px-4 bg-white border border-slate-200 hover:border-primary/50 hover:bg-primary/5 text-slate-700 hover:text-primary transition-colors text-sm font-bold rounded-lg shadow-sm">
+                                            <a href={`${import.meta.env.VITE_API_URL}/uploads/${app.resumeFile}`} target="_blank" rel="noreferrer" className="w-full mb-3 flex items-center justify-center gap-2 py-2 px-4 bg-white border border-slate-200 hover:border-primary/50 hover:bg-primary/5 text-slate-700 hover:text-primary transition-colors text-sm font-bold rounded-lg shadow-sm">
                                                 <FileText size={16} /> View Submitted Resume
                                             </a>
                                         )}

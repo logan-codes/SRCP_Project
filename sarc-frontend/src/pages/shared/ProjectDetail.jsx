@@ -24,12 +24,12 @@ const ProjectDetail = () => {
                 const token = localStorage.getItem('sarc_token');
 
                 // Fetch Project
-                const pRes = await fetch(`http://localhost:5000/api/projects/${id}`);
+                const pRes = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/${id}`);
                 const pData = await pRes.json();
                 if (pRes.ok) setProject(pData);
 
                 // Fetch User Profile
-                const uRes = await fetch('http://localhost:5000/api/auth/me', {
+                const uRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const uData = await uRes.json();
@@ -37,7 +37,7 @@ const ProjectDetail = () => {
 
                 // Fetch Applications to check status
                 if (uData && uData.role === 'STUDENT') {
-                    const appsRes = await fetch('http://localhost:5000/api/applications/student', {
+                    const appsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/student`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     const appsData = await appsRes.json();
@@ -68,7 +68,7 @@ const ProjectDetail = () => {
             formData.append('message', applyMessage);
             if (applyResume) formData.append('resumeFile', applyResume);
 
-            const res = await fetch('http://localhost:5000/api/applications/apply', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/apply`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
@@ -93,7 +93,7 @@ const ProjectDetail = () => {
     if (!project) return <div className="min-h-screen pt-20 text-center">Project not found</div>;
 
     const defaultProfilePhoto = "https://ui-avatars.com/api/?name=Prof&background=random";
-    const bgImage = project.faculty?.profilePhoto ? `http://localhost:5000/uploads/${project.faculty.profilePhoto}` : defaultProfilePhoto;
+    const bgImage = project.faculty?.profilePhoto ? `${import.meta.env.VITE_API_URL}/uploads/${project.faculty.profilePhoto}` : defaultProfilePhoto;
 
     return (
         <div className="min-h-screen flex flex-col font-body bg-canvas">
@@ -172,14 +172,14 @@ const ProjectDetail = () => {
                                 </h2>
                                 <div className="space-y-3">
                                     {project.proposalFile ? (
-                                        <a href={`http://localhost:5000/uploads/${project.proposalFile}`} target="_blank" download className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+                                        <a href={`${import.meta.env.VITE_API_URL}/uploads/${project.proposalFile}`} target="_blank" download className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
                                             <Download size={18} className="text-slate-400" />
                                             <span className="font-medium text-sm text-slate-700">Project Proposal</span>
                                         </a>
                                     ) : <p className="text-sm text-slate-400 italic">No proposal attached</p>}
 
                                     {project.demoFile && (
-                                        <a href={`http://localhost:5000/uploads/${project.demoFile}`} target="_blank" download className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+                                        <a href={`${import.meta.env.VITE_API_URL}/uploads/${project.demoFile}`} target="_blank" download className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
                                             <Download size={18} className="text-slate-400" />
                                             <span className="font-medium text-sm text-slate-700">Demo / PPT</span>
                                         </a>

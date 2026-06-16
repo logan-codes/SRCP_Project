@@ -12,7 +12,7 @@ const GuideAdminConfig = () => {
     const fetchConfig = async () => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/guide/config', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/config`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -33,7 +33,7 @@ const GuideAdminConfig = () => {
 
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/guide/config/phase', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/config/phase`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ const GuideAdminConfig = () => {
     const handleUpdateSlot = async (facultyId, newSlots) => {
         try {
             const token = localStorage.getItem('sarc_token');
-            await fetch(`http://localhost:5000/api/guide/faculty-slots/${facultyId}`, {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/guide/faculty-slots/${facultyId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ const GuideAdminConfig = () => {
         
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/guide/config/reset', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/config/reset`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -91,7 +91,7 @@ const GuideAdminConfig = () => {
     const handleExportExcel = async () => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch('http://localhost:5000/api/guide/teams/export', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/export`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!res.ok) throw new Error('Failed to fetch export data');

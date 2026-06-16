@@ -17,7 +17,7 @@ const Milestones = ({ projectId }) => {
             try {
                 if (!projectId) {
                     const token = localStorage.getItem('sarc_token');
-                    const globalRes = await fetch('http://localhost:5000/api/global-milestones', {
+                    const globalRes = await fetch(`${import.meta.env.VITE_API_URL}/api/global-milestones`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     if (globalRes.ok) {
@@ -31,7 +31,7 @@ const Milestones = ({ projectId }) => {
                 }
 
                 const token = localStorage.getItem('sarc_token');
-                const res = await fetch(`http://localhost:5000/api/milestones/project/${projectId}`, {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/milestones/project/${projectId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -74,7 +74,7 @@ const Milestones = ({ projectId }) => {
                     <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-1 bg-slate-200 transform -translate-x-1/2 rounded-full hidden md:block"></div>
                     
                     <div className="space-y-8">
-                        {milestones.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate)).map((m, index) => {
+                        {Array.isArray(milestones) && milestones.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate)).map((m, index) => {
                             const isPast = new Date(m.dueDate) < new Date() && m.status !== 'COMPLETED';
                             const isCompleted = m.status === 'COMPLETED';
                             

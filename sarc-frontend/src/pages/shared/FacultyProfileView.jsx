@@ -15,7 +15,7 @@ const FacultyProfileView = () => {
         const fetchFaculty = async () => {
             try {
                 const token = localStorage.getItem('sarc_token');
-                const res = await fetch(`http://localhost:5000/api/users/faculty/${id}`, {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/faculty/${id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -48,7 +48,7 @@ const FacultyProfileView = () => {
                     <Card className="text-center pt-10 pb-8 flex flex-col items-center shadow-lg border-t-8 border-t-secondary relative overflow-hidden">
                         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-primary/5 to-secondary/10 z-0"></div>
                         <img 
-                            src={prof.profilePhoto ? `http://localhost:5000/uploads/${prof.profilePhoto}` : `https://ui-avatars.com/api/?name=${prof.fullName}&background=random`} 
+                            src={prof.profilePhoto ? `${import.meta.env.VITE_API_URL}/uploads/${prof.profilePhoto}` : `https://ui-avatars.com/api/?name=${prof.fullName}&background=random`} 
                             alt={prof.fullName} 
                             className="w-32 h-32 rounded-full border-4 border-white shadow-md z-10 bg-white object-cover mb-4" 
                         />
@@ -65,24 +65,24 @@ const FacultyProfileView = () => {
 
                     <Card className="mt-6 border-l-4 border-l-primary shadow-sm">
                         <h3 className="text-lg font-bold font-heading text-slate-800 flex items-center gap-2 mb-4"><Lightbulb size={18} className="text-primary"/> Research Areas</h3>
-                        {prof.researchAreas && prof.researchAreas.length > 0 ? (
+                        {Array.isArray(prof.researchAreas) && prof.researchAreas.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
-                                {prof.researchAreas.map(area => (
-                                    <span key={area} className="px-3 py-1.5 bg-slate-50 text-slate-700 text-sm font-medium rounded-lg border border-slate-200">{area}</span>
-                                ))}
+                                {prof.researchAreas.map((area, idx) => area ? (
+                                    <span key={`${area}-${idx}`} className="px-3 py-1.5 bg-slate-50 text-slate-700 text-sm font-medium rounded-lg border border-slate-200">{area}</span>
+                                ) : null)}
                             </div>
                         ) : (
                             <p className="text-sm text-slate-500 italic">Core research domains are currently being updated.</p>
                         )}
                     </Card>
 
-                    {prof.skills && prof.skills.length > 0 && (
+                    {Array.isArray(prof.skills) && prof.skills.length > 0 && (
                         <Card className="mt-6 shadow-sm border border-slate-100">
                             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Technical Expertise</h3>
                             <div className="flex flex-wrap gap-2">
-                                {prof.skills.map(skill => (
-                                    <Badge key={skill} color="blue">{skill}</Badge>
-                                ))}
+                                {prof.skills.map((skill, idx) => skill ? (
+                                    <Badge key={`${skill}-${idx}`} color="blue">{skill}</Badge>
+                                ) : null)}
                             </div>
                         </Card>
                     )}

@@ -36,7 +36,7 @@ const GuideTeamCreate = () => {
                 submitData.append('abstractFile', abstractFile);
             }
 
-            const res = await fetch('http://localhost:5000/api/guide/teams', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -52,7 +52,7 @@ const GuideTeamCreate = () => {
             const teamData = await res.json();
 
             if (formData.inviteMember) {
-                const inviteRes = await fetch('http://localhost:5000/api/guide/teams/invite', {
+                const inviteRes = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/invite`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

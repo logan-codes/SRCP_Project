@@ -14,7 +14,7 @@ const FacultyGuideCard = ({ faculty, onSelect, isSelectable, isSelected }) => {
             <div className="flex items-start gap-3 mb-4">
                 {faculty.profilePhoto ? (
                     <img 
-                        src={faculty.profilePhoto.startsWith('http') ? faculty.profilePhoto : `http://localhost:5000/uploads/${faculty.profilePhoto.split(/[\\/]/).pop()}`} 
+                        src={faculty.profilePhoto.startsWith('http') ? faculty.profilePhoto : `${import.meta.env.VITE_API_URL}/uploads/${faculty.profilePhoto.split(/[\\/]/).pop()}`} 
                         alt={faculty.name} 
                         className="w-12 h-12 rounded-full object-cover border border-primary/20 shrink-0"
                     />

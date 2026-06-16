@@ -12,7 +12,7 @@ const RoleCard = ({ icon: Icon, title, description, role }) => {
     return (
         <Card
             className="hover:border-primary/50 cursor-pointer group transition-all text-center flex flex-col items-center h-full"
-            onClick={() => navigate(`/register?role=${role}`)}
+            onClick={() => navigate('/login')}
         >
             <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:border-primary transition-colors">
                 <Icon size={28} className="text-slate-500 group-hover:text-secondary transition-colors" />
@@ -70,7 +70,7 @@ const AuthPage = () => {
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-dark to-accent">Sathyabama</span> SARCG Portal
                         </h2>
                         <p className="mt-4 text-lg text-slate-700 max-w-2xl mx-auto font-medium">
-                            Please select your role to login or register for a new account.
+                            Please select your role to login to your account.
                         </p>
                     </div>
 

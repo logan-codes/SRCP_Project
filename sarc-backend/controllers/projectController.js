@@ -1,29 +1,31 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-
+const prisma = require('../config/prismaClient');
 // @route   GET api/projects
 // @desc    Get all projects
 // @access  Public
 // Fetch all projects and include the faculty name and department so the frontend can display it easily
 exports.getProjects = async (req, res) => {
     try {
-        const projects = await prisma.project.findMany({
-            include: {
-                faculty: {
-                    include: {
-                        user: {
-                            select: {
-                                fullName: true,
-                                email: true
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const [projects, total] = await prisma.$transaction([
+            prisma.project.findMany({
+                include: {
+                    faculty: {
+                        include: {
+                            user: {
+                                select: { fullName: true, email: true }
                             }
                         }
                     }
-                }
-            },
-            orderBy: {
-                createdAt: 'desc'
-            }
-        });
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit
+            }),
+            prisma.project.count()
+        ]);
 
         const formattedProjects = projects.map(p => ({
             ...p,
@@ -36,7 +38,12 @@ exports.getProjects = async (req, res) => {
             }
         }));
 
-        res.json(formattedProjects);
+        res.json({
+            projects: formattedProjects,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
@@ -154,14 +161,23 @@ exports.createProject = async (req, res) => {
 // @access  Public
 exports.getProjectIdeas = async (req, res) => {
     try {
-        const ideas = await prisma.projectIdea.findMany({
-            include: {
-                faculty: {
-                    include: { user: { select: { fullName: true, email: true } } }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const [ideas, total] = await prisma.$transaction([
+            prisma.projectIdea.findMany({
+                include: {
+                    faculty: {
+                        include: { user: { select: { fullName: true, email: true } } }
+                    }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit
+            }),
+            prisma.projectIdea.count()
+        ]);
 
         const formattedIdeas = ideas.map(idea => ({
             ...idea,
@@ -174,7 +190,12 @@ exports.getProjectIdeas = async (req, res) => {
             }
         }));
 
-        res.json(formattedIdeas);
+        res.json({
+            ideas: formattedIdeas,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');

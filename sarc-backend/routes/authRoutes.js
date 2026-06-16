@@ -19,6 +19,7 @@ router.post('/login', authLimiter, authController.login);
 router.post('/forgot-password', authLimiter, authController.forgotPassword);
 router.post('/reset-password', authLimiter, authController.resetPassword);
 router.post('/refresh-token', authController.refreshToken);
+router.post('/force-change-password', auth, authController.forceChangePassword);
 router.get('/me', auth, authController.getMe);
 router.put('/profile', auth, upload.fields([
     { name: 'profilePhoto', maxCount: 1 },

@@ -25,7 +25,7 @@ const Navbar = () => {
 
     const fetchNotifications = async (token) => {
         try {
-            const res = await fetch('http://localhost:5000/api/notifications', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notifications`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -40,7 +40,7 @@ const Navbar = () => {
     const markAsRead = async (id) => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch(`http://localhost:5000/api/notifications/${id}/read`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notifications/${id}/read`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -156,8 +156,7 @@ const Navbar = () => {
                             </>
                         ) : (
                             <>
-                                <Button variant="ghost" className="hidden sm:flex text-primary font-bold" onClick={() => navigate('/login')}>Faculty Login</Button>
-                                <Button variant="primary" onClick={() => navigate('/register?role=student')}>Join as Student</Button>
+                                <Button variant="primary" onClick={() => navigate('/login')}>Login</Button>
                             </>
                         )}
                     </div>

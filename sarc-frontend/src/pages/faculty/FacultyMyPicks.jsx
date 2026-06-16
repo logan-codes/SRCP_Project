@@ -9,7 +9,7 @@ const FacultyMyPicks = () => {
         const fetchSelections = async () => {
             try {
                 const token = localStorage.getItem('sarc_token');
-                const res = await fetch('http://localhost:5000/api/guide/faculty/my-selections', {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/faculty/my-selections`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 

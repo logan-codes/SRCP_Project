@@ -5,3 +5,15 @@ build/
 .next/
 *.log
 .DS_Store
+
+# Uploads
+uploads/
+
+# Temporary and test scripts
+patch_*.cjs
+patch_*.js
+test*.js
+check_*.js
+update_*.cjs
+replace_*.js
+*.txt

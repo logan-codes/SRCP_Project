@@ -26,7 +26,7 @@ const LandingPage = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/stats');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/stats`);
                 if (res.ok) {
                     const data = await res.json();
                     setStats({
@@ -74,8 +74,7 @@ const LandingPage = () => {
                             Empowering Innovation Through Faculty–Student Collaboration. Our AI-driven engine connects Sathyabama's brightest minds to accelerate academic research.
                         </p>
                         <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-                            <Button variant="gradient" size="lg" className="shadow-lg shadow-primary/30" onClick={() => navigate('/auth')}>Explore Research Projects</Button>
-                            <Button variant="secondary" size="lg" className="shadow-lg shadow-black/20 text-primary-dark" onClick={() => navigate('/register')}>Join as Student / Faculty</Button>
+                            <Button variant="gradient" size="lg" className="shadow-lg shadow-primary/30" onClick={() => navigate('/login')}>Login to Portal</Button>
                         </div>
                     </div>
                 </section>

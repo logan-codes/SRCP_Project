@@ -17,8 +17,8 @@ const GuideSelect = () => {
                 const token = localStorage.getItem('sarc_token');
                 
                 const [teamRes, facRes] = await Promise.all([
-                    fetch('http://localhost:5000/api/guide/teams/my', { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch('http://localhost:5000/api/guide/faculty/available', { headers: { 'Authorization': `Bearer ${token}` } })
+                    fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/my`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch(`${import.meta.env.VITE_API_URL}/api/guide/faculty/available`, { headers: { 'Authorization': `Bearer ${token}` } })
                 ]);
 
                 const teamData = await teamRes.json();
@@ -50,7 +50,7 @@ const GuideSelect = () => {
 
         try {
             const token = localStorage.getItem('sarc_token');
-            const res = await fetch(`http://localhost:5000/api/guide/teams/${team.id}/select-guide`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/${team.id}/select-guide`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ const GuideSelect = () => {
 
             setMessage(data.message);
             // Refresh team and faculty data
-            const teamRes = await fetch('http://localhost:5000/api/guide/teams/my', { headers: { 'Authorization': `Bearer ${token}` } });
+            const teamRes = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/my`, { headers: { 'Authorization': `Bearer ${token}` } });
             setTeam(await teamRes.json());
         } catch (error) {
             setMessage(error.message);

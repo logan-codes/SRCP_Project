@@ -1,10 +1,8 @@
-const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
-const prisma = new PrismaClient();
-
+const prisma = require('../config/prismaClient');
 // Ensure JWT Secrets are available (fail fast)
 if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
     throw new Error('FATAL ERROR: JWT_SECRET or JWT_REFRESH_SECRET is not defined in environment variables.');
@@ -108,8 +106,6 @@ exports.register = async (req, res) => {
                 email,
                 password: hashedPassword,
                 role: prismaRole,
-                emailVerificationToken: hashedVerificationToken,
-                isEmailVerified: false,
             },
         });
 
@@ -138,9 +134,9 @@ exports.verifyEmail = async (req, res) => {
             return res.status(400).json({ message: 'Invalid verification token or email.' });
         }
 
-        if (user.isEmailVerified) {
-            return res.status(200).json({ message: 'Email is already verified. You can now log in.' });
-        }
+        // if (user.isEmailVerified) {
+        //     return res.status(200).json({ message: 'Email is already verified. You can now log in.' });
+        // }
 
         const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
@@ -150,10 +146,7 @@ exports.verifyEmail = async (req, res) => {
 
         await prisma.user.update({
             where: { id: user.id },
-            data: {
-                isEmailVerified: true,
-                emailVerificationToken: null
-            }
+            data: {}
         });
 
         res.status(200).json({ message: 'Email verified successfully. You can now log in.' });
@@ -172,9 +165,12 @@ exports.login = async (req, res) => {
 
         const user = await prisma.user.findUnique({ where: { email } });
         
-        // Anti-enumeration: Generic message
         if (!user) {
-            return res.status(401).json({ message: 'Invalid email or password' });
+            return res.status(401).json({ message: 'Account not found. Please use your college registered email address.' });
+        }
+
+        if (!user.password || user.password === '') {
+            return res.status(401).json({ message: 'Your account setup is incomplete. Please contact the administrator.' });
         }
 
         // Check Lockout
@@ -193,12 +189,10 @@ exports.login = async (req, res) => {
             }
             
             await prisma.user.update({ where: { id: user.id }, data: updates });
-            return res.status(401).json({ message: 'Invalid email or password' });
+            return res.status(401).json({ message: 'Invalid default password. Please check the credentials provided by the college.' });
         }
 
-        if (!user.isEmailVerified) {
-            return res.status(403).json({ message: 'Please verify your email address before logging in.' });
-        }
+        // Email verification bypassed as requested
 
         // Reset login attempts
         await prisma.user.update({
@@ -208,7 +202,7 @@ exports.login = async (req, res) => {
 
         const { accessToken, refreshToken } = await generateTokens(user.id, user.role);
 
-        res.json({ token: accessToken, refreshToken, user: { id: user.id, fullName: user.fullName, email: user.email, role: user.role } });
+        res.json({ token: accessToken, refreshToken, user: { id: user.id, fullName: user.fullName, email: user.email, role: user.role, isFirstLogin: user.isFirstLogin } });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -264,7 +258,7 @@ exports.getMe = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const { password, refreshToken, emailVerificationToken, resetPasswordToken, failedLoginAttempts, lockoutUntil, ...userBase } = user;
+        const { password, refreshToken, resetPasswordToken, failedLoginAttempts, lockoutUntil, ...userBase } = user;
 
         res.json({ ...userBase, id: userBase.id });
     } catch (err) {
@@ -358,7 +352,7 @@ exports.updateProfile = async (req, res) => {
             include: { studentProfile: true, facultyProfile: true, industryProfile: true, adminProfile: true }
         });
 
-        const { password, refreshToken, emailVerificationToken, resetPasswordToken, failedLoginAttempts, lockoutUntil, ...userBase } = updatedUser;
+        const { password, refreshToken, resetPasswordToken, failedLoginAttempts, lockoutUntil, ...userBase } = updatedUser;
         res.json({ ...userBase, id: userBase.id });
     } catch (err) {
         console.error(err.message);
@@ -446,6 +440,49 @@ exports.resetPassword = async (req, res) => {
         });
 
         res.status(200).json({ message: 'Password has been reset successfully. You can now log in.' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+// @route   POST api/auth/force-change-password
+// @desc    Force password change on first login
+// @access  Private
+exports.forceChangePassword = async (req, res) => {
+    try {
+        const { newPassword, confirmPassword } = req.body;
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ message: 'Passwords do not match.' });
+        }
+
+        if (!isPasswordStrong(newPassword)) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                password: hashedPassword,
+                isFirstLogin: false,
+                accountStatus: 'ACTIVE',
+                passwordChangedAt: new Date(),
+                failedLoginAttempts: 0,
+                lockoutUntil: null
+            }
+        });
+
+        res.status(200).json({ message: 'Password changed successfully. Your account is now active.' });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ message: 'Internal Server Error' });

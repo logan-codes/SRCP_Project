@@ -1,26 +1,33 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/prismaClient');
 const bcrypt = require('bcryptjs');
 
 // Get all faculty profiles (Public Directory)
 exports.getAllFaculty = async (req, res) => {
     try {
-        const faculty = await prisma.facultyProfile.findMany({
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        fullName: true,
-                        profilePhoto: true
-                        // Exclude email and password
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const [faculty, total] = await prisma.$transaction([
+            prisma.facultyProfile.findMany({
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            fullName: true,
+                            profilePhoto: true
+                        }
+                    },
+                    projects: {
+                        where: { status: 'OPEN' },
+                        select: { id: true, title: true, domain: true, status: true }
                     }
                 },
-                projects: {
-                    where: { status: 'OPEN' },
-                    select: { id: true, title: true, domain: true, status: true }
-                }
-            }
-        });
+                skip,
+                take: limit
+            }),
+            prisma.facultyProfile.count()
+        ]);
 
         // Filter out personal details before sending
         const sanitizedFaculty = faculty.map(f => ({
@@ -34,10 +41,14 @@ exports.getAllFaculty = async (req, res) => {
             skills: f.skills,
             bio: f.bio,
             projects: f.projects
-            // Explicitly OMITTING contactNumber, linkedin, email
         }));
 
-        res.json(sanitizedFaculty);
+        res.json({
+            faculty: sanitizedFaculty,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server Error" });

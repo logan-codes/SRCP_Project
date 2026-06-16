@@ -1,8 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
-const prisma = new PrismaClient();
-
+const prisma = require('./config/prismaClient');
 async function createAdmin() {
     const email = process.argv[2];
     const password = process.argv[3];
@@ -29,7 +27,6 @@ async function createAdmin() {
                 password: hashedPassword,
                 fullName,
                 role: 'ADMIN',
-                isEmailVerified: true, // Auto-verify admin accounts
                 adminProfile: {
                     create: {
                         department: 'System Administration'

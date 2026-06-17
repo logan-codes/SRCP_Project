@@ -69,41 +69,53 @@ exports.changePhase = async (req, res) => {
                      include: { members: true }
                  });
 
+                 const teamsToDeleteIds = [];
+                 const teamsToClearPendingIds = [];
+
                  for (const team of allTeams) {
-                     const acceptedCount = team.members.filter(m => m.inviteStatus === 'ACCEPTED').length;
                      const hasPending = team.members.some(m => m.inviteStatus === 'PENDING');
 
                      if (team.isFinalized) {
                           if (hasPending) {
                               if (dropIncompleteTeams) {
-                                   // Delete the team and its members if Admin chose to drop incomplete but they somehow finalized it
-                                   await tx.guideTeamMember.deleteMany({ where: { teamId: team.id } });
-                                   await tx.guideTeam.delete({ where: { id: team.id } });
-                                   continue;
+                                   teamsToDeleteIds.push(team.id);
                               } else {
-                                   // Delete only pending invites from the finalized team
-                                   await tx.guideTeamMember.deleteMany({
-                                       where: { teamId: team.id, inviteStatus: 'PENDING' }
-                                   });
+                                   teamsToClearPendingIds.push(team.id);
                               }
                           }
                      } else {
                           // Team is not finalized by Admin. If phase moves to faculty selection, we can choose to delete unfinalized teams
                           if (dropIncompleteTeams) {
-                              await tx.guideTeamMember.deleteMany({ where: { teamId: team.id } });
-                              await tx.guideTeam.delete({ where: { id: team.id } });
+                              teamsToDeleteIds.push(team.id);
                           }
                      }
                  }
 
-                 // Ensure all faculty have a slot record
+                 // Bulk operations instead of sequential awaits
+                 if (teamsToClearPendingIds.length > 0) {
+                     await tx.guideTeamMember.deleteMany({
+                         where: { teamId: { in: teamsToClearPendingIds }, inviteStatus: 'PENDING' }
+                     });
+                 }
+
+                 if (teamsToDeleteIds.length > 0) {
+                     await tx.guideTeamMember.deleteMany({ where: { teamId: { in: teamsToDeleteIds } } });
+                     await tx.guideTeam.deleteMany({ where: { id: { in: teamsToDeleteIds } } });
+                 }
+
+                 // Ensure all faculty have a slot record using bulk createMany
                  const allFaculty = await tx.user.findMany({ where: { role: 'FACULTY' } });
-                 for (const fac of allFaculty) {
-                      await tx.facultyGuideSlot.upsert({
-                           where: { facultyId: fac.id },
-                           update: {},
-                           create: { facultyId: fac.id, totalSlots: 7, usedSlots: 0 }
-                      });
+                 const existingSlots = await tx.facultyGuideSlot.findMany();
+                 const existingFacultyIds = existingSlots.map(s => s.facultyId);
+                 
+                 const newSlotsToCreate = allFaculty
+                     .filter(fac => !existingFacultyIds.includes(fac.id))
+                     .map(fac => ({ facultyId: fac.id, totalSlots: 7, usedSlots: 0 }));
+
+                 if (newSlotsToCreate.length > 0) {
+                     await tx.facultyGuideSlot.createMany({
+                         data: newSlotsToCreate
+                     });
                  }
              }
         });

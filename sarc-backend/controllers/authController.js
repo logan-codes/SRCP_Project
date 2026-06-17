@@ -19,39 +19,46 @@ const isPasswordStrong = (password) => {
 
 // Helper: Send Email
 const sendEmail = async (to, subject, text) => {
-    let transporter;
-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-        transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-            },
-        });
-    } else {
-        const testAccount = await nodemailer.createTestAccount();
-        transporter = nodemailer.createTransport({
-            host: "smtp.ethereal.email",
-            port: 587,
-            secure: false,
-            auth: {
-                user: testAccount.user,
-                pass: testAccount.pass,
-            },
-        });
-    }
+    try {
+        let transporter;
+        if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+            transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASS,
+                },
+            });
+        } else {
+            console.warn("WARNING: SMTP_USER not set. Trying Ethereal test account. This often fails on Netlify/Serverless!");
+            const testAccount = await nodemailer.createTestAccount();
+            transporter = nodemailer.createTransport({
+                host: "smtp.ethereal.email",
+                port: 587,
+                secure: false,
+                auth: {
+                    user: testAccount.user,
+                    pass: testAccount.pass,
+                },
+            });
+        }
 
-    const mailOptions = {
-        from: '"SARCG Admin" <admin@sarcg.com>',
-        to,
-        subject,
-        text,
-    };
+        const mailOptions = {
+            from: '"SARCG Admin" <admin@sarcg.com>',
+            to,
+            subject,
+            text,
+        };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Message sent: %s", info.messageId);
-    if (!process.env.SMTP_USER) {
-        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+        const info = await transporter.sendMail(mailOptions);
+        console.log("Message sent: %s", info.messageId);
+        if (!process.env.SMTP_USER) {
+            console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+        }
+    } catch (error) {
+        console.error("CRITICAL ERROR: Failed to send email:", error.message);
+        console.error("Please configure SMTP_USER and SMTP_PASS in your environment variables to fix email delivery.");
+        // We do not throw the error here to prevent 500 Internal Server Errors in the API
     }
 };
 

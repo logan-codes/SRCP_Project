@@ -3,6 +3,10 @@
   publish = "sarc-frontend/dist"
   functions = "sarc-backend/netlify/functions"
 
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["sarc-backend/node_modules/.prisma/client/**/*"]
+
 # Proxy /api requests to the serverless function
 [[redirects]]
   from = "/api/*"

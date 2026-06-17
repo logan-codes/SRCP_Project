@@ -12,7 +12,7 @@ const rateLimit = require('express-rate-limit');
 const xss = require('xss-clean');
 
 // Trust proxy is required if you are behind a reverse proxy (Heroku, Render, Netlify, Nginx, etc.)
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 
 // Security Middleware
 app.use(helmet({ crossOriginResourcePolicy: false })); // allow images to load locally if needed
@@ -35,7 +35,7 @@ if (redisClient) {
 
 const apiLimiter = rateLimit({
     store: limiterStore,
-    max: 300,
+    max: 5000, // Production level: 5000 requests per 15 mins
     windowMs: 15 * 60 * 1000,
     message: { message: 'Too many requests from this IP, please slow down.' },
     standardHeaders: true,

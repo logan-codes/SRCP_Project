@@ -12,7 +12,7 @@ const rateLimit = require('express-rate-limit');
 const xss = require('xss-clean');
 
 // Trust proxy is required if you are behind a reverse proxy (Heroku, Render, Netlify, Nginx, etc.)
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 
 // Security Middleware
 app.use(helmet({ crossOriginResourcePolicy: false })); // allow images to load locally if needed

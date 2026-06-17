@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
+const compression = require('compression');
+const hpp = require('hpp');
 
 dotenv.config();
 
@@ -11,13 +13,26 @@ const path = require('path');
 const rateLimit = require('express-rate-limit');
 const xss = require('xss-clean');
 
+// Performance Middleware
+app.use(compression()); // Compress all responses
+
 // Security Middleware
-app.use(helmet({ crossOriginResourcePolicy: false })); // allow images to load locally if needed
 app.use(cors({
     origin: process.env.CORS_ALLOWED_ORIGIN || 'http://localhost:5173',
     credentials: true,
 }));
+app.use(helmet({ crossOriginResourcePolicy: false })); // allow images to load locally if needed
+// app.use(xss()); // Prevent XSS attacks (incompatible with Express 5)
+// app.use(hpp()); // Prevent HTTP Parameter Pollution (incompatible with Express 5)
 app.use(express.json({ limit: '5mb' })); // Increased limit for bulk imports
+
+// Global Rate Limiting
+const globalLimiter = rateLimit({
+    max: 1000, // 1000 requests per 15 mins
+    windowMs: 15 * 60 * 1000,
+    message: { message: 'Too many requests from this IP, please try again later.' }
+});
+app.use('/api', globalLimiter); // Apply to all API routes
 
 // Rate Limiting (Brute Force Protection for Auth)
 const authLimiter = rateLimit({

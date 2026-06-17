@@ -209,6 +209,8 @@ model Notification {
   read      Boolean  @default(false)
   link      String?  // Optional routing link
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Team {
@@ -226,6 +228,9 @@ model Team {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([leaderId])
 }
 
 model TeamMember {
@@ -256,6 +261,8 @@ model Milestone {
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  @@index([projectId])
 }
 
 enum InviteStatus {

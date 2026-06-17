@@ -13,7 +13,7 @@ router.post('/', auth, auth.checkRole('FACULTY'), upload.fields([
     { name: 'demoFile', maxCount: 1 },
     { name: 'imageFiles', maxCount: 5 }
 ]), projectController.createProject);
-router.post('/ideas', auth, auth.checkRole('STUDENT'), upload.single('supportingFile'), projectController.createProjectIdea);
+router.post('/ideas', auth, auth.checkRole('FACULTY'), upload.single('supportingFile'), projectController.createProjectIdea);
 router.put('/:id', auth, auth.checkRole('FACULTY'), projectController.updateProject);
 
 module.exports = router;

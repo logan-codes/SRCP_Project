@@ -45,12 +45,13 @@ exports.getTeams = async (req, res) => {
         const teams = await prisma.team.findMany({
             include: {
                 leader: { include: { user: { select: { fullName: true } } } },
-                members: { include: { student: { include: { user: { select: { fullName: true, department: true } } } } } },
+                members: { include: { student: { select: { department: true, user: { select: { fullName: true } } } } } },
                 project: true
             }
         });
         res.json(teams);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Server Error" });
     }
 };
@@ -62,13 +63,14 @@ exports.getTeamById = async (req, res) => {
             where: { id: parseInt(req.params.id) },
             include: {
                 leader: { include: { user: { select: { fullName: true } } } },
-                members: { include: { student: { include: { user: { select: { fullName: true, department: true } } } } } },
+                members: { include: { student: { select: { department: true, user: { select: { fullName: true } } } } } },
                 project: true
             }
         });
         if (!team) return res.status(404).json({ message: "Team not found" });
         res.json(team);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Server Error" });
     }
 };

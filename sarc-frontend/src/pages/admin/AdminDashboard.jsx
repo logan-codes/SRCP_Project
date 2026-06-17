@@ -10,6 +10,7 @@ import {
 const AdminDashboard = () => {
     const [analytics, setAnalytics] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [fetchedAt, setFetchedAt] = useState('');
 
     useEffect(() => {
         const fetchAnalytics = async () => {
@@ -21,6 +22,7 @@ const AdminDashboard = () => {
                 if (res.ok) {
                     const data = await res.json();
                     setAnalytics(data);
+                    setFetchedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
                 }
             } catch (error) {
                 console.error("Error fetching analytics", error);
@@ -54,7 +56,7 @@ const AdminDashboard = () => {
                     <p className="text-slate-600 mt-2 text-lg">Monitor system health, usage statistics, and Sathyabama research activity.</p>
                 </div>
                 <div className="mt-4 sm:mt-0 text-sm font-bold text-slate-500 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
-                    Last updated: Today, 09:42 AM
+                    Last updated: Today, {fetchedAt}
                 </div>
             </div>
 

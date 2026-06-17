@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import Button from '../../components/common/Button';
@@ -8,6 +8,7 @@ import { Calendar, MapPin, Users, Target, ArrowLeft, Download, Code, Hash, Layer
 
 const ProjectDetail = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState(null);
@@ -100,9 +101,9 @@ const ProjectDetail = () => {
             <Navbar />
 
             <main className="flex-grow py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                <Link to="/student/projects" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-primary mb-6 transition-colors">
-                    <ArrowLeft size={16} /> Back to Browse
-                </Link>
+                <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-primary mb-6 transition-colors">
+                    <ArrowLeft size={16} /> Back
+                </button>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Detail */}

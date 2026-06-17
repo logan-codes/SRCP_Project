@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge, StatWidget } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
@@ -30,7 +29,7 @@ const FacultyDashboard = () => {
     });
 
     useEffect(() => {
-        queryClient.invalidateQueries({ queryKey: ['faculty'] });
+        fetchData();
     }, []);
 
     const fetchData = async () => {
@@ -82,7 +81,7 @@ const FacultyDashboard = () => {
                 setIsCreateModalOpen(false);
                 setFormData({ title: '', description: '', skillsRequired: '', deadline: '', domain: '', problemStatement: '', technologies: '', expectedOutcome: '', numberOfStudents: '' });
                 setFiles({ ...files, proposalFile: null, documentationFile: null, demoFile: null });
-                queryClient.invalidateQueries({ queryKey: ['faculty'] });
+                fetchData();
             }
         } catch (error) {
             console.error("Error creating project", error);
@@ -107,7 +106,7 @@ const FacultyDashboard = () => {
                 setIsCreateIdeaModalOpen(false);
                 setIdeaData({ title: '', description: '', suggestedTechnologies: '', difficultyLevel: 'Beginner', skillsRequired: '', numberOfStudents: '' });
                 setFiles({ ...files, supportingFile: null });
-                queryClient.invalidateQueries({ queryKey: ['faculty'] });
+                fetchData();
             }
         } catch (error) {
             console.error("Error creating idea", error);
@@ -131,7 +130,7 @@ const FacultyDashboard = () => {
             const token = localStorage.getItem('sarc_token');
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/${editingProject.id}`, {
                 method: 'PUT',
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
@@ -146,7 +145,7 @@ const FacultyDashboard = () => {
             if (response.ok) {
                 setIsEditModalOpen(false);
                 setEditingProject(null);
-                queryClient.invalidateQueries({ queryKey: ['faculty'] });
+                fetchData();
             } else {
                 const data = await response.json();
                 alert(data.message || 'Failed to update project');
@@ -165,7 +164,7 @@ const FacultyDashboard = () => {
                 body: JSON.stringify({ status: newStatus })
             });
             if (res.ok) {
-                queryClient.invalidateQueries({ queryKey: ['faculty'] }); // Refresh list immediately
+                fetchData(); // Refresh list immediately
             }
         } catch (error) {
             console.error(error);
@@ -406,13 +405,13 @@ const FacultyDashboard = () => {
                         <form onSubmit={handleUpdateProject} className="space-y-4 pb-4">
                             <div><label className="block text-sm font-medium mb-1">Project Title</label>
                                 <input type="text" required className="w-full p-2 border border-slate-300 rounded-lg" value={editingProject.title} onChange={e => setEditingProject({ ...editingProject, title: e.target.value })} /></div>
-                            
+
                             <div><label className="block text-sm font-medium mb-1">Domain</label>
                                 <input type="text" className="w-full p-2 border border-slate-300 rounded-lg" value={editingProject.domain} onChange={e => setEditingProject({ ...editingProject, domain: e.target.value })} /></div>
-                            
+
                             <div><label className="block text-sm font-medium mb-1">Number of Students Required</label>
                                 <input type="number" className="w-full p-2 border border-slate-300 rounded-lg" value={editingProject.numberOfStudents} onChange={e => setEditingProject({ ...editingProject, numberOfStudents: e.target.value })} /></div>
-                            
+
                             <div><label className="block text-sm font-medium mb-1">Project Status</label>
                                 <select className="w-full p-2 border border-slate-300 rounded-lg" value={editingProject.status} onChange={e => setEditingProject({ ...editingProject, status: e.target.value })}>
                                     <option value="OPEN">OPEN - Accepting Applications</option>
@@ -420,7 +419,7 @@ const FacultyDashboard = () => {
                                     <option value="COMPLETED">COMPLETED - Project Finished</option>
                                     <option value="CANCELLED">CANCELLED</option>
                                 </select></div>
-                                
+
                             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
                                 <Button type="button" variant="ghost" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
                                 <Button type="submit" variant="primary">Save Changes</Button>

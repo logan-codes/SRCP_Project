@@ -8,7 +8,8 @@ exports.getAllFaculty = async (req, res) => {
         const limit = parseInt(req.query.limit) || 20;
         const skip = (page - 1) * limit;
 
-        const [faculty, total] = await prisma.$transaction([
+        // Use Promise.all for concurrent reads instead of $transaction to avoid holding DB locks
+        const [faculty, total] = await Promise.all([
             prisma.facultyProfile.findMany({
                 include: {
                     user: {

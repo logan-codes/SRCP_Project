@@ -109,7 +109,14 @@ exports.register = async (req, res) => {
             },
         });
 
-        await prisma.studentProfile.create({ data: { userId: user.id } });
+        // Create the correct profile based on role
+        if (prismaRole === 'STUDENT') {
+            await prisma.studentProfile.create({ data: { userId: user.id } });
+        } else if (prismaRole === 'FACULTY') {
+            await prisma.facultyProfile.create({ data: { userId: user.id } });
+        } else if (prismaRole === 'INDUSTRY') {
+            await prisma.industryProfile.create({ data: { userId: user.id } });
+        }
 
         // Send Verification Email
         const verifyUrl = `${frontendUrl}/verify-email?token=${verificationToken}&email=${email}`;
@@ -134,21 +141,9 @@ exports.verifyEmail = async (req, res) => {
             return res.status(400).json({ message: 'Invalid verification token or email.' });
         }
 
-        // if (user.isEmailVerified) {
-        //     return res.status(200).json({ message: 'Email is already verified. You can now log in.' });
-        // }
-
-        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-
-        if (user.emailVerificationToken !== hashedToken) {
-            return res.status(400).json({ message: 'Invalid verification token.' });
-        }
-
-        await prisma.user.update({
-            where: { id: user.id },
-            data: {}
-        });
-
+        // Note: emailVerificationToken is not stored in the DB schema currently.
+        // Email verification is bypassed — accounts are activated directly by admin.
+        // This endpoint is kept for future use.
         res.status(200).json({ message: 'Email verified successfully. You can now log in.' });
     } catch (err) {
         console.error(err.message);

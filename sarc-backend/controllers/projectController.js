@@ -9,7 +9,8 @@ exports.getProjects = async (req, res) => {
         const limit = parseInt(req.query.limit) || 20;
         const skip = (page - 1) * limit;
 
-        const [projects, total] = await prisma.$transaction([
+        // Use Promise.all for concurrent reads instead of $transaction to avoid holding DB locks
+        const [projects, total] = await Promise.all([
             prisma.project.findMany({
                 include: {
                     faculty: {
@@ -46,7 +47,7 @@ exports.getProjects = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error fetching projects' });
     }
 };
 
@@ -84,7 +85,7 @@ exports.getProjectById = async (req, res) => {
         res.json(formattedProject);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error fetching project' });
     }
 };
 
@@ -152,7 +153,7 @@ exports.createProject = async (req, res) => {
         res.status(201).json(newProject);
     } catch (err) {
         console.error("CREATE PROJECT ERROR:", err.message, err);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error creating project' });
     }
 };
 
@@ -165,7 +166,8 @@ exports.getProjectIdeas = async (req, res) => {
         const limit = parseInt(req.query.limit) || 20;
         const skip = (page - 1) * limit;
 
-        const [ideas, total] = await prisma.$transaction([
+        // Use Promise.all for concurrent reads instead of $transaction to avoid holding DB locks
+        const [ideas, total] = await Promise.all([
             prisma.projectIdea.findMany({
                 include: {
                     faculty: {
@@ -198,7 +200,7 @@ exports.getProjectIdeas = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error fetching ideas' });
     }
 };
 
@@ -247,7 +249,7 @@ exports.createProjectIdea = async (req, res) => {
         res.status(201).json(newIdea);
     } catch (err) {
         console.error("CREATE IDEA ERROR:", err.message, err);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error creating idea' });
     }
 };
 
@@ -294,6 +296,6 @@ exports.updateProject = async (req, res) => {
         res.json(updatedProject);
     } catch (err) {
         console.error("UPDATE PROJECT ERROR:", err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error updating project' });
     }
 };

@@ -21,8 +21,17 @@ const RecommendedProjectCard = ({ id, title, faculty, matchScore, skills, missin
                     <p className="text-sm text-slate-500 mt-1">Prof. {faculty}</p>
                 </div>
                 <div className="bg-indigo-50 text-indigo-700 font-bold px-3 py-1 rounded-lg flex flex-col items-center shadow-sm">
-                    <span className="text-sm leading-none">{matchScore}%</span>
-                    <span className="text-[10px] uppercase tracking-wider font-semibold opacity-80 mt-1">Match</span>
+                    {matchScore !== null ? (
+                        <>
+                            <span className="text-sm leading-none">{matchScore}%</span>
+                            <span className="text-[10px] uppercase tracking-wider font-semibold opacity-80 mt-1">Match</span>
+                        </>
+                    ) : (
+                        <>
+                            <span className="text-sm leading-none">—</span>
+                            <span className="text-[10px] uppercase tracking-wider font-semibold opacity-80 mt-1">Match</span>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -67,11 +76,25 @@ const StudentDashboard = () => {
     const [applications, setApplications] = useState([]);
     const [recommendedProjects, setRecommendedProjects] = useState([]);
     const [deadlines, setDeadlines] = useState([]);
+    const [studentSkills, setStudentSkills] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const token = localStorage.getItem('sarc_token');
+
+                // Fetch Student Profile for skills
+                const resMe = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resMe.ok) {
+                    const meData = await resMe.json();
+                    const skills = [
+                        ...(meData.studentProfile?.skills || []),
+                        ...(meData.studentProfile?.areasOfInterest || [])
+                    ];
+                    setStudentSkills(skills);
+                }
                 
                 // Fetch Applications
                 const resApps = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/student`, {
@@ -111,6 +134,12 @@ const StudentDashboard = () => {
         };
         fetchData();
     }, []);
+    const getMatchScore = (projectSkills) => {
+        if (!studentSkills.length || !projectSkills?.length) return null;
+        const mySkillsLower = studentSkills.map(s => s.toLowerCase());
+        const matched = projectSkills.filter(s => mySkillsLower.includes(s.toLowerCase())).length;
+        return Math.round((matched / projectSkills.length) * 100);
+    };
 
     const getMonthAndDay = (dateString) => {
         const d = new Date(dateString);
@@ -153,7 +182,7 @@ const StudentDashboard = () => {
                                 id={project.id}
                                 title={project.title}
                                 faculty={project.faculty?.fullName || 'Faculty'}
-                                matchScore={Math.floor(Math.random() * 15) + 85}
+                                matchScore={getMatchScore(project.skillsRequired)}
                                 skills={project.skillsRequired || []}
                                 deadline={project.deadline}
                             />

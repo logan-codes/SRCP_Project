@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
+const compression = require('compression');
 
 dotenv.config();
 
@@ -11,25 +12,56 @@ const path = require('path');
 const rateLimit = require('express-rate-limit');
 const xss = require('xss-clean');
 
-// Security Middleware
-app.use(helmet({ crossOriginResourcePolicy: false })); // allow images to load locally if needed
+// ─── Response Compression ────────────────────────────────────────────────────
+// Compresses all JSON responses with gzip. Reduces payload size by ~60-80%.
+// Only compresses responses > 1KB to avoid overhead on tiny responses.
+app.use(compression({ threshold: 1024 }));
+
+// ─── Security Middleware ──────────────────────────────────────────────────────
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors({
     origin: process.env.CORS_ALLOWED_ORIGIN || 'http://localhost:5173',
     credentials: true,
 }));
-app.use(express.json({ limit: '5mb' })); // Increased limit for bulk imports
+app.use(xss());
+app.use(express.json({ limit: '5mb' }));
 
-// Rate Limiting (Brute Force Protection for Auth)
+// ─── Rate Limiting ────────────────────────────────────────────────────────────
+// Strict limiter for auth routes (prevents brute-force attacks)
 const authLimiter = rateLimit({
-    max: 100, // 100 login attempts per 15 mins
+    max: 20,
     windowMs: 15 * 60 * 1000,
-    message: { message: 'Too many login attempts from this IP, please try again after 15 minutes.' }
+    message: { message: 'Too many login attempts from this IP, please try again after 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false,
 });
+
+// General limiter for all other API routes (prevents abuse / DDoS)
+const apiLimiter = rateLimit({
+    max: 300,              // 300 requests per 15 minutes per IP
+    windowMs: 15 * 60 * 1000,
+    message: { message: 'Too many requests from this IP, please slow down.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => {
+        // Skip rate limiting for static file requests (uploads)
+        return req.path.startsWith('/uploads');
+    }
+});
+
+// Apply limiters
 app.use('/api/auth', authLimiter);
+app.use('/api', apiLimiter);
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// ─── Static Files ─────────────────────────────────────────────────────────────
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+    // Cache static files for 1 day in the browser to reduce repeat requests
+    maxAge: '1d',
+    etag: true,
+    lastModified: true,
+}));
 
-// Routes
+// ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
@@ -41,28 +73,24 @@ app.use('/api/guide', require('./routes/guideRoutes'));
 app.use('/api/stats', require('./routes/statsRoutes'));
 app.use('/api/global-milestones', require('./routes/globalMilestoneRoutes'));
 
-// Basic Route for testing
+// Basic health check route
 app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to the SARCG API' });
+    res.json({ message: 'Welcome to the SARCG API', status: 'OK' });
 });
 
-// Global error handler to ensure JSON responses
+// ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
     console.error('Unhandled Error:', err.stack);
-    
-    // Check if headers have already been sent to the client
     if (res.headersSent) {
         return next(err);
     }
-    
-    // Send JSON response
-    res.status(err.status || 500).json({ 
-        message: err.message || 'Internal Server Error' 
+    res.status(err.status || 500).json({
+        message: err.message || 'Internal Server Error'
     });
 });
 
-// Start the server
+// ─── Start Server ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT} | PID: ${process.pid}`);
 });

@@ -152,7 +152,7 @@ exports.updateApplicationStatus = async (req, res) => {
                 userId: application.student.userId,
                 type: 'STATUS_UPDATE',
                 message,
-                link: `/student/projects` // Adjust to their applications page if needed
+                link: `/student/applications`
             }
         });
 

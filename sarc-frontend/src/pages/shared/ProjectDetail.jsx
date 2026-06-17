@@ -5,6 +5,7 @@ import Footer from '../../components/layout/Footer';
 import Button from '../../components/common/Button';
 import { Card, Badge } from '../../components/widgets/DashboardWidgets';
 import { Calendar, MapPin, Users, Target, ArrowLeft, Download, Code, Hash, Layers, FileText, CheckCircle, Upload } from 'lucide-react';
+import { uploadToCloudinary } from '../../utils/cloudinaryUpload';
 
 const ProjectDetail = () => {
     const { id } = useParams();
@@ -24,25 +25,27 @@ const ProjectDetail = () => {
             try {
                 const token = localStorage.getItem('sarc_token');
 
-                // Fetch Project
-                const pRes = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/${id}`);
-                const pData = await pRes.json();
-                if (pRes.ok) setProject(pData);
-
-                // Fetch User Profile
-                const uRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+                const pResPromise = fetch(`${import.meta.env.VITE_API_URL}/api/projects/${id}`);
+                const uResPromise = fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const uData = await uRes.json();
-                if (uRes.ok) setUserProfile(uData);
+                const appsResPromise = token ? fetch(`${import.meta.env.VITE_API_URL}/api/applications/student`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }) : Promise.resolve(null);
 
-                // Fetch Applications to check status
-                if (uData && uData.role === 'STUDENT') {
-                    const appsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/student`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    const appsData = await appsRes.json();
-                    if (appsRes.ok) {
+                const [pRes, uRes, appsRes] = await Promise.all([pResPromise, uResPromise, appsResPromise]);
+                
+                if (pRes.ok) {
+                    const pData = await pRes.json();
+                    setProject(pData);
+                }
+
+                if (uRes.ok) {
+                    const uData = await uRes.json();
+                    setUserProfile(uData);
+                    
+                    if (uData && uData.role === 'STUDENT' && appsRes && appsRes.ok) {
+                        const appsData = await appsRes.json();
                         const existingApp = appsData.find(app => String(app.projectId) === String(id));
                         if (existingApp) {
                             setApplicationStatus(existingApp.status);
@@ -64,15 +67,24 @@ const ProjectDetail = () => {
         setApplying(true);
         try {
             const token = localStorage.getItem('sarc_token');
-            const formData = new FormData();
-            formData.append('projectId', id);
-            formData.append('message', applyMessage);
-            if (applyResume) formData.append('resumeFile', applyResume);
+            let resumeFileUrl = undefined;
+            if (applyResume) {
+                resumeFileUrl = await uploadToCloudinary(applyResume);
+            }
+
+            const submitData = {
+                projectId: id,
+                message: applyMessage,
+                resumeFile: resumeFileUrl
+            };
 
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/apply`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(submitData)
             });
 
             if (res.ok) {

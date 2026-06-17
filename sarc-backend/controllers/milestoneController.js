@@ -55,7 +55,7 @@ exports.updateMilestone = async (req, res) => {
         const updateData = { status };
         
         if (submissionNotes) updateData.submissionNotes = submissionNotes;
-        if (req.file) updateData.submissionFile = req.file.filename;
+        if (req.body.submissionFile) updateData.submissionFile = req.body.submissionFile;
         if (status === 'SUBMITTED') updateData.submittedAt = new Date();
 
         const milestone = await prisma.milestone.update({

@@ -134,13 +134,17 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
     );
 };
 
+let cachedUserData = null;
+let cachedInitials = 'U';
+let cachedNotifications = [];
+
 export const DashboardLayout = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-    const [userData, setUserData] = useState(null);
-    const [userInitials, setUserInitials] = useState('U');
-    const [notifications, setNotifications] = useState([]);
+    const [userData, setUserData] = useState(cachedUserData);
+    const [userInitials, setUserInitials] = useState(cachedInitials);
+    const [notifications, setNotifications] = useState(cachedNotifications);
     
     const notificationRef = useRef(null);
     const profileRef = useRef(null);
@@ -167,6 +171,7 @@ export const DashboardLayout = ({ children }) => {
             });
             if (res.ok) {
                 const data = await res.json();
+                cachedNotifications = data;
                 setNotifications(data);
             }
         } catch (err) {
@@ -187,6 +192,7 @@ export const DashboardLayout = ({ children }) => {
                 if (response.ok) {
                     const data = await response.json();
                     if (data && data.fullName) {
+                        cachedUserData = data;
                         setUserData(data);
                         const nameParts = data.fullName.trim().split(' ');
                         let initials = '';
@@ -195,7 +201,8 @@ export const DashboardLayout = ({ children }) => {
                         } else if (nameParts.length === 1 && nameParts[0]) {
                             initials = nameParts[0].substring(0, 2);
                         }
-                        setUserInitials(initials.toUpperCase());
+                        cachedInitials = initials.toUpperCase();
+                        setUserInitials(cachedInitials);
                     }
                 } else if (response.status === 401 || response.status === 403) {
                     // Token is invalid or user was deleted from DB. Force logout.
@@ -207,8 +214,19 @@ export const DashboardLayout = ({ children }) => {
                 // Do NOT force logout on network errors (e.g. server restarting)
             }
         };
-        fetchUser();
-        fetchNotifications();
+        
+        if (!cachedUserData) {
+            fetchUser();
+        } else {
+            // Still fetch in background to update
+            fetchUser();
+        }
+        
+        if (cachedNotifications.length === 0) {
+            fetchNotifications();
+        } else {
+            fetchNotifications();
+        }
     }, []);
 
     const markAsRead = async (id) => {

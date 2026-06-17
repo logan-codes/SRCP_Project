@@ -35,12 +35,14 @@ const GuideTeamMy = () => {
             if (res.ok) {
                 const data = await res.json();
                 setTeam(data);
-                setEditData({
-                    teamName: data.teamName,
-                    projectTitle: data.projectTitle,
-                    description: data.description,
-                    domain: data.domain
-                });
+                if (data) {
+                    setEditData({
+                        teamName: data.teamName,
+                        projectTitle: data.projectTitle,
+                        description: data.description,
+                        domain: data.domain
+                    });
+                }
             } else {
                 setTeam(null);
             }

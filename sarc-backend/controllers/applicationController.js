@@ -31,7 +31,7 @@ exports.applyForProject = async (req, res) => {
             return res.status(404).json({ message: 'Project not found' });
         }
 
-        const resumeFile = req.file ? req.file.filename : studentProfile.resumeFile;
+        const resumeFile = req.body.resumeFile ? req.body.resumeFile : studentProfile.resumeFile;
 
         // 1. Create Application
         const application = await prisma.application.create({

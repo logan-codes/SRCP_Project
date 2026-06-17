@@ -273,8 +273,8 @@ exports.updateProfile = async (req, res) => {
             employeeId, researchAreas, yearsOfExperience, contactNumber, linkedin, pastProjects
         } = req.body;
 
-        const profilePhoto = req.files && req.files['profilePhoto'] ? req.files['profilePhoto'][0].filename : undefined;
-        const resumeFile = req.files && req.files['resumeFile'] ? req.files['resumeFile'][0].filename : undefined;
+        const profilePhoto = req.body.profilePhoto;
+        const resumeFile = req.body.resumeFile;
 
         const parseArray = (val) => {
             if (!val) return undefined;

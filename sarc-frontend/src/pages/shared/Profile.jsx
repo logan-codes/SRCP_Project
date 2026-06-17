@@ -3,6 +3,7 @@ import { Card } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
 import { User, Mail, Building, FileText, Save, CheckCircle, Camera, Link as LinkIcon, Phone, Plus, Trash2, X } from 'lucide-react';
 import AvatarEditor from 'react-avatar-editor';
+import { uploadToCloudinary } from '../../utils/cloudinaryUpload';
 
 const Profile = () => {
     const defaultProfilePhoto = "https://ui-avatars.com/api/?name=User&background=random";
@@ -71,7 +72,8 @@ const Profile = () => {
                     profilePhoto: data.profilePhoto || ''
                 });
                 if (data.profilePhoto) {
-                    setProfilePhotoPreview(`${import.meta.env.VITE_API_URL}/uploads/${data.profilePhoto}`);
+                    const isAbsolute = data.profilePhoto.startsWith('http');
+                    setProfilePhotoPreview(isAbsolute ? data.profilePhoto : `${import.meta.env.VITE_API_URL}/uploads/${data.profilePhoto}`);
                 }
             }
         } catch (error) {
@@ -128,25 +130,30 @@ const Profile = () => {
 
         try {
             const token = localStorage.getItem('sarc_token');
-            const formData = new FormData();
 
-            // Append all text data
-            Object.keys(profileData).forEach(key => {
-                if (key === 'pastProjects') {
-                    formData.append('pastProjects', JSON.stringify(profileData.pastProjects));
-                } else if (key !== 'profilePhoto' && profileData[key] !== null && profileData[key] !== undefined) {
-                    formData.append(key, profileData[key]);
-                }
-            });
+            let profilePhotoUrl = profileData.profilePhoto;
+            let resumeFileUrl = undefined;
 
-            // Append files
-            if (profilePhotoFile) formData.append('profilePhoto', profilePhotoFile);
-            if (resumeFile) formData.append('resumeFile', resumeFile);
+            if (profilePhotoFile) {
+                profilePhotoUrl = await uploadToCloudinary(profilePhotoFile);
+            }
+            if (resumeFile) {
+                resumeFileUrl = await uploadToCloudinary(resumeFile);
+            }
+
+            const submitData = {
+                ...profileData,
+                profilePhoto: profilePhotoUrl,
+                resumeFile: resumeFileUrl
+            };
 
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/profile`, {
                 method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(submitData)
             });
 
             const data = await response.json();

@@ -3,6 +3,7 @@ import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge, StatWidget } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
 import { BookOpen, Users, BellRing, UserPlus, CheckCircle, FileText, X, Upload } from 'lucide-react';
+import { uploadToCloudinary } from '../../utils/cloudinaryUpload';
 
 const FacultyDashboard = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -35,25 +36,29 @@ const FacultyDashboard = () => {
     const fetchData = async () => {
         try {
             const token = localStorage.getItem('sarc_token');
-            const userRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const userData = await userRes.json();
+            const headers = { 'Authorization': `Bearer ${token}` };
 
-            const pRes = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const pData = await pRes.json();
+            const [userRes, pRes, iRes, aRes] = await Promise.all([
+                fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, { headers }),
+                fetch(`${import.meta.env.VITE_API_URL}/api/projects`, { headers }),
+                fetch(`${import.meta.env.VITE_API_URL}/api/projects/ideas`, { headers }),
+                fetch(`${import.meta.env.VITE_API_URL}/api/applications/faculty`, { headers })
+            ]);
 
-            const iRes = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/ideas`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const iData = await iRes.json();
+            const [userData, pData, iData, aData] = await Promise.all([
+                userRes.ok ? userRes.json() : null,
+                pRes.ok ? pRes.json() : null,
+                iRes.ok ? iRes.json() : null,
+                aRes.ok ? aRes.json() : null
+            ]);
 
-            const aRes = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/faculty`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const aData = await aRes.json();
-
-            if (pRes.ok && userRes.ok) {
-                setProjects((pData.projects || []).filter(p => p.facultyId === userData.facultyProfile?.id));
+            if (pRes.ok && userRes.ok && userData) {
+                setProjects((pData?.projects || []).filter(p => p.facultyId === userData.facultyProfile?.id));
             }
-            if (iRes.ok && userRes.ok) {
-                setIdeas((iData.ideas || []).filter(i => i.facultyId === userData.facultyProfile?.id));
+            if (iRes.ok && userRes.ok && userData) {
+                setIdeas((iData?.ideas || []).filter(i => i.facultyId === userData.facultyProfile?.id));
             }
-            if (aRes.ok) setApplications(aData);
+            if (aRes.ok && aData) setApplications(aData);
         } catch (error) {
             console.error("Error fetching", error);
         } finally {
@@ -65,16 +70,28 @@ const FacultyDashboard = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('sarc_token');
-            const submitData = new FormData();
-            Object.keys(formData).forEach(key => submitData.append(key, formData[key]));
-            if (files.proposalFile) submitData.append('proposalFile', files.proposalFile);
-            if (files.documentationFile) submitData.append('documentationFile', files.documentationFile);
-            if (files.demoFile) submitData.append('demoFile', files.demoFile);
+            let proposalFile = undefined;
+            let documentationFile = undefined;
+            let demoFile = undefined;
+            
+            if (files.proposalFile) proposalFile = await uploadToCloudinary(files.proposalFile);
+            if (files.documentationFile) documentationFile = await uploadToCloudinary(files.documentationFile);
+            if (files.demoFile) demoFile = await uploadToCloudinary(files.demoFile);
+
+            const submitData = {
+                ...formData,
+                proposalFile,
+                documentationFile,
+                demoFile
+            };
 
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: submitData
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify(submitData)
             });
 
             if (response.ok) {
@@ -85,6 +102,7 @@ const FacultyDashboard = () => {
             }
         } catch (error) {
             console.error("Error creating project", error);
+            alert("Error creating project. Check console for details.");
         }
     };
 
@@ -92,14 +110,21 @@ const FacultyDashboard = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('sarc_token');
-            const submitData = new FormData();
-            Object.keys(ideaData).forEach(key => submitData.append(key, ideaData[key]));
-            if (files.supportingFile) submitData.append('supportingFile', files.supportingFile);
+            let supportingFile = undefined;
+            if (files.supportingFile) supportingFile = await uploadToCloudinary(files.supportingFile);
+
+            const submitData = {
+                ...ideaData,
+                supportingFile
+            };
 
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/ideas`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: submitData
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify(submitData)
             });
 
             if (response.ok) {
@@ -110,6 +135,7 @@ const FacultyDashboard = () => {
             }
         } catch (error) {
             console.error("Error creating idea", error);
+            alert("Error creating idea. Check console for details.");
         }
     };
 

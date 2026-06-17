@@ -47,7 +47,7 @@ exports.createTeam = async (req, res) => {
                 projectTitle,
                 description,
                 domain,
-                abstractFile: req.file ? req.file.filename : null,
+                abstractFile: req.body.abstractFile || null,
                 leaderId: studentId,
                 members: {
                     create: {

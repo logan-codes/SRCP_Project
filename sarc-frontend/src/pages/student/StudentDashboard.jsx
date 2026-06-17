@@ -82,11 +82,16 @@ const StudentDashboard = () => {
         const fetchData = async () => {
             try {
                 const token = localStorage.getItem('sarc_token');
+                const headers = { 'Authorization': `Bearer ${token}` };
 
-                // Fetch Student Profile for skills
-                const resMe = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                // Fire all requests concurrently
+                const [resMe, resApps, resProj, resDeadlines] = await Promise.all([
+                    fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, { headers }),
+                    fetch(`${import.meta.env.VITE_API_URL}/api/applications/student`, { headers }),
+                    fetch(`${import.meta.env.VITE_API_URL}/api/projects`, { headers }),
+                    fetch(`${import.meta.env.VITE_API_URL}/api/global-milestones`, { headers })
+                ]);
+
                 if (resMe.ok) {
                     const meData = await resMe.json();
                     const skills = [
@@ -95,20 +100,12 @@ const StudentDashboard = () => {
                     ];
                     setStudentSkills(skills);
                 }
-                
-                // Fetch Applications
-                const resApps = await fetch(`${import.meta.env.VITE_API_URL}/api/applications/student`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+
                 if (resApps.ok) {
                     const data = await resApps.json();
                     setApplications(data);
                 }
 
-                // Fetch Projects
-                const resProj = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
                 if (resProj.ok) {
                     const pData = await resProj.json();
                     const projectsArr = pData.projects || (Array.isArray(pData) ? pData : []);
@@ -116,13 +113,8 @@ const StudentDashboard = () => {
                     setRecommendedProjects(available);
                 }
 
-                // Fetch Global Milestones (Deadlines)
-                const resDeadlines = await fetch(`${import.meta.env.VITE_API_URL}/api/global-milestones`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
                 if (resDeadlines.ok) {
                     const dData = await resDeadlines.json();
-                    // Filter out COMPLETED ones and sort by closest date
                     const upcoming = dData.filter(d => d.status !== 'COMPLETED')
                                           .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
                                           .slice(0, 3);

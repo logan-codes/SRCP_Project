@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { getAllFaculty, getFacultyById, getAllUsers, createUser, updateUser, deleteUser } = require('../controllers/userController');
 const auth = require('../middleware/auth');
+const cacheResponse = require('../middleware/cacheMiddleware');
 
 router.use(auth); // Protect all routes
 
-router.get('/faculty', getAllFaculty);
+router.get('/faculty', cacheResponse(300), getAllFaculty);
 router.get('/faculty/:id', getFacultyById);
 
 // Admin user management routes

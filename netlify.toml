@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = "sarc-frontend/dist"
+  functions = "sarc-backend/netlify/functions"
+
+# Proxy /api requests to the serverless function
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+# Proxy all other requests to the React frontend (for client-side routing)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -112,7 +112,8 @@ exports.createProject = async (req, res) => {
 
         const {
             title, description, skillsRequired, deadline,
-            domain, problemStatement, technologies, expectedOutcome, numberOfStudents
+            domain, problemStatement, technologies, expectedOutcome, numberOfStudents,
+            proposalFile, documentationFile, demoFile, imageFiles
         } = req.body;
 
         const parseArray = (val) => {
@@ -123,12 +124,7 @@ exports.createProject = async (req, res) => {
 
         const parsedSkills = parseArray(skillsRequired) || [];
         const parsedTechnologies = parseArray(technologies) || [];
-
-        // Files from multer
-        const proposalFile = req.files && req.files['proposalFile'] ? req.files['proposalFile'][0].filename : undefined;
-        const documentationFile = req.files && req.files['documentationFile'] ? req.files['documentationFile'][0].filename : undefined;
-        const demoFile = req.files && req.files['demoFile'] ? req.files['demoFile'][0].filename : undefined;
-        const imageFiles = req.files && req.files['imageFiles'] ? req.files['imageFiles'].map(f => f.filename) : [];
+        const parsedImageFiles = parseArray(imageFiles) || [];
 
         const newProject = await prisma.project.create({
             data: {
@@ -144,7 +140,7 @@ exports.createProject = async (req, res) => {
                 proposalFile,
                 documentationFile,
                 demoFile,
-                imageFiles,
+                imageFiles: parsedImageFiles,
                 facultyId: facultyProfile.id
             }
         });
@@ -223,8 +219,7 @@ exports.createProjectIdea = async (req, res) => {
             return res.status(400).json({ message: 'Faculty profile not found' });
         }
 
-        const { title, description, suggestedTechnologies, difficultyLevel, skillsRequired, numberOfStudents } = req.body;
-        const supportingFile = req.file ? req.file.filename : undefined;
+        const { title, description, suggestedTechnologies, difficultyLevel, skillsRequired, numberOfStudents, supportingFile } = req.body;
 
         const parseArray = (val) => {
             if (!val) return undefined;

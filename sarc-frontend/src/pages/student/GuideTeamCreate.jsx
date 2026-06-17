@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/common/Button';
+import { uploadToCloudinary } from '../../utils/cloudinaryUpload';
 
 const GuideTeamCreate = () => {
     const navigate = useNavigate();
@@ -27,21 +28,26 @@ const GuideTeamCreate = () => {
         try {
             const token = localStorage.getItem('sarc_token');
 
-            const submitData = new FormData();
-            submitData.append('teamName', formData.teamName);
-            submitData.append('projectTitle', formData.projectTitle);
-            submitData.append('description', formData.description);
-            submitData.append('domain', formData.domain);
+            let abstractFileUrl = undefined;
             if (abstractFile) {
-                submitData.append('abstractFile', abstractFile);
+                abstractFileUrl = await uploadToCloudinary(abstractFile);
             }
+
+            const submitData = {
+                teamName: formData.teamName,
+                projectTitle: formData.projectTitle,
+                description: formData.description,
+                domain: formData.domain,
+                abstractFile: abstractFileUrl
+            };
 
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 },
-                body: submitData
+                body: JSON.stringify(submitData)
             });
 
             if (!res.ok) {

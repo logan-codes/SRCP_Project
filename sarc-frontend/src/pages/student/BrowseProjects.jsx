@@ -98,13 +98,18 @@ const BrowseProjects = () => {
 
     const fetchData = async () => {
         try {
-            const pRes = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`);
-            const pData = await pRes.json();
-            if (pRes.ok) setProjects(pData.projects || (Array.isArray(pData) ? pData : []));
-
-            const iRes = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/ideas`);
-            const iData = await iRes.json();
-            if (iRes.ok) setIdeas(iData.ideas || (Array.isArray(iData) ? iData : []));
+            const [pRes, iRes] = await Promise.all([
+                fetch(`${import.meta.env.VITE_API_URL}/api/projects`),
+                fetch(`${import.meta.env.VITE_API_URL}/api/projects/ideas`)
+            ]);
+            
+            const [pData, iData] = await Promise.all([
+                pRes.ok ? pRes.json() : null,
+                iRes.ok ? iRes.json() : null
+            ]);
+            
+            if (pRes.ok && pData) setProjects(pData.projects || (Array.isArray(pData) ? pData : []));
+            if (iRes.ok && iData) setIdeas(iData.ideas || (Array.isArray(iData) ? iData : []));
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {

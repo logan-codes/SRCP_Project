@@ -1,0 +1,8 @@
+{
+  "name": "srcp_project_monorepo",
+  "version": "1.0.0",
+  "description": "Root package for Netlify deployment",
+  "scripts": {
+    "build": "cd sarc-frontend && npm install && npm run build && cd ../sarc-backend && npm install && npx prisma generate"
+  }
+}

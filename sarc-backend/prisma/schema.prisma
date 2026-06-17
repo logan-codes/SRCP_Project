@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -29,9 +30,9 @@ model User {
   role         Role    @default(STUDENT)
   profilePhoto String?
 
-  failedLoginAttempts    Int       @default(0)
-  lockoutUntil           DateTime?
-  refreshToken           String?
+  failedLoginAttempts Int       @default(0)
+  lockoutUntil        DateTime?
+  refreshToken        String?
 
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
@@ -43,16 +44,15 @@ model User {
 
   notifications Notification[] @relation("UserNotifications")
 
-  guideTeamsLed         GuideTeam[] @relation("GuideTeamLeader")
-  guideTeamsAssigned    GuideTeam[] @relation("GuideAssigned")
+  guideTeamsLed         GuideTeam[]            @relation("GuideTeamLeader")
+  guideTeamsAssigned    GuideTeam[]            @relation("GuideAssigned")
   guideTeamMemberships  GuideTeamMember[]
   facultyGuideSlot      FacultyGuideSlot?
   facultyTeamSelections FacultyTeamSelection[]
 
-  
-  isFirstLogin          Boolean   @default(true)
-  accountStatus         String    @default("PENDING")
-  passwordChangedAt     DateTime?
+  isFirstLogin      Boolean   @default(true)
+  accountStatus     String    @default("PENDING")
+  passwordChangedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -154,7 +154,7 @@ model Project {
 
   applications Application[]
   teams        Team[]
-  milestones   Milestone[] @relation("ProjectMilestones")
+  milestones   Milestone[]   @relation("ProjectMilestones")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -182,11 +182,11 @@ model ProjectIdea {
 }
 
 model Application {
-  id        Int     @id @default(autoincrement())
-  studentId Int
-  projectId Int
-  status    String  @default("PENDING") // PENDING, SHORTLISTED, ACCEPTED, REJECTED
-  message   String?
+  id         Int     @id @default(autoincrement())
+  studentId  Int
+  projectId  Int
+  status     String  @default("PENDING") // PENDING, SHORTLISTED, ACCEPTED, REJECTED
+  message    String?
   resumeFile String?
 
   student StudentProfile @relation("StudentApplications", fields: [studentId], references: [id], onDelete: Cascade)
@@ -203,11 +203,11 @@ model Notification {
   id        Int      @id @default(autoincrement())
   userId    Int
   user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
-  title     String?  // Optional title for the notification
-  type      String   // e.g., APPLICATION_SUBMITTED, APPLICATION_STATUS_CHANGED
+  title     String? // Optional title for the notification
+  type      String // e.g., APPLICATION_SUBMITTED, APPLICATION_STATUS_CHANGED
   message   String
   read      Boolean  @default(false)
-  link      String?  // Optional routing link
+  link      String? // Optional routing link
   createdAt DateTime @default(now())
 
   @@index([userId])
@@ -218,49 +218,49 @@ model Team {
   name        String
   description String?
   projectId   Int?
-  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   status      String   @default("FORMING") // FORMING, READY, ASSIGNED
-  
-  leaderId    Int
-  leader      StudentProfile @relation("TeamLeader", fields: [leaderId], references: [id])
-  
-  members     TeamMember[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  leaderId Int
+  leader   StudentProfile @relation("TeamLeader", fields: [leaderId], references: [id])
+
+  members TeamMember[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([projectId])
   @@index([leaderId])
 }
 
 model TeamMember {
-  id        Int      @id @default(autoincrement())
+  id        Int            @id @default(autoincrement())
   teamId    Int
-  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team      Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
   studentId Int
   student   StudentProfile @relation("TeamMemberships", fields: [studentId], references: [id], onDelete: Cascade)
-  role      String?  
-  
-  joinedAt  DateTime @default(now())
-  
+  role      String?
+
+  joinedAt DateTime @default(now())
+
   @@unique([teamId, studentId])
 }
 
 model Milestone {
-  id               Int      @id @default(autoincrement())
-  title            String
-  description      String
-  dueDate          DateTime
-  status           String   @default("PENDING") // PENDING, SUBMITTED, COMPLETED
-  projectId        Int
-  project          Project  @relation("ProjectMilestones", fields: [projectId], references: [id], onDelete: Cascade)
-  
-  submissionNotes  String?
-  submissionFile   String?
-  submittedAt      DateTime?
-  
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  dueDate     DateTime
+  status      String   @default("PENDING") // PENDING, SUBMITTED, COMPLETED
+  projectId   Int
+  project     Project  @relation("ProjectMilestones", fields: [projectId], references: [id], onDelete: Cascade)
+
+  submissionNotes String?
+  submissionFile  String?
+  submittedAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([projectId])
 }
@@ -287,21 +287,21 @@ enum GuideSelectionPhase {
 }
 
 model GuideTeam {
-  id            String               @id @default(uuid())
-  teamId        String               @unique   // e.g. "TEAM-2024-A3F9"
-  teamName      String
-  projectTitle  String
-  description   String
-  domain        String
-  leaderId      Int
-  leader        User                 @relation("GuideTeamLeader", fields: [leaderId], references: [id])
-  members       GuideTeamMember[]
-  guideId       Int?
-  guide         User?                @relation("GuideAssigned", fields: [guideId], references: [id])
-  guideStatus   GuideSelectionStatus @default(PENDING)
-  isFinalized   Boolean              @default(false)
-  abstractFile  String?
-  createdAt     DateTime             @default(now())
+  id                String                 @id @default(uuid())
+  teamId            String                 @unique // e.g. "TEAM-2024-A3F9"
+  teamName          String
+  projectTitle      String
+  description       String
+  domain            String
+  leaderId          Int
+  leader            User                   @relation("GuideTeamLeader", fields: [leaderId], references: [id])
+  members           GuideTeamMember[]
+  guideId           Int?
+  guide             User?                  @relation("GuideAssigned", fields: [guideId], references: [id])
+  guideStatus       GuideSelectionStatus   @default(PENDING)
+  isFinalized       Boolean                @default(false)
+  abstractFile      String?
+  createdAt         DateTime               @default(now())
   facultySelections FacultyTeamSelection[]
 }
 
@@ -328,13 +328,13 @@ model FacultyGuideSlot {
 }
 
 model FacultyTeamSelection {
-  id         String       @id @default(uuid())
-  facultyId  Int
-  faculty    User         @relation(fields: [facultyId], references: [id])
-  teamId     String
-  team       GuideTeam    @relation(fields: [teamId], references: [id])
-  status     InviteStatus @default(PENDING)
-  selectedAt DateTime     @default(now())
+  id          String       @id @default(uuid())
+  facultyId   Int
+  faculty     User         @relation(fields: [facultyId], references: [id])
+  teamId      String
+  team        GuideTeam    @relation(fields: [teamId], references: [id])
+  status      InviteStatus @default(PENDING)
+  selectedAt  DateTime     @default(now())
   respondedAt DateTime?
 
   @@unique([facultyId, teamId])

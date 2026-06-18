@@ -2,7 +2,7 @@ const { schedule } = require('@netlify/functions');
 const prisma = require('../../config/prismaClient');
 
 // Run every hour at minute 0
-const handler = schedule('0 * * * *', async (event) => {
+exports.handler = schedule('0 * * * *', async (event) => {
     try {
         const twoDaysAgo = new Date();
         twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
@@ -29,5 +29,3 @@ const handler = schedule('0 * * * *', async (event) => {
         };
     }
 });
-
-module.exports.handler = handler;

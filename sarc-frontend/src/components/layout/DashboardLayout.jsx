@@ -90,8 +90,8 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
                 <div className="flex items-center justify-between h-16 px-6 border-b border-primary/10">
                     <Link to="/" className="text-xl font-bold font-heading text-primary flex items-center gap-2">
                         <img
-                            src="/images/SRCP_logo.png"
-                            alt="SRCP Logo"
+                            src="/images/logo.jpg"
+                            alt="Sathyabama Logo"
                             className="h-10 w-auto object-contain mix-blend-multiply drop-shadow-sm"
                         />
                         SATHYABAMA

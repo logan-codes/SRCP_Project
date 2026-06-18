@@ -220,8 +220,8 @@ const AdminUserManagement = () => {
                     <p className="text-text-secondary">Add, edit, or remove users and manage their data.</p>
                 </div>
                 
-                <div className="flex gap-4 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-64">
+                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                    <div className="relative flex-1 w-full md:w-64">
                         <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
                         <input 
                             type="text" 
@@ -231,10 +231,10 @@ const AdminUserManagement = () => {
                             className="w-full pl-10 pr-4 py-2 bg-canvas border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent text-sm"
                         />
                     </div>
-                    <button onClick={() => setIsImportModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-surface border border-border hover:bg-surface/80 rounded-xl font-medium text-text-primary text-sm cursor-pointer transition-colors">
+                    <button onClick={() => setIsImportModalOpen(true)} className="flex justify-center items-center gap-2 px-4 py-2 bg-surface border border-border hover:bg-surface/80 rounded-xl font-medium text-text-primary text-sm cursor-pointer transition-colors w-full sm:w-auto">
                         <Upload className="w-4 h-4" /> Import Excel
                     </button>
-                    <Button onClick={() => handleOpenModal('CREATE')} className="flex items-center gap-2">
+                    <Button onClick={() => handleOpenModal('CREATE')} className="flex justify-center items-center gap-2 w-full sm:w-auto">
                         <Plus className="w-4 h-4" /> Add User
                     </Button>
                 </div>
@@ -247,7 +247,7 @@ const AdminUserManagement = () => {
             )}
 
             {/* Tabs */}
-            <div className="flex border-b border-border mb-6">
+            <div className="flex border-b border-border mb-6 overflow-x-auto whitespace-nowrap hide-scrollbar">
                 {['STUDENT', 'FACULTY', 'ADMIN'].map(role => (
                     <button
                         key={role}
@@ -354,14 +354,14 @@ const AdminUserManagement = () => {
             {/* User Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-surface border border-border w-full max-w-md rounded-2xl overflow-hidden shadow-2xl">
-                        <div className="flex justify-between items-center p-6 border-b border-border">
+                    <div className="bg-surface border border-border w-full max-w-md rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+                        <div className="flex justify-between items-center p-6 border-b border-border shrink-0">
                             <h2 className="text-xl font-bold text-text-primary">{modalMode === 'CREATE' ? 'Add New User' : 'Edit User'}</h2>
                             <button onClick={() => setIsModalOpen(false)} className="text-text-secondary hover:text-text-primary">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <form onSubmit={handleSaveUser} className="p-6 space-y-4">
+                        <form onSubmit={handleSaveUser} className="p-6 space-y-4 overflow-y-auto">
                             <div>
                                 <label className="block text-sm font-medium text-text-secondary mb-1">Full Name</label>
                                 <input 
@@ -445,14 +445,14 @@ const AdminUserManagement = () => {
             {/* Import Modal */}
             {isImportModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-surface border border-border w-full max-w-md rounded-2xl overflow-hidden shadow-2xl">
-                        <div className="flex justify-between items-center p-6 border-b border-border">
+                    <div className="bg-surface border border-border w-full max-w-md rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+                        <div className="flex justify-between items-center p-6 border-b border-border shrink-0">
                             <h2 className="text-xl font-bold text-text-primary">Import {activeTab.charAt(0) + activeTab.slice(1).toLowerCase()}s from Excel</h2>
                             <button onClick={() => setIsImportModalOpen(false)} className="text-text-secondary hover:text-text-primary">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <form onSubmit={executeExcelUpload} className="p-6 space-y-4">
+                        <form onSubmit={executeExcelUpload} className="p-6 space-y-4 overflow-y-auto">
                             <div className="relative group">
                                 <label className="flex flex-col items-center justify-center w-full h-32 px-4 transition bg-canvas border-2 border-border border-dashed rounded-xl appearance-none cursor-pointer hover:border-accent hover:bg-surface focus:outline-none">
                                     <span className="flex items-center space-x-2">

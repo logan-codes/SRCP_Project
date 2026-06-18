@@ -1,25 +1,30 @@
 # 🎓 SARCG – Student Academic Research Collaboration Platform
 
-> A full-stack web application that connects **students**, **faculty**, and **industry professionals** for seamless research project collaboration, application management, and team formation.
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
+![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB)
+![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)
+![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+
+> A highly scalable, full-stack web application designed to connect **students**, **faculty**, and **industry professionals** for seamless research project collaboration, application management, and team formation.
 
 ---
 
 ## 📌 Table of Contents
 
-- [About the Project](#about-the-project)
-- [Key Features](#key-features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Database Schema](#database-schema)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Backend Setup](#backend-setup)
-  - [Frontend Setup](#frontend-setup)
-- [API Endpoints](#api-endpoints)
-- [User Roles](#user-roles)
-- [Screenshots](#screenshots)
-- [Contributing](#contributing)
-- [License](#license)
+- [About the Project](#-about-the-project)
+- [Key Features](#-key-features)
+- [System Architecture & Tools](#%EF%B8%8F-system-architecture--tools)
+  - [Frontend Architecture](#frontend-architecture-sarc-frontend)
+  - [Backend Architecture](#backend-architecture-sarc-backend)
+  - [Data Flow Example](#application-data-flow)
+- [Project Structure](#-project-structure)
+- [Database Schema](#%EF%B8%8F-database-schema)
+- [API Endpoints](#-api-endpoints)
+- [Getting Started](#-getting-started)
+- [Deployment Strategy](#-deployment-strategy)
+- [Contributing](#-contributing)
 
 ---
 
@@ -27,66 +32,68 @@
 
 **SARCG (Student Academic Research Collaboration)** is a platform designed to bridge the gap between students seeking research opportunities and faculty members offering research projects. It provides a structured workflow for:
 
-- Faculty posting research/industry projects
-- Students browsing and applying to projects
-- Team formation and milestone tracking
-- Real-time notifications across all user roles
-- Admin oversight and management
+- Faculty posting detailed research or industry projects.
+- Students browsing, filtering, and applying to these projects.
+- Team formation, milestone tracking, and application status management.
+- Real-time in-app notifications and email alerts across all user roles.
 
 ---
 
 ## ✨ Key Features
 
-### 👨‍🎓 Student
-- Browse open research projects with filters (domain, skills, technologies)
-- Apply to projects with a personal message and resume upload
-- Track application statuses (Pending → Shortlisted → Accepted / Rejected)
-- Form teams and join other teams
-- View and update personal profile (bio, skills, GitHub, resume)
-- Receive real-time notifications on application status changes
+### 👨‍🎓 For Students
+- **Project Discovery**: Browse open research projects with advanced filters (domain, required skills, technologies).
+- **Application Management**: Apply to projects with custom messages and resume uploads. Track statuses (Pending → Shortlisted → Accepted / Rejected).
+- **Team Formation**: Create, join, and manage teams for specific collaborative projects.
+- **Profile Customization**: Maintain an academic profile with bio, skills, GitHub links, and resume.
 
-### 👨‍🏫 Faculty
-- Create, edit, and manage research projects
-- Post project ideas for student exploration
-- Review and manage student applications (shortlist, accept, reject)
-- Track project milestones and progress
-- Manage team assignments for projects
+### 👨‍🏫 For Faculty
+- **Project Creation**: Create, edit, and manage comprehensive research projects or post lightweight project ideas.
+- **Application Review**: Review student applicants, download resumes, and manage acceptances.
+- **Milestone Tracking**: Define and monitor project milestones to ensure steady progress.
 
-### 🏢 Industry / Admin
-- Industry professionals can post industry-sponsored projects
-- Admin can oversee all users, projects, and platform activity
-
-### 🔔 Notifications
-- In-app notification system for all important events
-- Unread count badge on the notification bell
-- Clickable notifications that route to relevant pages
+### 🏢 For Industry & Admin
+- **Industry Partners**: Post industry-sponsored projects directly to the student portal.
+- **Admin Dashboard**: Oversee all users, projects, and platform activity with advanced data visualization and export tools (Excel/CSV).
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ System Architecture & Tools
 
-### Frontend
-| Technology | Purpose |
-|---|---|
-| **React 18** | UI framework |
-| **Vite** | Build tool & dev server |
-| **React Router v6** | Client-side routing |
-| **Tailwind CSS** | Utility-first styling |
-| **Framer Motion** | Animations & transitions |
-| **Lucide React** | Icon library |
-| **Recharts** | Data visualization / charts |
+SARCG is built as a robust monolithic REST API communicating with a Single Page Application (SPA).
 
-### Backend
-| Technology | Purpose |
-|---|---|
-| **Node.js + Express 5** | REST API server |
-| **Prisma ORM** | Database access & migrations |
-| **PostgreSQL** | Relational database |
-| **JWT (jsonwebtoken)** | Authentication & authorization |
-| **bcryptjs** | Password hashing |
-| **Multer** | File uploads (resume, images, docs) |
-| **dotenv** | Environment variable management |
-| **CORS** | Cross-origin resource sharing |
+### Frontend Architecture (`sarc-frontend`)
+The frontend is designed for high performance, smooth interactions, and easy scalability.
+- **Framework**: `React 18` built with `Vite` for lightning-fast HMR and optimized production builds.
+- **Routing**: `React Router v6` for seamless client-side navigation.
+- **State Management & Caching**: `@tanstack/react-query (v5)` handles all server-state, API data fetching, and caching, eliminating the need for complex Redux boilerplate.
+- **Styling**: `Tailwind CSS` for utility-first responsive design.
+- **UI & Animations**: `Framer Motion` for page transitions and `Lucide React` for scalable icons.
+- **Data Visualization & Utilities**: `Recharts` for admin dashboards, `react-avatar-editor` for profile picture cropping, and `xlsx` for parsing spreadsheet data.
+
+### Backend Architecture (`sarc-backend`)
+The backend is a secure, RESTful API following the MVC (Model-View-Controller) design pattern.
+- **Framework**: `Node.js` with `Express.js 5.x`.
+- **Database & ORM**: `PostgreSQL` managed by `Prisma ORM` for type-safe database queries and automated migrations.
+- **Authentication**: `jsonwebtoken` (JWT) for stateless session management and `bcryptjs` for secure password hashing.
+- **Security Middlewares**: 
+  - `helmet` (secures HTTP headers)
+  - `cors` (Cross-Origin Resource Sharing)
+  - `xss-clean` (prevents Cross-Site Scripting)
+  - `hpp` (prevents HTTP Parameter Pollution).
+- **Rate Limiting & Caching**: `ioredis` and `express-rate-limit` using a Redis store to prevent DDoS and brute-force attacks.
+- **File Storage**: `@supabase/supabase-js` and `multer` for uploading and handling multipart/form-data (like resumes and avatars) to Supabase Storage.
+- **Email Services**: `nodemailer` for transactional notifications.
+
+### Application Data Flow
+Example: **A student applying for a project**
+1. Student clicks "Apply" on the React frontend.
+2. `React Query` triggers an API mutation, sending a `POST` request with form data and the user's JWT.
+3. Express router receives it; security middlewares (`helmet`, `xss-clean`) sanitize the input. `authMiddleware` validates the JWT.
+4. The controller uses `Prisma` to insert the application into PostgreSQL.
+5. `Nodemailer` sends an email notification to the faculty member.
+6. The backend returns a `201 Created` response.
+7. `React Query` automatically invalidates the application cache, and the UI updates instantly without a page reload.
 
 ---
 
@@ -95,34 +102,22 @@
 ```
 SRCP_Project/
 ├── sarc-backend/               # Node.js + Express REST API
-│   ├── controllers/            # Business logic
-│   │   ├── authController.js
-│   │   ├── projectController.js
-│   │   ├── applicationController.js
-│   │   ├── teamController.js
-│   │   ├── milestoneController.js
-│   │   ├── notificationController.js
-│   │   └── userController.js
-│   ├── middleware/             # Auth & other middleware
+│   ├── controllers/            # Business logic handling requests
+│   ├── middleware/             # Auth, validation, and security middleware
 │   ├── routes/                 # API route definitions
 │   ├── prisma/
-│   │   └── schema.prisma       # Database schema
-│   ├── uploads/                # Uploaded files (gitignored)
-│   ├── server.js               # App entry point
+│   │   └── schema.prisma       # Database schema and models
+│   ├── server.js               # Application entry point
 │   └── package.json
 │
-└── sarc-frontend/              # React + Vite SPA
+└── sarc-frontend/              # React SPA
     ├── src/
-    │   ├── pages/
-    │   │   ├── public/         # Login, Register
-    │   │   ├── student/        # Dashboard, Browse, Applications
-    │   │   ├── faculty/        # Dashboard, Applications
-    │   │   ├── admin/          # Admin Dashboard
-    │   │   └── shared/         # Profile (all roles)
-    │   ├── components/         # Reusable UI components
-    │   ├── App.jsx             # Root component & routing
+    │   ├── pages/              # Route-based views (Student, Faculty, Admin, Public)
+    │   ├── components/         # Reusable UI components (Buttons, Modals, Layouts)
+    │   ├── hooks/              # Custom React hooks (React Query wrappers)
+    │   ├── App.jsx             # Root component
     │   └── main.jsx
-    ├── index.html
+    ├── tailwind.config.js
     └── package.json
 ```
 
@@ -130,146 +125,93 @@ SRCP_Project/
 
 ## 🗄️ Database Schema
 
-The application uses **PostgreSQL** managed via **Prisma ORM** with the following core models:
+The database relies on PostgreSQL and is structured as follows:
 
-| Model | Description |
+| Model | Purpose |
 |---|---|
-| `User` | Base user with role (STUDENT, FACULTY, INDUSTRY, ADMIN) |
-| `StudentProfile` | Student-specific info: skills, GitHub, resume, areas of interest |
-| `FacultyProfile` | Faculty-specific info: designation, research areas, experience |
-| `IndustryProfile` | Industry partner info |
-| `AdminProfile` | Admin profile |
-| `Project` | Research projects posted by faculty with status tracking |
-| `ProjectIdea` | Lightweight project ideas posted by faculty |
-| `Application` | Student applications to projects (PENDING → ACCEPTED/REJECTED) |
-| `Team` | Student teams linked to projects |
-| `TeamMember` | Many-to-many relationship between teams and students |
-| `Milestone` | Project milestones with submission tracking |
-| `Notification` | In-app notification center |
+| **User** | Base authentication model with role-based access (`STUDENT`, `FACULTY`, `INDUSTRY`, `ADMIN`). |
+| **StudentProfile** | Stores skills, GitHub URL, uploaded resume URL, and bio. |
+| **FacultyProfile** | Stores designation, research domains, and experience. |
+| **Project** | Projects created by faculty (Title, Description, Tech Stack, Status). |
+| **ProjectIdea** | Brainstorming ideas posted for student feedback. |
+| **Application** | Junction model tracking a student's application status (`PENDING`, `SHORTLISTED`, `ACCEPTED`, `REJECTED`) for a specific project. |
+| **Team / TeamMember** | Connects multiple students to form a collaborative group for a project. |
+| **Milestone** | Tracks specific deliverables for a project. |
+| **Notification** | Stores in-app alerts and read/unread status for users. |
+
+---
+
+## 🔌 API Endpoints
+
+A brief overview of key RESTful routes exposed by the backend:
+
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Create a new user account | Public |
+| `POST` | `/api/auth/login` | Authenticate and retrieve JWT | Public |
+| `GET` | `/api/projects` | Fetch all open projects | Authenticated |
+| `POST` | `/api/projects` | Create a new project | Faculty / Admin |
+| `GET` | `/api/applications` | Fetch applications (Student sees theirs, Faculty sees applicants) | Authenticated |
+| `POST` | `/api/applications` | Apply for a specific project | Student |
+| `PUT` | `/api/applications/:id`| Update application status (Accept/Reject) | Faculty |
+| `GET` | `/api/users/profile` | Get logged-in user profile details | Authenticated |
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-
-Make sure you have the following installed:
-
 - [Node.js](https://nodejs.org/) (v18 or higher)
-- [npm](https://www.npmjs.com/) (v9 or higher)
 - [PostgreSQL](https://www.postgresql.org/) (v14 or higher)
+- Redis (optional, but recommended for rate limiting)
+
+### 1. Backend Setup
+```bash
+cd sarc-backend
+npm install
+
+# Create a .env file based on environment variables needed
+# .env Example:
+# DATABASE_URL="postgresql://user:pass@localhost:5432/sarc_db"
+# JWT_SECRET="your_jwt_secret"
+# PORT=5000
+
+# Initialize the database
+npx prisma migrate dev --name init
+npx prisma generate
+
+# Start the server
+npm run dev
+```
+
+### 2. Frontend Setup
+```bash
+cd sarc-frontend
+npm install
+
+# Start the Vite development server
+npm run dev
+```
+The frontend will be accessible at `http://localhost:5173`.
 
 ---
 
-### Backend Setup
+## 🚢 Deployment Strategy
 
-1. **Navigate to the backend directory:**
-   ```bash
-   cd sarc-backend
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Create the `.env` file** by copying the example and filling in your values:
-   ```bash
-   # .env
-   DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/sarc_db"
-   JWT_SECRET="your_super_secret_jwt_key"
-   PORT=5000
-   ```
-
-4. **Run Prisma migrations** to set up the database:
-   ```bash
-   npx prisma migrate dev --name init
-   npx prisma generate
-   ```
-
-5. **(Optional) Seed faculty data:**
-   ```bash
-   node seed-faculty.js
-   ```
-
-6. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-   The API will be running at `http://localhost:5000`
-
----
-
-### Frontend Setup
-
-1. **Navigate to the frontend directory:**
-   ```bash
-   cd sarc-frontend
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-   The app will be running at `http://localhost:5173`
-
----
-
-## 🔌 API Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
-| `POST` | `/api/auth/register` | Register a new user | ❌ |
-| `POST` | `/api/auth/login` | Login and get JWT token | ❌ |
-| `GET` | `/api/projects` | Get all open projects | ✅ |
-| `POST` | `/api/projects` | Create a new project | ✅ Faculty |
-| `PUT` | `/api/projects/:id` | Update a project | ✅ Faculty |
-| `DELETE` | `/api/projects/:id` | Delete a project | ✅ Faculty |
-| `GET` | `/api/applications` | Get applications | ✅ |
-| `POST` | `/api/applications` | Submit an application | ✅ Student |
-| `PUT` | `/api/applications/:id` | Update application status | ✅ Faculty |
-| `GET` | `/api/notifications` | Get user notifications | ✅ |
-| `PUT` | `/api/notifications/:id/read` | Mark notification as read | ✅ |
-| `GET` | `/api/teams` | Get teams | ✅ |
-| `POST` | `/api/teams` | Create a team | ✅ Student |
-| `GET` | `/api/milestones` | Get project milestones | ✅ |
-| `POST` | `/api/milestones` | Add a milestone | ✅ Faculty |
-| `GET` | `/api/users/profile` | Get logged-in user profile | ✅ |
-| `PUT` | `/api/users/profile` | Update user profile | ✅ |
-
----
-
-## 👥 User Roles
-
-| Role | Permissions |
-|---|---|
-| **STUDENT** | Browse projects, apply, form teams, track milestones, manage profile |
-| **FACULTY** | Post projects & ideas, review applications, manage teams, set milestones |
-| **INDUSTRY** | Post industry-sponsored projects |
-| **ADMIN** | Full platform oversight and management |
+- **Frontend**: The React application is optimized via `npm run build` using Vite. The static assets (`dist` folder) can be easily deployed to CDNs like **Netlify**, **Vercel**, or **AWS S3**. A `netlify.toml` file is included for seamless Netlify deployment.
+- **Backend**: The Node.js application is designed to be run using a process manager like **PM2** on a VPS (AWS EC2, DigitalOcean) to handle automatic restarts and load balancing. It also includes `serverless-http` for potential deployment as serverless functions.
+- **Database**: The PostgreSQL database can be hosted via managed services like **Supabase**, **Render**, or **AWS RDS**.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! To contribute:
-
+Contributions are always welcome!
 1. Fork the repository
-2. Create a new branch: `git checkout -b feature/your-feature-name`
-3. Make your changes and commit: `git commit -m 'Add some feature'`
-4. Push to the branch: `git push origin feature/your-feature-name`
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the **ISC License**.
 
 ---
 

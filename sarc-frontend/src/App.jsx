@@ -1,11 +1,9 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/public/LandingPage';
-import AuthPage from './pages/public/AuthPage';
 import Login from './pages/public/Login';
 import ForgotPassword from './pages/public/ForgotPassword';
 import ResetPassword from './pages/public/ResetPassword';
-import VerifyEmail from './pages/public/VerifyEmail';
 import ChangePassword from './pages/public/ChangePassword';
 import StudentDashboard from './pages/student/StudentDashboard';
 import FacultyDashboard from './pages/faculty/FacultyDashboard';
@@ -40,12 +38,10 @@ function App() {
         <div className="min-h-screen relative bg-canvas">
             <Routes>
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/auth" element={<AuthPage />} />
                 <Route path="/login" element={<Login />} />
 
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/change-password" element={<ChangePassword />} />
 
                 <Route path="/student" element={<ProtectedRoute allowedRoles={['STUDENT']}><StudentDashboard /></ProtectedRoute>} />

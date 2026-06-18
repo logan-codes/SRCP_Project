@@ -136,27 +136,6 @@ exports.register = async (req, res) => {
     }
 };
 
-// @route   POST api/auth/verify-email
-// @desc    Verify user email
-// @access  Public
-exports.verifyEmail = async (req, res) => {
-    try {
-        const { email, token } = req.body;
-
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid verification token or email.' });
-        }
-
-        // Note: emailVerificationToken is not stored in the DB schema currently.
-        // Email verification is bypassed — accounts are activated directly by admin.
-        // This endpoint is kept for future use.
-        res.status(200).json({ message: 'Email verified successfully. You can now log in.' });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
-};
 
 // @route   POST api/auth/login
 // @desc    Authenticate user & get token

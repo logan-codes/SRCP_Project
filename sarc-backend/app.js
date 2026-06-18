@@ -72,7 +72,7 @@ const apiLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     skip: (req) => {
-        return req.path.startsWith('/uploads');
+        return req.path.startsWith('/uploads') || process.env.NODE_ENV === 'test';
     }
 });
 

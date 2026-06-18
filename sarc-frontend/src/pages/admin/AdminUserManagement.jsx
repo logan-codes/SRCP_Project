@@ -7,6 +7,7 @@ const AdminUserManagement = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [message, setMessage] = useState({ text: '', type: '' });
     
     const [currentPage, setCurrentPage] = useState(1);
@@ -31,7 +32,7 @@ const AdminUserManagement = () => {
                 page: currentPage,
                 limit,
                 role: activeTab,
-                search: searchTerm
+                search: debouncedSearchTerm
             }).toString();
 
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/all?${query}`, {
@@ -50,13 +51,20 @@ const AdminUserManagement = () => {
         }
     };
 
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            fetchUsers();
-        }, 300);
 
-        return () => clearTimeout(delayDebounceFn);
-    }, [currentPage, activeTab, searchTerm]);
+    useEffect(() => {
+        const timerId = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+            setCurrentPage(1); // Reset pagination only when the search term is debounced
+        }, 500);
+
+        return () => clearTimeout(timerId);
+    }, [searchTerm]);
+
+    useEffect(() => {
+        // Fetch users whenever debouncedSearchTerm, currentPage, or activeTab changes
+        fetchUsers();
+    }, [currentPage, activeTab, debouncedSearchTerm]);
 
     const handleTabChange = (role) => {
         setActiveTab(role);
@@ -65,7 +73,6 @@ const AdminUserManagement = () => {
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
-        setCurrentPage(1);
     };
 
     const handleOpenModal = (mode, user = null) => {
@@ -203,7 +210,7 @@ const AdminUserManagement = () => {
         reader.readAsBinaryString(file);
     };
 
-    if (loading) return <div className="p-8 text-center text-text-secondary">Loading...</div>;
+    // Removed top-level loading return so the search bar doesn't unmount
 
     return (
         <div className="max-w-7xl mx-auto py-8 px-4">
@@ -281,7 +288,9 @@ const AdminUserManagement = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {users.length === 0 ? (
+                            {loading ? (
+                                <tr><td colSpan="7" className="p-8 text-center text-text-secondary">Loading users...</td></tr>
+                            ) : users.length === 0 ? (
                                 <tr><td colSpan="7" className="p-8 text-center text-text-secondary">No users found.</td></tr>
                             ) : (
                                 users.map(user => (

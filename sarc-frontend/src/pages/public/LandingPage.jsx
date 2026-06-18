@@ -73,9 +73,20 @@ const LandingPage = () => {
                         <p className="mt-6 max-w-2xl mx-auto text-xl text-slate-200">
                             Empowering Innovation Through Faculty–Student Collaboration. Our AI-driven engine connects Sathyabama's brightest minds to accelerate academic research.
                         </p>
-                        <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-                            <Button variant="gradient" size="lg" className="shadow-lg shadow-primary/30" onClick={() => navigate('/login')}>Login to Portal</Button>
-                        </div>
+                        {!localStorage.getItem('sarc_token') ? (
+                            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+                                <Button variant="gradient" size="lg" className="shadow-lg shadow-primary/30" onClick={() => navigate('/login')}>Login to Portal</Button>
+                            </div>
+                        ) : (
+                            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+                                <Button variant="gradient" size="lg" className="shadow-lg shadow-primary/30" onClick={() => {
+                                    const role = localStorage.getItem('sarc_role');
+                                    if (role === 'FACULTY') navigate('/faculty');
+                                    else if (role === 'ADMIN') navigate('/admin');
+                                    else navigate('/student');
+                                }}>Go to Dashboard</Button>
+                            </div>
+                        )}
                     </div>
                 </section>
 

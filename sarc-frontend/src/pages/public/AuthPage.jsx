@@ -60,8 +60,8 @@ const AuthPage = () => {
 
                         <div className="inline-block p-4 md:p-6 rounded-3xl bg-white/80 backdrop-blur-md border border-white shadow-soft mb-8 transition-transform hover:scale-105 duration-300">
                             <img
-                                src="/images/SRCP_logo.png"
-                                alt="SRCP Logo"
+                                src="/images/logo.jpg"
+                                alt="Sathyabama Logo"
                                 className="h-28 md:h-36 w-auto mx-auto object-contain mix-blend-multiply drop-shadow-sm"
                             />
                         </div>

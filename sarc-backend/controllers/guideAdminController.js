@@ -42,7 +42,7 @@ exports.getConfigAndStats = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error fetching config' });
     }
 };
@@ -122,7 +122,7 @@ exports.changePhase = async (req, res) => {
 
         res.json({ message: `Phase changed to ${phase}` });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error changing phase' });
     }
 };
@@ -139,7 +139,7 @@ exports.updateFacultySlot = async (req, res) => {
 
          res.json({ message: 'Faculty slot updated successfully' });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error updating faculty slot' });
     }
 };
@@ -169,7 +169,7 @@ exports.getDashboard = async (req, res) => {
         });
         res.json(teams);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error fetching dashboard' });
     }
 };
@@ -189,7 +189,7 @@ exports.getAllTeams = async (req, res) => {
         });
         res.json(teams);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error fetching all teams' });
     }
 };
@@ -206,7 +206,7 @@ exports.toggleTeamFinalization = async (req, res) => {
 
         res.json({ message: `Team finalization set to ${isFinalized}`, team: updatedTeam });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error toggling team finalization' });
     }
 };
@@ -234,7 +234,7 @@ exports.finalizeAllTeams = async (req, res) => {
 
         res.json({ message: `Successfully finalized ${finalizedCount} ready teams.` });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error finalizing all teams' });
     }
 };
@@ -251,7 +251,7 @@ exports.deleteTeam = async (req, res) => {
 
         res.json({ message: 'Team successfully deleted.' });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error deleting team' });
     }
 };
@@ -283,7 +283,7 @@ exports.resetPhase = async (req, res) => {
 
         res.json({ message: 'Guide Selection phase has been completely restarted. All data wiped.' });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error resetting phase' });
     }
 };
@@ -310,7 +310,7 @@ exports.exportTeams = async (req, res) => {
         
         res.json(teams);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error exporting teams' });
     }
 };

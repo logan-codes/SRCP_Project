@@ -122,10 +122,6 @@ exports.register = async (req, res) => {
         const requestedRole = role ? role.toUpperCase() : 'STUDENT';
         const prismaRole = requestedRole === 'ADMIN' ? 'STUDENT' : requestedRole;
 
-        // Email Verification Token
-        const verificationToken = crypto.randomBytes(32).toString('hex');
-        const hashedVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
-
         user = await prisma.user.create({
             data: {
                 fullName,

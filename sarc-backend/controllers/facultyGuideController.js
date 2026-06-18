@@ -25,7 +25,7 @@ exports.getFinalizedTeams = async (req, res) => {
         });
         res.json(teams);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error fetching finalized teams' });
     }
 };
@@ -114,7 +114,7 @@ exports.selectTeams = async (req, res) => {
 
         res.status(200).json({ message: 'Teams selected successfully' });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error selecting teams' });
     }
 };
@@ -140,7 +140,7 @@ exports.getMySelections = async (req, res) => {
 
         res.json(selections);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error fetching selections' });
     }
 };

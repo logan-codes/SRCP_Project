@@ -8,6 +8,7 @@ const GuideAdminConfig = () => {
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
     const [dropIncomplete, setDropIncomplete] = useState(false);
+    const [systemConfig, setSystemConfig] = useState(null);
 
     const fetchConfig = async () => {
         try {
@@ -24,9 +25,44 @@ const GuideAdminConfig = () => {
         }
     };
 
+    const fetchSystemConfig = async () => {
+        try {
+            const token = localStorage.getItem('sarc_token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/system/config`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            setSystemConfig(data);
+        } catch (error) {
+            console.error('Error fetching system config:', error);
+        }
+    };
+
     useEffect(() => {
         fetchConfig();
+        fetchSystemConfig();
     }, []);
+
+    const handleToggleResearchCollab = async () => {
+        try {
+            const token = localStorage.getItem('sarc_token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/system/config`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ isResearchCollaborationActive: !systemConfig.isResearchCollaborationActive })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+            
+            setMessage(data.message);
+            fetchSystemConfig();
+        } catch (error) {
+            setMessage(error.message);
+        }
+    };
 
     const handleChangePhase = async (newPhase) => {
         if (!window.confirm(`Are you sure you want to advance to the ${newPhase} phase? This cannot be undone.`)) return;
@@ -130,14 +166,32 @@ const GuideAdminConfig = () => {
 
     return (
         <div className="max-w-5xl mx-auto py-8 px-4">
-            <h1 className="text-3xl font-bold text-text-primary mb-2">Guide Selection Configuration</h1>
-            <p className="text-text-secondary mb-8">Manage the phases and settings for the project guide selection process.</p>
+            <h1 className="text-3xl font-bold text-text-primary mb-2">System & Guide Configuration</h1>
+            <p className="text-text-secondary mb-8">Manage system features and phases for the project guide selection process.</p>
 
             {message && (
                 <div className="bg-accent/10 border border-accent/20 text-accent p-4 rounded-xl mb-6">
                     {message}
                 </div>
             )}
+
+            <div className="bg-surface/50 border border-border p-6 rounded-2xl mb-8">
+                <h2 className="text-xl font-bold text-text-primary mb-4">Global Features</h2>
+                <div className="flex items-center justify-between border border-border p-4 rounded-xl bg-canvas">
+                    <div>
+                        <h3 className="font-semibold text-text-primary">Research Collaboration Module</h3>
+                        <p className="text-sm text-text-secondary">Enable or disable the research collaboration section for students.</p>
+                    </div>
+                    {systemConfig && (
+                        <button 
+                            onClick={handleToggleResearchCollab}
+                            className={`px-4 py-2 rounded-full font-medium transition-colors ${systemConfig.isResearchCollaborationActive ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
+                        >
+                            {systemConfig.isResearchCollaborationActive ? 'Enabled' : 'Disabled'}
+                        </button>
+                    )}
+                </div>
+            </div>
 
             <div className="bg-surface/50 border border-border p-6 rounded-2xl mb-8">
                 <h2 className="text-xl font-bold text-text-primary mb-4">Phase Control</h2>
@@ -162,15 +216,24 @@ const GuideAdminConfig = () => {
                             <Button onClick={() => handleChangePhase('FACULTY_SELECTION')}>Open Faculty Selection</Button>
                         )}
                         {config.phase === 'FACULTY_SELECTION' && (
-                            <Button onClick={() => handleChangePhase('STUDENT_SELECTION')}>Open Student Selection</Button>
+                            <>
+                                <Button onClick={() => handleChangePhase('STUDENT_SELECTION')}>Open Student Selection</Button>
+                                <Button onClick={() => handleChangePhase('CLOSED')} className="bg-yellow-600 hover:bg-yellow-700">Revert to Closed</Button>
+                            </>
                         )}
                         {config.phase === 'STUDENT_SELECTION' && (
-                            <Button onClick={() => handleChangePhase('COMPLETED')} className="bg-green-600 hover:bg-green-700">Mark Completed</Button>
+                            <>
+                                <Button onClick={() => handleChangePhase('COMPLETED')} className="bg-green-600 hover:bg-green-700">Mark Completed</Button>
+                                <Button onClick={() => handleChangePhase('FACULTY_SELECTION')} className="bg-yellow-600 hover:bg-yellow-700">Revert to Faculty Selection</Button>
+                            </>
                         )}
                         {config.phase === 'COMPLETED' && (
-                            <Button onClick={handleExportExcel} className="bg-blue-600 hover:bg-blue-700">Export Excel</Button>
+                            <>
+                                <Button onClick={handleExportExcel} className="bg-blue-600 hover:bg-blue-700">Export Excel</Button>
+                                <Button onClick={() => handleChangePhase('STUDENT_SELECTION')} className="bg-yellow-600 hover:bg-yellow-700">Reopen Student Selection</Button>
+                            </>
                         )}
-                        <Button onClick={handleRestartPhase} className="bg-red-600 hover:bg-red-700">Restart Phase</Button>
+                        <Button onClick={handleRestartPhase} className="bg-red-600 hover:bg-red-700">Wipe & Restart</Button>
                     </div>
                 </div>
             </div>

@@ -65,7 +65,7 @@ exports.createTeam = async (req, res) => {
 
         res.status(201).json(newTeam);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error creating team' });
     }
 };
@@ -97,7 +97,7 @@ exports.updateTeam = async (req, res) => {
 
         res.json({ message: 'Team updated successfully', team: updatedTeam });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error updating team' });
     }
 };
@@ -176,7 +176,7 @@ exports.inviteMember = async (req, res) => {
 
         res.status(200).json({ message: 'Invitation sent successfully', invite });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error sending invitation' });
     }
 };
@@ -246,7 +246,7 @@ exports.respondToInvite = async (req, res) => {
             res.json({ message: 'Invitation rejected' });
         }
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error responding to invite' });
     }
 };
@@ -271,7 +271,7 @@ exports.getMyPendingInvites = async (req, res) => {
 
         res.json(invites);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error fetching invites' });
     }
 };
@@ -305,7 +305,7 @@ exports.getMyTeam = async (req, res) => {
 
         res.json(membership.team);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error fetching team' });
     }
 };
@@ -366,7 +366,7 @@ exports.selectGuide = async (req, res) => {
 
         res.json({ message: 'Guide selected successfully' });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(400).json({ message: error.message || 'Server error selecting guide' });
     }
 };
@@ -400,7 +400,7 @@ exports.getAvailableFaculty = async (req, res) => {
 
         res.json(available);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error fetching available faculty' });
     }
 };
@@ -504,7 +504,7 @@ exports.respondToFacultyGuide = async (req, res) => {
         }
 
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error responding to faculty guide' });
     }
 };
@@ -529,7 +529,7 @@ exports.getMyGuideInvites = async (req, res) => {
         });
         res.json(selections);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error fetching guide invites' });
     }
 };
@@ -563,7 +563,7 @@ exports.deleteMyTeam = async (req, res) => {
 
         res.json({ message: 'Team deleted successfully' });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error deleting team' });
     }
 };

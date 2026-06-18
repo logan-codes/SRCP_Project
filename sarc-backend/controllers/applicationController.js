@@ -81,7 +81,7 @@ exports.getStudentApplications = async (req, res) => {
 
         res.json(apps);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error fetching applications' });
     }
 };
@@ -107,7 +107,7 @@ exports.getFacultyApplications = async (req, res) => {
 
         res.json(apps);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error fetching applications' });
     }
 };
@@ -115,6 +115,10 @@ exports.getFacultyApplications = async (req, res) => {
 exports.updateApplicationStatus = async (req, res) => {
     try {
         const { status } = req.body;
+        const VALID_STATUSES = ['PENDING', 'SHORTLISTED', 'ACCEPTED', 'REJECTED'];
+        if (!VALID_STATUSES.includes(status)) {
+            return res.status(400).json({ message: 'Invalid status value' });
+        }
         const applicationId = parseInt(req.params.id);
         const facultyProfile = await prisma.facultyProfile.findUnique({
             where: { userId: req.user.id }
@@ -158,7 +162,7 @@ exports.updateApplicationStatus = async (req, res) => {
 
         res.json({ message: 'Status updated', application: updatedApp });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: 'Server error updating status' });
     }
 };

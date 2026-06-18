@@ -150,7 +150,7 @@ exports.createProject = async (req, res) => {
         await clearCachePattern('projects');
         res.status(201).json(newProject);
     } catch (err) {
-        console.error("CREATE PROJECT ERROR:", err.message, err);
+        console.error("CREATE PROJECT ERROR:", err.message);
         res.status(500).json({ message: 'Server error creating project' });
     }
 };
@@ -246,7 +246,7 @@ exports.createProjectIdea = async (req, res) => {
         await clearCachePattern('projects');
         res.status(201).json(newIdea);
     } catch (err) {
-        console.error("CREATE IDEA ERROR:", err.message, err);
+        console.error("CREATE IDEA ERROR:", err.message);
         res.status(500).json({ message: 'Server error creating idea' });
     }
 };
@@ -280,6 +280,13 @@ exports.updateProject = async (req, res) => {
         }
 
         const { title, domain, numberOfStudents, status } = req.body;
+
+        if (status) {
+            const VALID_PROJECT_STATUSES = ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
+            if (!VALID_PROJECT_STATUSES.includes(status)) {
+                return res.status(400).json({ message: 'Invalid status value' });
+            }
+        }
 
         const updatedProject = await prisma.project.update({
             where: { id: projectId },

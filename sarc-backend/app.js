@@ -10,17 +10,48 @@ const path = require('path');
 
 const rateLimit = require('express-rate-limit');
 const xss = require('xss-clean');
-
 // Trust proxy is required if you are behind a reverse proxy (Heroku, Render, Netlify, Nginx, etc.)
 app.set('trust proxy', 1);
 
 // Security Middleware
-app.use(helmet({ crossOriginResourcePolicy: false })); // allow images to load locally if needed
+app.use(helmet());
 app.use(cors({
     origin: process.env.CORS_ALLOWED_ORIGIN || 'http://localhost:5173',
     credentials: true,
 }));
 app.use(express.json({ limit: '5mb' })); // Increased limit for bulk imports
+// Custom XSS Middleware for Express 5
+const { clean } = require('xss-clean/lib/xss');
+app.use((req, res, next) => {
+    if (req.body) {
+        const cleaned = clean(req.body);
+        for (const key in req.body) delete req.body[key];
+        Object.assign(req.body, cleaned);
+    }
+    if (req.query) {
+        const cleaned = clean(req.query);
+        for (const key in req.query) delete req.query[key];
+        Object.assign(req.query, cleaned);
+    }
+    if (req.params) {
+        const cleaned = clean(req.params);
+        for (const key in req.params) delete req.params[key];
+        Object.assign(req.params, cleaned);
+    }
+    next();
+});
+
+// Custom HPP Middleware for Express 5 (req.query is a getter, so we modify the object instead of reassigning)
+app.use((req, res, next) => {
+    if (req.query) {
+        for (let key in req.query) {
+            if (Array.isArray(req.query[key])) {
+                req.query[key] = req.query[key][req.query[key].length - 1];
+            }
+        }
+    }
+    next();
+});
 
 // ─── Rate Limiting & Caching ──────────────────────────────────────────────────
 const { RedisStore } = require('rate-limit-redis');
@@ -61,6 +92,7 @@ apiRouter.use('/users', require('./routes/userRoutes'));
 apiRouter.use('/guide', require('./routes/guideRoutes'));
 apiRouter.use('/stats', require('./routes/statsRoutes'));
 apiRouter.use('/global-milestones', require('./routes/globalMilestoneRoutes'));
+apiRouter.use('/system', require('./routes/systemRoutes'));
 
 // Apply the global API limiter to all API routes
 app.use('/api', apiLimiter, apiRouter);

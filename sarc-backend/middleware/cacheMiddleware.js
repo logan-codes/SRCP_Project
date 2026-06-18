@@ -60,12 +60,17 @@ const cacheResponse = (duration = DEFAULT_EXPIRATION) => {
 const clearCachePattern = async (pattern) => {
     if (!redisClient) return;
     try {
-        // Match user-isolated keys like `__express__:<userId>:<pattern>*`
-        const keys = await redisClient.keys(`*${pattern}*`);
-        if (keys.length > 0) {
-            await redisClient.del(...keys);
-            console.log(`Successfully cleared ${keys.length} cache keys matching pattern: ${pattern}`);
-        }
+        let cursor = '0';
+        let totalDeleted = 0;
+        do {
+            const [newCursor, keys] = await redisClient.scan(cursor, 'MATCH', `*${pattern}*`, 'COUNT', 100);
+            cursor = newCursor;
+            if (keys.length > 0) {
+                await redisClient.del(...keys);
+                totalDeleted += keys.length;
+            }
+        } while (cursor !== '0');
+        console.log(`Successfully cleared ${totalDeleted} cache keys matching pattern: ${pattern}`);
     } catch (err) {
         console.error(`Error invalidating cache pattern "${pattern}":`, err);
     }

@@ -1,9 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Compass, Send, Users, Flag, User, Bell, Search, Menu, X, LogOut, Settings, Building, Check } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
     const location = useLocation();
+
+    const { data: systemConfig } = useQuery({
+        queryKey: ['systemConfig'],
+        queryFn: async () => {
+            const token = localStorage.getItem('sarc_token');
+            if (!token) return null;
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/system/config`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch config');
+            return res.json();
+        },
+        staleTime: 5 * 60 * 1000, // cache for 5 minutes
+    });
 
     const role = userData?.role?.toLowerCase() || 'student';
     const basePath = role;
@@ -58,12 +73,6 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
                 title: 'Main Menu',
                 links: [
                     { name: 'Dashboard', icon: LayoutDashboard, path: `/${basePath}` },
-                    { name: 'Browse Projects', icon: Compass, path: `/${basePath}/projects` },
-                    { name: 'My Applications', icon: Send, path: `/${basePath}/applications` },
-                    { name: 'Team Formation', icon: Users, path: `/${basePath}/teams` },
-                    { name: 'Milestones', icon: Flag, path: `/${basePath}/milestones` },
-                    { name: 'Faculty Directory', icon: Building, path: `/${basePath}/directory` },
-                    { name: 'Profile', icon: User, path: `/${basePath}/profile` },
                 ]
             },
             {
@@ -73,8 +82,29 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
                     { name: 'Team Invites', icon: Bell, path: '/guide/invites/team' },
                     { name: 'Select Guide', icon: User, path: '/guide/select' },
                 ]
+            },
+            {
+                title: 'Research Collaboration',
+                links: [
+                    { name: 'Browse Projects', icon: Compass, path: `/${basePath}/projects` },
+                    { name: 'My Applications', icon: Send, path: `/${basePath}/applications` },
+                    { name: 'Team Formation', icon: Users, path: `/${basePath}/teams` },
+                    { name: 'Faculty Directory', icon: Building, path: `/${basePath}/directory` },
+                    { name: 'Milestones', icon: Flag, path: `/${basePath}/milestones` },
+                ]
+            },
+            {
+                title: 'Account',
+                links: [
+                    { name: 'Profile', icon: User, path: `/${basePath}/profile` },
+                ]
             }
         ];
+
+        // Filter out Research Collaboration if disabled
+        if (systemConfig && systemConfig.isResearchCollaborationActive === false) {
+            menuSections = menuSections.filter(section => section.title !== 'Research Collaboration');
+        }
     }
 
     return (

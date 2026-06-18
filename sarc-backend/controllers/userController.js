@@ -1,6 +1,7 @@
 const prisma = require('../config/prismaClient');
 const bcrypt = require('bcryptjs');
 const { clearCachePattern } = require('../middleware/cacheMiddleware');
+const crypto = require('crypto');
 
 // Get all faculty profiles (Public Directory)
 exports.getAllFaculty = async (req, res) => {
@@ -52,7 +53,7 @@ exports.getAllFaculty = async (req, res) => {
             totalPages: Math.ceil(total / limit)
         });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: "Server Error" });
     }
 };
@@ -96,7 +97,7 @@ exports.getFacultyById = async (req, res) => {
 
         res.json(sanitizedFaculty);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: "Server Error" });
     }
 };
@@ -149,7 +150,7 @@ exports.getAllUsers = async (req, res) => {
             totalPages: Math.ceil(total / take)
         });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: "Server Error" });
     }
 };
@@ -199,7 +200,7 @@ exports.createUser = async (req, res) => {
         }
         res.status(201).json(newUser);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: "Server Error" });
     }
 };
@@ -224,7 +225,8 @@ exports.bulkCreateUsers = async (req, res) => {
                     continue;
                 }
 
-                const hashedPassword = await bcrypt.hash(u.password || 'password123', 10);
+                const defaultPass = crypto.randomBytes(12).toString('base64url');
+                const hashedPassword = await bcrypt.hash(u.password || defaultPass, 10);
                 const prismaRole = u.role || 'STUDENT';
 
                 const newUser = await prisma.user.create({
@@ -254,7 +256,7 @@ exports.bulkCreateUsers = async (req, res) => {
         await clearCachePattern('faculty');
         res.status(201).json({ message: `Created ${createdCount} users`, createdCount, errors });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: "Server Error" });
     }
 };
@@ -299,7 +301,7 @@ exports.updateUser = async (req, res) => {
         }
         res.json(updatedUser);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         if (error.code === 'P2002') return res.status(400).json({ message: 'Email already exists' });
         res.status(500).json({ message: "Server Error" });
     }
@@ -319,7 +321,7 @@ exports.deleteUser = async (req, res) => {
         await clearCachePattern('faculty');
         res.json({ message: 'User deleted successfully' });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: "Server Error" });
     }
 };
@@ -379,7 +381,7 @@ exports.getAnalytics = async (req, res) => {
             recentFlags
         });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: "Server Error fetching analytics" });
     }
 };

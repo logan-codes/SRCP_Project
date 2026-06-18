@@ -30,7 +30,7 @@ exports.createMilestone = async (req, res) => {
 
         res.status(201).json(milestone);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: "Server Error" });
     }
 };
@@ -51,20 +51,65 @@ exports.getMilestones = async (req, res) => {
 // Update milestone status (Student submits, Faculty reviews)
 exports.updateMilestone = async (req, res) => {
     try {
+        const milestoneId = parseInt(req.params.id);
         const { status, submissionNotes } = req.body;
+        
+        // 1. Fetch milestone with project and teams to check authorization
+        const milestone = await prisma.milestone.findUnique({
+            where: { id: milestoneId },
+            include: {
+                project: {
+                    include: {
+                        teams: {
+                            include: { members: true }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!milestone) return res.status(404).json({ message: "Milestone not found" });
+
+        // 2. Authorization Check
+        let isAuthorized = false;
+        const userRole = req.user.role;
+        const userId = req.user.userId;
+
+        if (userRole === 'ADMIN') {
+            isAuthorized = true;
+        } else if (userRole === 'FACULTY') {
+            const faculty = await prisma.facultyProfile.findUnique({ where: { userId } });
+            if (faculty && milestone.project.facultyId === faculty.id) {
+                isAuthorized = true;
+            }
+        } else if (userRole === 'STUDENT') {
+            const student = await prisma.studentProfile.findUnique({ where: { userId } });
+            if (student) {
+                const inTeam = milestone.project.teams.some(team => 
+                    team.leaderId === student.id || team.members.some(m => m.studentId === student.id)
+                );
+                if (inTeam) isAuthorized = true;
+            }
+        }
+
+        if (!isAuthorized) {
+            return res.status(403).json({ message: "Not authorized to update this milestone" });
+        }
+
+        // 3. Update Data
         const updateData = { status };
         
         if (submissionNotes) updateData.submissionNotes = submissionNotes;
         if (req.body.submissionFile) updateData.submissionFile = req.body.submissionFile;
         if (status === 'SUBMITTED') updateData.submittedAt = new Date();
 
-        const milestone = await prisma.milestone.update({
-            where: { id: parseInt(req.params.id) },
+        const updatedMilestone = await prisma.milestone.update({
+            where: { id: milestoneId },
             data: updateData
         });
-        res.json(milestone);
+        res.json(updatedMilestone);
     } catch (error) {
-        console.error(error);
+        console.error("Error updating milestone:", error);
         res.status(500).json({ message: "Server Error" });
     }
 };

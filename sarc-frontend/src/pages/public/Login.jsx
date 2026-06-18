@@ -41,6 +41,7 @@ const Login = () => {
 
             if (response.ok) {
                 localStorage.setItem('sarc_token', data.token);
+                if (data.refreshToken) localStorage.setItem('sarc_refreshToken', data.refreshToken);
                 localStorage.setItem('sarc_role', data.user.role || (data.user.isFaculty ? 'FACULTY' : 'STUDENT'));
                 localStorage.setItem('sarc_isFirstLogin', data.user.isFirstLogin ? 'true' : 'false');
                 

@@ -8,7 +8,7 @@ exports.getNotifications = async (req, res) => {
         });
         res.json(notifications);
     } catch (err) {
-        console.error(err);
+        console.error("Error:", err.message || err);
         res.status(500).json({ message: 'Server error fetching notifications' });
     }
 };
@@ -36,7 +36,7 @@ exports.markAsRead = async (req, res) => {
 
         res.json(deleted);
     } catch (err) {
-        console.error(err);
+        console.error("Error:", err.message || err);
         res.status(500).json({ message: 'Server error marking read/deleting' });
     }
 };

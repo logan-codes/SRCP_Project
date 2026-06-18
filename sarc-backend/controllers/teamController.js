@@ -34,7 +34,7 @@ exports.createTeam = async (req, res) => {
 
         res.status(201).json(team);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: "Server Error" });
     }
 };
@@ -51,7 +51,7 @@ exports.getTeams = async (req, res) => {
         });
         res.json(teams);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: "Server Error" });
     }
 };
@@ -70,7 +70,7 @@ exports.getTeamById = async (req, res) => {
         if (!team) return res.status(404).json({ message: "Team not found" });
         res.json(team);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error.message || error);
         res.status(500).json({ message: "Server Error" });
     }
 };

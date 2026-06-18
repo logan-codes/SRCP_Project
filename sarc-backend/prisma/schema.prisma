@@ -366,3 +366,8 @@ model Session {
 
   @@index([userId])
 }
+
+model SystemConfig {
+  id                            String  @id @default("singleton")
+  isResearchCollaborationActive Boolean @default(true)
+}

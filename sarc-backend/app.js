@@ -110,8 +110,11 @@ app.use((err, req, res, next) => {
     if (res.headersSent) {
         return next(err);
     }
+    
+    const isProduction = process.env.NODE_ENV === 'production';
     res.status(err.status || 500).json({
-        message: err.message || 'Internal Server Error'
+        message: isProduction ? 'Internal Server Error' : (err.message || 'Internal Server Error'),
+        ...(isProduction ? {} : { stack: err.stack })
     });
 });
 

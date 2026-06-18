@@ -12,18 +12,24 @@ const { PrismaClient } = require('@prisma/client');
 //
 // Explicitly set here for predictability across environments.
 
-const prisma = new PrismaClient({
-    // Log only warnings and errors in production to avoid I/O overhead.
-    // Change to ['query', 'info', 'warn', 'error'] during local debugging.
-    log: process.env.NODE_ENV === 'development'
-        ? ['warn', 'error']
-        : ['error'],
-    datasources: {
-        db: {
-            url: process.env.DATABASE_URL,
+const prismaClientSingleton = () => {
+    return new PrismaClient({
+        // Log only warnings and errors in production to avoid I/O overhead.
+        log: process.env.NODE_ENV === 'development'
+            ? ['warn', 'error']
+            : ['error'],
+        datasources: {
+            db: {
+                url: process.env.DATABASE_URL,
+            },
         },
-    },
-});
+    });
+};
+
+// Use a global variable to cache the Prisma Client instance in serverless and dev environments
+const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
+
+if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma;
 
 // Graceful shutdown: disconnect Prisma on process exit to release DB connections.
 process.on('beforeExit', async () => {

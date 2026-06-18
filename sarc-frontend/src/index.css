@@ -11,3 +11,14 @@
     @apply font-heading;
   }
 }
+
+/* Hide default browser password reveal/clear icons (fixes double eye icon issue in Edge/IE) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+input[type="password"]::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    position: absolute;
+    right: 0;
+}

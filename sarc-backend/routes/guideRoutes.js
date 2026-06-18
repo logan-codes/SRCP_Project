@@ -20,6 +20,7 @@ router.put('/teams/invite/respond', authMiddleware, isStudent, guideTeamControll
 router.get('/teams/invites/my', authMiddleware, isStudent, guideTeamController.getMyPendingInvites);
 router.get('/teams/my', authMiddleware, isStudent, guideTeamController.getMyTeam);
 router.put('/teams/my', authMiddleware, isStudent, guideTeamController.updateTeam);
+router.delete('/teams/my', authMiddleware, isStudent, guideTeamController.deleteMyTeam);
 router.get('/teams/invites/faculty', authMiddleware, isStudent, guideTeamController.getMyGuideInvites); // Helper for Phase 2
 
 // -----------------------------------------------------

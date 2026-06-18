@@ -116,6 +116,28 @@ const GuideTeamMy = () => {
         }
     };
 
+    const handleDeleteTeam = async () => {
+        if (!window.confirm("Are you sure you want to delete this team? This action cannot be undone.")) return;
+        
+        try {
+            const token = localStorage.getItem('sarc_token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/my`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.message || 'Failed to delete team');
+            }
+            alert('Team deleted successfully');
+            setTeam(null);
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
     if (loading) return <div className="p-8 text-center text-text-secondary">Loading...</div>;
 
     if (!team) {
@@ -140,9 +162,14 @@ const GuideTeamMy = () => {
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold text-text-primary">My Team</h1>
                 {canEdit && !isEditing && (
-                    <Button onClick={() => setIsEditing(true)} variant="outline">
-                        Edit Team
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button onClick={() => setIsEditing(true)} variant="outline">
+                            Edit Team
+                        </Button>
+                        <Button onClick={handleDeleteTeam} variant="outline" className="!text-red-500 !border-red-500 hover:!bg-red-500/10">
+                            Delete Team
+                        </Button>
+                    </div>
                 )}
             </div>
             

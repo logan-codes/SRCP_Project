@@ -533,3 +533,37 @@ exports.getMyGuideInvites = async (req, res) => {
         res.status(500).json({ message: 'Server error fetching guide invites' });
     }
 };
+
+exports.deleteMyTeam = async (req, res) => {
+    try {
+        const leaderId = req.user.id;
+        
+        const team = await prisma.guideTeam.findFirst({
+            where: { leaderId }
+        });
+
+        if (!team) return res.status(404).json({ message: 'Team not found' });
+        
+        if (team.isFinalized) {
+            return res.status(400).json({ message: 'Cannot delete a finalized team' });
+        }
+
+        // Delete associated records first (if Prisma schema doesn't have cascade delete)
+        await prisma.guideTeamMember.deleteMany({
+            where: { teamId: team.id }
+        });
+
+        await prisma.facultyTeamSelection.deleteMany({
+            where: { teamId: team.id }
+        });
+
+        await prisma.guideTeam.delete({
+            where: { id: team.id }
+        });
+
+        res.json({ message: 'Team deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error deleting team' });
+    }
+};

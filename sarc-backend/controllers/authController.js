@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const prisma = require('../config/prismaClient');
+const redisClient = require('../config/redisClient');
 // Ensure JWT Secrets are available (fail fast)
 if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
     throw new Error('FATAL ERROR: JWT_SECRET or JWT_REFRESH_SECRET is not defined in environment variables.');
@@ -63,18 +64,36 @@ const sendEmail = async (to, subject, text) => {
 };
 
 // Helper: Generate Tokens
-const generateTokens = async (userId, role) => {
-    const payload = { user: { id: userId, role } };
+const generateTokens = async (userId, role, sessionId) => {
+    const activeSessionId = sessionId || crypto.randomUUID();
+    const payload = { user: { id: userId, role, sessionId: activeSessionId } };
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
     const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '30d' });
 
     // Hash refresh token for DB storage
     const hashedRefreshToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
 
+    // 1. Update refresh token on User
     await prisma.user.update({
         where: { id: userId },
         data: { refreshToken: hashedRefreshToken }
     });
+
+    // 2. Upsert session in PostgreSQL
+    await prisma.session.upsert({
+        where: { userId },
+        update: { id: activeSessionId, expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
+        create: { id: activeSessionId, userId, expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }
+    });
+
+    // 3. Store active session in Redis (expires in 30 days)
+    if (redisClient) {
+        try {
+            await redisClient.set(`session:user:${userId}`, activeSessionId, 'EX', 30 * 24 * 60 * 60);
+        } catch (err) {
+            console.error('Redis error caching session on token generation:', err);
+        }
+    }
 
     return { accessToken, refreshToken };
 };
@@ -199,8 +218,44 @@ exports.refreshToken = async (req, res) => {
         if (!refreshToken) return res.status(401).json({ message: 'No refresh token provided' });
 
         const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-        const user = await prisma.user.findUnique({ where: { id: decoded.user.id } });
+        const userId = decoded.user.id;
+        const tokenSessionId = decoded.user.sessionId;
 
+        if (!tokenSessionId) {
+            return res.status(401).json({ message: 'Invalid refresh token: missing session ID' });
+        }
+
+        // Validate session ID
+        let activeSessionId = null;
+        if (redisClient) {
+            try {
+                activeSessionId = await redisClient.get(`session:user:${userId}`);
+            } catch (err) {
+                console.error('Redis error in refresh token:', err);
+            }
+        }
+
+        if (!activeSessionId) {
+            const dbSession = await prisma.session.findUnique({
+                where: { userId }
+            });
+            activeSessionId = dbSession?.id;
+
+            // Backfill Redis if found in DB
+            if (activeSessionId && redisClient) {
+                try {
+                    await redisClient.set(`session:user:${userId}`, activeSessionId, 'EX', 30 * 24 * 60 * 60);
+                } catch (err) {
+                    console.error('Redis backfill error in refresh token:', err);
+                }
+            }
+        }
+
+        if (!activeSessionId || activeSessionId !== tokenSessionId) {
+            return res.status(401).json({ message: 'Session invalidated. Another device logged in.' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user || !user.refreshToken) {
             return res.status(401).json({ message: 'Invalid refresh token' });
         }
@@ -210,7 +265,7 @@ exports.refreshToken = async (req, res) => {
             return res.status(401).json({ message: 'Invalid refresh token' });
         }
 
-        const payload = { user: { id: user.id, role: user.role } };
+        const payload = { user: { id: user.id, role: user.role, sessionId: tokenSessionId } };
         const newAccessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
 
         res.json({ token: newAccessToken });
@@ -326,6 +381,10 @@ exports.updateProfile = async (req, res) => {
                 where: { userId: req.user.id },
                 data: { department }
             });
+        }
+
+        if (user.role === 'FACULTY') {
+            await clearCachePattern('faculty');
         }
 
         const updatedUser = await prisma.user.findUnique({
@@ -464,6 +523,47 @@ exports.forceChangePassword = async (req, res) => {
         });
 
         res.status(200).json({ message: 'Password changed successfully. Your account is now active.' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+// @route   POST api/auth/logout
+// @desc    Logout user & invalidate session
+// @access  Private
+exports.logout = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // 1. Delete session from Session table
+        try {
+            await prisma.session.delete({
+                where: { userId }
+            });
+        } catch (dbErr) {
+            // Ignore record-not-found error (P2025) since session is already gone
+            if (dbErr.code !== 'P2025') {
+                throw dbErr;
+            }
+        }
+
+        // 2. Clear refreshToken in User table
+        await prisma.user.update({
+            where: { id: userId },
+            data: { refreshToken: null }
+        });
+
+        // 3. Clear session in Redis
+        if (redisClient) {
+            try {
+                await redisClient.del(`session:user:${userId}`);
+            } catch (err) {
+                console.error('Redis error on logout:', err);
+            }
+        }
+
+        res.status(200).json({ message: 'Logged out successfully' });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ message: 'Internal Server Error' });

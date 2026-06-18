@@ -1,5 +1,6 @@
 const prisma = require('../config/prismaClient');
 const bcrypt = require('bcryptjs');
+const { clearCachePattern } = require('../middleware/cacheMiddleware');
 
 // Get all faculty profiles (Public Directory)
 exports.getAllFaculty = async (req, res) => {
@@ -193,6 +194,9 @@ exports.createUser = async (req, res) => {
         } else if (prismaRole === 'ADMIN') {
             await prisma.adminProfile.create({ data: { userId: newUser.id } });
         }
+        if (prismaRole === 'FACULTY') {
+            await clearCachePattern('faculty');
+        }
         res.status(201).json(newUser);
     } catch (error) {
         console.error(error);
@@ -247,6 +251,7 @@ exports.bulkCreateUsers = async (req, res) => {
             }
         }
 
+        await clearCachePattern('faculty');
         res.status(201).json({ message: `Created ${createdCount} users`, createdCount, errors });
     } catch (error) {
         console.error(error);
@@ -289,6 +294,9 @@ exports.updateUser = async (req, res) => {
                 }
             });
         }
+        if (updatedUser.role === 'FACULTY') {
+            await clearCachePattern('faculty');
+        }
         res.json(updatedUser);
     } catch (error) {
         console.error(error);
@@ -308,6 +316,7 @@ exports.deleteUser = async (req, res) => {
         await prisma.user.delete({
             where: { id: parseInt(id) }
         });
+        await clearCachePattern('faculty');
         res.json({ message: 'User deleted successfully' });
     } catch (error) {
         console.error(error);

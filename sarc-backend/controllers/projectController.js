@@ -1,4 +1,5 @@
 const prisma = require('../config/prismaClient');
+const { clearCachePattern } = require('../middleware/cacheMiddleware');
 // @route   GET api/projects
 // @desc    Get all projects
 // @access  Public
@@ -146,6 +147,7 @@ exports.createProject = async (req, res) => {
         });
 
         console.log("Created project with ID:", newProject.id);
+        await clearCachePattern('projects');
         res.status(201).json(newProject);
     } catch (err) {
         console.error("CREATE PROJECT ERROR:", err.message, err);
@@ -241,6 +243,7 @@ exports.createProjectIdea = async (req, res) => {
         });
 
         console.log("Created project idea with ID:", newIdea.id);
+        await clearCachePattern('projects');
         res.status(201).json(newIdea);
     } catch (err) {
         console.error("CREATE IDEA ERROR:", err.message, err);
@@ -288,6 +291,7 @@ exports.updateProject = async (req, res) => {
             }
         });
 
+        await clearCachePattern('projects');
         res.json(updatedProject);
     } catch (err) {
         console.error("UPDATE PROJECT ERROR:", err.message);

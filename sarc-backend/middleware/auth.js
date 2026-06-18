@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
+const prisma = require('../config/prismaClient');
+const redisClient = require('../config/redisClient');
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
     // Get token from header
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
@@ -13,6 +15,45 @@ const authMiddleware = (req, res, next) => {
         // Verify token (do not use a fallback secret in production)
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded.user;
+
+        // Verify sessionId is present in token
+        if (!req.user || !req.user.sessionId) {
+            return res.status(401).json({ message: 'Session is not valid. Please log in again.' });
+        }
+
+        // Retrieve active session ID
+        let activeSessionId = null;
+        if (redisClient) {
+            try {
+                activeSessionId = await redisClient.get(`session:user:${req.user.id}`);
+            } catch (err) {
+                console.error('Redis error in auth middleware:', err);
+            }
+        }
+
+        if (!activeSessionId) {
+            const dbSession = await prisma.session.findUnique({
+                where: { userId: req.user.id }
+            });
+            activeSessionId = dbSession?.id;
+
+            // Backfill Redis if session exists
+            if (activeSessionId && redisClient) {
+                try {
+                    await redisClient.set(`session:user:${req.user.id}`, activeSessionId, 'EX', 30 * 24 * 60 * 60);
+                } catch (err) {
+                    console.error('Redis backfill error in auth middleware:', err);
+                }
+            }
+        }
+
+        // Compare session IDs
+        if (!activeSessionId || activeSessionId !== req.user.sessionId) {
+            return res.status(401).json({ 
+                message: 'Session invalidated. Your account has been logged in from another device.' 
+            });
+        }
+
         next();
     } catch (err) {
         res.status(401).json({ message: 'Token is not valid' });

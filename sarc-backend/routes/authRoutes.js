@@ -21,5 +21,6 @@ router.post('/refresh-token', authController.refreshToken);
 router.post('/force-change-password', auth, authController.forceChangePassword);
 router.get('/me', auth, authController.getMe);
 router.put('/profile', auth, authController.updateProfile);
+router.post('/logout', auth, authController.logout);
 
 module.exports = router;

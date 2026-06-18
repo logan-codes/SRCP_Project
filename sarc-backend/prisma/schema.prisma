@@ -34,6 +34,7 @@ model User {
   failedLoginAttempts Int       @default(0)
   lockoutUntil        DateTime?
   refreshToken        String?
+  session             Session?
 
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
@@ -354,4 +355,14 @@ model GlobalMilestone {
   status      String   @default("PENDING") // PENDING, COMPLETED
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Session {
+  id        String   @id
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([userId])
 }

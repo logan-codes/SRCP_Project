@@ -8,14 +8,19 @@ const DEFAULT_EXPIRATION = 300; // 5 minutes in seconds
  */
 const cacheResponse = (duration = DEFAULT_EXPIRATION) => {
     return async (req, res, next) => {
+        // 1. Only cache HTTP GET requests
+        if (req.method !== 'GET') {
+            return next();
+        }
+
         if (!redisClient) {
             // Redis not configured, bypass caching
             return next();
         }
 
-        // Use the request URL as the cache key.
-        // Include query parameters in the key for paginated routes.
-        const key = `__express__${req.originalUrl || req.url}`;
+        // 2. Partition cache keys by user ID (or anonymous) to prevent cross-user data leakage
+        const userId = req.user ? req.user.id : 'anonymous';
+        const key = `__express__:${userId}:${req.originalUrl || req.url}`;
 
         try {
             const cachedData = await redisClient.get(key);
@@ -48,4 +53,23 @@ const cacheResponse = (duration = DEFAULT_EXPIRATION) => {
     };
 };
 
+/**
+ * Helper to invalidate Redis cache keys matching a pattern
+ * @param {string} pattern - Key prefix/pattern (e.g. '/api/projects')
+ */
+const clearCachePattern = async (pattern) => {
+    if (!redisClient) return;
+    try {
+        // Match user-isolated keys like `__express__:<userId>:<pattern>*`
+        const keys = await redisClient.keys(`*${pattern}*`);
+        if (keys.length > 0) {
+            await redisClient.del(...keys);
+            console.log(`Successfully cleared ${keys.length} cache keys matching pattern: ${pattern}`);
+        }
+    } catch (err) {
+        console.error(`Error invalidating cache pattern "${pattern}":`, err);
+    }
+};
+
 module.exports = cacheResponse;
+module.exports.clearCachePattern = clearCachePattern;

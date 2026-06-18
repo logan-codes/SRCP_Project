@@ -1,4 +1,5 @@
 const prisma = require('../config/prismaClient');
+
 exports.getNotifications = async (req, res) => {
     try {
         const notifications = await prisma.notification.findMany({
@@ -18,11 +19,10 @@ exports.markAsRead = async (req, res) => {
 
         // Mark all as read if id brings bulk command, or just single
         if (req.params.id === 'all') {
-            await prisma.notification.updateMany({
-                where: { userId: req.user.id, read: false },
-                data: { read: true }
+            await prisma.notification.deleteMany({
+                where: { userId: req.user.id }
             });
-            return res.json({ message: 'All marked as read' });
+            return res.json({ message: 'All notifications deleted' });
         }
 
         const notification = await prisma.notification.findUnique({ where: { id } });
@@ -30,14 +30,13 @@ exports.markAsRead = async (req, res) => {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
-        const updated = await prisma.notification.update({
-            where: { id },
-            data: { read: true }
+        const deleted = await prisma.notification.delete({
+            where: { id }
         });
 
-        res.json(updated);
+        res.json(deleted);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Server error marking read' });
+        res.status(500).json({ message: 'Server error marking read/deleting' });
     }
 };

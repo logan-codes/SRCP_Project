@@ -4,13 +4,15 @@ import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import { Card } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
-import { Lock, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Lock, ArrowRight, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 
 const ChangePassword = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({ newPassword: '', confirmPassword: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         const isFirstLogin = localStorage.getItem('sarc_isFirstLogin');
@@ -98,14 +100,25 @@ const ChangePassword = () => {
                                         <Lock className="h-5 w-5 text-slate-400" />
                                     </div>
                                     <input
-                                        type="password"
+                                        type={showNewPassword ? "text" : "password"}
                                         name="newPassword"
                                         value={formData.newPassword}
                                         onChange={handleChange}
                                         required
-                                        className="appearance-none block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                                        className="appearance-none block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                                         placeholder="••••••••"
                                     />
+                                    <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                    >
+                                        {showNewPassword ? (
+                                            <EyeOff className="h-5 w-5" />
+                                        ) : (
+                                            <Eye className="h-5 w-5" />
+                                        )}
+                                    </button>
                                 </div>
                                 <p className="text-xs text-slate-500 mt-2">
                                     Must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.
@@ -119,14 +132,25 @@ const ChangePassword = () => {
                                         <Lock className="h-5 w-5 text-slate-400" />
                                     </div>
                                     <input
-                                        type="password"
+                                        type={showConfirmPassword ? "text" : "password"}
                                         name="confirmPassword"
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
                                         required
-                                        className="appearance-none block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                                        className="appearance-none block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                                         placeholder="••••••••"
                                     />
+                                    <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    >
+                                        {showConfirmPassword ? (
+                                            <EyeOff className="h-5 w-5" />
+                                        ) : (
+                                            <Eye className="h-5 w-5" />
+                                        )}
+                                    </button>
                                 </div>
                             </div>
 

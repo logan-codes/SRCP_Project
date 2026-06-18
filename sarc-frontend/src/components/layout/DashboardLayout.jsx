@@ -52,6 +52,7 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
                 title: 'Admin Controls',
                 links: [
                     { name: 'Dashboard', icon: LayoutDashboard, path: `/${basePath}` },
+                    { name: 'Browse Projects', icon: Compass, path: '/admin/projects' },
                     { name: 'User Management', icon: Users, path: '/admin/users' },
                     { name: 'Team Finalization', icon: Check, path: '/admin/teams/finalize' },
                     { name: 'Global Milestones', icon: Flag, path: '/admin/milestones/config' },

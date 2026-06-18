@@ -5,7 +5,7 @@ import Button from '../../components/common/Button';
 import { Search, Filter, Calendar, Users, ArrowRight, User, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const ProjectCard = ({ project }) => {
+const ProjectCard = ({ project, userRole, onDelete }) => {
     let daysRemaining = null;
     if (project.deadline) {
         const deadlineDate = new Date(project.deadline);
@@ -74,12 +74,19 @@ const ProjectCard = ({ project }) => {
                         {daysRemaining !== null ? (daysRemaining > 0 ? `${daysRemaining} days left` : 'Closed') : 'Open'}
                     </span>
                 </div>
-                <Link to={`/project/${project.id}`}>
-                    <Button variant="primary" size="sm" className="gap-2 group py-1.5 px-3">
-                        Details
-                        <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                </Link>
+                <div className="flex items-center gap-2">
+                    {userRole === 'ADMIN' && (
+                        <Button variant="danger" size="sm" onClick={() => onDelete(project.id)} className="py-1.5 px-3">
+                            Delete
+                        </Button>
+                    )}
+                    <Link to={`/project/${project.id}`}>
+                        <Button variant="primary" size="sm" className="gap-2 group py-1.5 px-3">
+                            Details
+                            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                    </Link>
+                </div>
             </div>
         </Card>
     );
@@ -91,6 +98,7 @@ const BrowseProjects = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('projects');
+    const userRole = localStorage.getItem('sarc_role');
 
     useEffect(() => {
         fetchData();
@@ -114,6 +122,44 @@ const BrowseProjects = () => {
             console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDeleteProject = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this project? This will also delete related teams and applications.')) return;
+        try {
+            const token = localStorage.getItem('sarc_token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                setProjects(projects.filter(p => p.id !== id));
+            } else {
+                alert('Failed to delete project');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            alert('Error deleting project');
+        }
+    };
+
+    const handleDeleteIdea = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this idea?')) return;
+        try {
+            const token = localStorage.getItem('sarc_token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/ideas/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                setIdeas(ideas.filter(i => i.id !== id));
+            } else {
+                alert('Failed to delete idea');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            alert('Error deleting idea');
         }
     };
 
@@ -173,7 +219,7 @@ const BrowseProjects = () => {
             ) : activeTab === 'projects' ? (
                 filteredProjects.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredProjects.map(project => <ProjectCard key={project.id} project={project} />)}
+                        {filteredProjects.map(project => <ProjectCard key={project.id} project={project} userRole={userRole} onDelete={handleDeleteProject} />)}
                     </div>
                 ) : (
                     <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
@@ -191,8 +237,15 @@ const BrowseProjects = () => {
                                 <Badge color="yellow" className="self-start mb-4">{idea.difficultyLevel} Level</Badge>
                                 <p className="text-sm text-slate-600 mb-4 line-clamp-4">{idea.description}</p>
                                 {idea.supportingFile && (
-                                    <div className="mt-auto">
+                                    <div className="mt-auto mb-3">
                                         <a href={`${import.meta.env.VITE_API_URL}/uploads/${idea.supportingFile}`} download target="_blank" rel="noreferrer" className="text-primary text-sm font-bold hover:underline">Download Supporting File</a>
+                                    </div>
+                                )}
+                                {userRole === 'ADMIN' && (
+                                    <div className={!idea.supportingFile ? "mt-auto pt-2" : "pt-2 border-t border-slate-100"}>
+                                        <Button variant="danger" size="sm" onClick={() => handleDeleteIdea(idea.id)}>
+                                            Delete Idea
+                                        </Button>
                                     </div>
                                 )}
                             </Card>

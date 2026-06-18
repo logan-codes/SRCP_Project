@@ -49,7 +49,7 @@ function App() {
                 <Route path="/faculty" element={<ProtectedRoute allowedRoles={['FACULTY']}><FacultyDashboard /></ProtectedRoute>} />
                 <Route path="/faculty/projects" element={<ProtectedRoute allowedRoles={['FACULTY']}><BrowseProjects /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
-
+                <Route path="/admin/projects" element={<ProtectedRoute allowedRoles={['ADMIN']}><BrowseProjects /></ProtectedRoute>} />
                 {/* Shared authenticated routes */}
                 <Route path="/project/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
                 <Route path="/student/profile" element={<ProtectedRoute allowedRoles={['STUDENT']}><DashboardLayout><Profile /></DashboardLayout></ProtectedRoute>} />

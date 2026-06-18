@@ -102,6 +102,25 @@ const ProjectDetail = () => {
         }
     };
 
+    const handleDeleteProject = async () => {
+        if (!window.confirm('Are you sure you want to delete this project? This cannot be undone.')) return;
+        try {
+            const token = localStorage.getItem('sarc_token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                navigate('/admin/projects'); // Redirect to projects list
+            } else {
+                alert("Failed to delete project");
+            }
+        } catch (error) {
+            console.error("Delete error", error);
+            alert("Error deleting project");
+        }
+    };
+
     if (loading) return <div className="min-h-screen pt-20 text-center">Loading Project Data...</div>;
     if (!project) return <div className="min-h-screen pt-20 text-center">Project not found</div>;
 
@@ -127,9 +146,16 @@ const ProjectDetail = () => {
                                 </span>
                                 {project.domain && <Badge color="blue">{project.domain}</Badge>}
                             </div>
-                            <h1 className="text-3xl sm:text-4xl font-extrabold font-heading text-slate-900 mb-6 leading-tight">
-                                {project.title}
-                            </h1>
+                            <div className="flex justify-between items-start mb-6">
+                                <h1 className="text-3xl sm:text-4xl font-extrabold font-heading text-slate-900 leading-tight">
+                                    {project.title}
+                                </h1>
+                                {userProfile?.role === 'ADMIN' && (
+                                    <Button variant="danger" size="sm" onClick={handleDeleteProject} className="flex-shrink-0">
+                                        Delete Project
+                                    </Button>
+                                )}
+                            </div>
                             <p className="text-lg text-slate-600 leading-relaxed whitespace-pre-wrap">
                                 {project.description}
                             </p>

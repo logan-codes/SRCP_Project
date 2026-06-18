@@ -305,3 +305,43 @@ exports.updateProject = async (req, res) => {
         res.status(500).json({ message: 'Server error updating project' });
     }
 };
+
+// Admin only
+exports.deleteProject = async (req, res) => {
+    try {
+        const projectId = parseInt(req.params.id);
+        if (isNaN(projectId)) {
+            return res.status(400).json({ message: 'Invalid project ID' });
+        }
+
+        await prisma.project.delete({
+            where: { id: projectId }
+        });
+
+        await clearCachePattern('projects');
+        res.json({ message: 'Project deleted successfully' });
+    } catch (err) {
+        console.error("DELETE PROJECT ERROR:", err.message);
+        res.status(500).json({ message: 'Server error deleting project' });
+    }
+};
+
+// Admin only
+exports.deleteProjectIdea = async (req, res) => {
+    try {
+        const ideaId = parseInt(req.params.id);
+        if (isNaN(ideaId)) {
+            return res.status(400).json({ message: 'Invalid idea ID' });
+        }
+
+        await prisma.projectIdea.delete({
+            where: { id: ideaId }
+        });
+
+        await clearCachePattern('projects');
+        res.json({ message: 'Project Idea deleted successfully' });
+    } catch (err) {
+        console.error("DELETE IDEA ERROR:", err.message);
+        res.status(500).json({ message: 'Server error deleting project idea' });
+    }
+};

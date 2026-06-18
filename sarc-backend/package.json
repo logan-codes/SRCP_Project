@@ -26,9 +26,7 @@
     "hpp": "^0.2.3",
     "ioredis": "^5.11.1",
     "jsonwebtoken": "^9.0.3",
-    "node-fetch": "^3.3.2",
     "nodemailer": "^8.0.11",
-    "pm2": "^7.0.1",
     "rate-limit-redis": "^5.0.0",
     "serverless-http": "^4.0.0",
     "xss-clean": "^0.1.4"

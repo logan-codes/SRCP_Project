@@ -11,5 +11,7 @@ router.get('/:id', projectController.getProjectById);
 router.post('/', auth, auth.checkRole('FACULTY'), projectController.createProject);
 router.post('/ideas', auth, auth.checkRole('FACULTY'), projectController.createProjectIdea);
 router.put('/:id', auth, auth.checkRole('FACULTY'), projectController.updateProject);
+router.delete('/:id', auth, auth.checkRole('ADMIN'), projectController.deleteProject);
+router.delete('/ideas/:id', auth, auth.checkRole('ADMIN'), projectController.deleteProjectIdea);
 
 module.exports = router;

@@ -8,7 +8,8 @@ export const setupFetchInterceptor = () => {
             const refreshToken = localStorage.getItem('sarc_refreshToken');
             if (refreshToken) {
                 try {
-                    const refreshRes = await originalFetch(`${import.meta.env.VITE_API_URL}/api/auth/refresh-token`, {
+                    const baseURL = import.meta.env.VITE_API_URL || '';
+                    const refreshRes = await originalFetch(`${baseURL}/api/auth/refresh-token`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ refreshToken })

@@ -8,8 +8,8 @@ export const uploadToCloudinary = async (file) => {
     try {
         const token = localStorage.getItem('sarc_token');
         
-        // 1. Get the signed URL from our backend
-        const sigResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/upload/signature?filename=${encodeURIComponent(file.name)}`, {
+        const baseURL = import.meta.env.VITE_API_URL || '';
+        const sigResponse = await fetch(`${baseURL}/api/upload/signature?filename=${encodeURIComponent(file.name)}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         

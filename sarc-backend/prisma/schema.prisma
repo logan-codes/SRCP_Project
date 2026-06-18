@@ -224,7 +224,7 @@ model Team {
   status      String   @default("FORMING") // FORMING, READY, ASSIGNED
 
   leaderId Int
-  leader   StudentProfile @relation("TeamLeader", fields: [leaderId], references: [id])
+  leader   StudentProfile @relation("TeamLeader", fields: [leaderId], references: [id], onDelete: Cascade)
 
   members TeamMember[]
 
@@ -296,10 +296,10 @@ model GuideTeam {
   description       String
   domain            String
   leaderId          Int
-  leader            User                   @relation("GuideTeamLeader", fields: [leaderId], references: [id])
+  leader            User                   @relation("GuideTeamLeader", fields: [leaderId], references: [id], onDelete: Cascade)
   members           GuideTeamMember[]
   guideId           Int?
-  guide             User?                  @relation("GuideAssigned", fields: [guideId], references: [id])
+  guide             User?                  @relation("GuideAssigned", fields: [guideId], references: [id], onDelete: SetNull)
   guideStatus       GuideSelectionStatus   @default(PENDING)
   isFinalized       Boolean                @default(false)
   abstractFile      String?
@@ -310,9 +310,9 @@ model GuideTeam {
 model GuideTeamMember {
   id           String       @id @default(uuid())
   teamId       String
-  team         GuideTeam    @relation(fields: [teamId], references: [id])
+  team         GuideTeam    @relation(fields: [teamId], references: [id], onDelete: Cascade)
   studentId    Int
-  student      User         @relation(fields: [studentId], references: [id])
+  student      User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
   isLeader     Boolean      @default(false)
   inviteStatus InviteStatus @default(PENDING)
   invitedAt    DateTime     @default(now())
@@ -324,7 +324,7 @@ model GuideTeamMember {
 model FacultyGuideSlot {
   id         String @id @default(uuid())
   facultyId  Int    @unique
-  faculty    User   @relation(fields: [facultyId], references: [id])
+  faculty    User   @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   totalSlots Int    @default(7)
   usedSlots  Int    @default(0)
 }
@@ -332,9 +332,9 @@ model FacultyGuideSlot {
 model FacultyTeamSelection {
   id          String       @id @default(uuid())
   facultyId   Int
-  faculty     User         @relation(fields: [facultyId], references: [id])
+  faculty     User         @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   teamId      String
-  team        GuideTeam    @relation(fields: [teamId], references: [id])
+  team        GuideTeam    @relation(fields: [teamId], references: [id], onDelete: Cascade)
   status      InviteStatus @default(PENDING)
   selectedAt  DateTime     @default(now())
   respondedAt DateTime?

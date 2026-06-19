@@ -2,8 +2,6 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/public/LandingPage';
 import Login from './pages/public/Login';
-import ForgotPassword from './pages/public/ForgotPassword';
-import ResetPassword from './pages/public/ResetPassword';
 import ChangePassword from './pages/public/ChangePassword';
 import StudentDashboard from './pages/student/StudentDashboard';
 import FacultyDashboard from './pages/faculty/FacultyDashboard';
@@ -40,8 +38,6 @@ function App() {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />
 
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/change-password" element={<ChangePassword />} />
 
                 <Route path="/student" element={<ProtectedRoute allowedRoles={['STUDENT']}><StudentDashboard /></ProtectedRoute>} />

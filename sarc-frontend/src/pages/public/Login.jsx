@@ -150,12 +150,6 @@ const Login = () => {
                                         Remember me
                                     </label>
                                 </div>
-
-                                <div className="text-sm">
-                                    <Link to="/forgot-password" className="font-medium text-primary hover:text-primary-dark">
-                                        Forgot your password?
-                                    </Link>
-                                </div>
                             </div>
 
                             <Button type="submit" className="w-full flex justify-center group" disabled={loading}>

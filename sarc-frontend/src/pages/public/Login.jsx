@@ -12,6 +12,7 @@ const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const isSubmitting = React.useRef(false);
 
     useEffect(() => {
         const token = localStorage.getItem('sarc_token');
@@ -29,6 +30,9 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isSubmitting.current) return;
+        isSubmitting.current = true;
+        
         setError('');
         setLoading(true);
         try {
@@ -61,6 +65,7 @@ const Login = () => {
             setError('Could not connect to server. Please try again later.');
         } finally {
             setLoading(false);
+            isSubmitting.current = false;
         }
     };
 

@@ -213,7 +213,7 @@ exports.refreshToken = async (req, res) => {
         const { refreshToken } = req.body;
         if (!refreshToken) return res.status(401).json({ message: 'No refresh token provided' });
 
-        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, { clockTolerance: 30 });
         const userId = decoded.user.id;
         const tokenSessionId = decoded.user.sessionId;
 

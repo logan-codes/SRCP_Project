@@ -12,8 +12,8 @@ const authMiddleware = async (req, res, next) => {
     }
 
     try {
-        // Verify token (do not use a fallback secret in production)
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        // Verify token with clock tolerance to prevent "issued in future" errors on serverless functions
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, { clockTolerance: 30 });
         req.user = decoded.user;
 
         // Verify sessionId is present in token

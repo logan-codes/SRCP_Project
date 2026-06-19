@@ -24,6 +24,8 @@ const AdminUserManagement = () => {
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [importData, setImportData] = useState({ department: '', batch: '', section: '', file: null });
 
+    const [selectedUsers, setSelectedUsers] = useState([]);
+
     const fetchUsers = async () => {
         setLoading(true);
         try {
@@ -63,8 +65,50 @@ const AdminUserManagement = () => {
 
     useEffect(() => {
         // Fetch users whenever debouncedSearchTerm, currentPage, or activeTab changes
+        setSelectedUsers([]);
         fetchUsers();
     }, [currentPage, activeTab, debouncedSearchTerm]);
+
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedUsers(users.map(u => u.id));
+        } else {
+            setSelectedUsers([]);
+        }
+    };
+
+    const handleSelectUser = (id) => {
+        setSelectedUsers(prev => 
+            prev.includes(id) ? prev.filter(uid => uid !== id) : [...prev, id]
+        );
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedUsers.length === 0) return;
+        if (!window.confirm(`Are you sure you want to delete ${selectedUsers.length} selected users? This action cannot be undone.`)) return;
+        try {
+            const token = localStorage.getItem('sarc_token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/bulk-delete`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ids: selectedUsers })
+            });
+            
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.message);
+            }
+
+            setMessage({ text: `Successfully deleted ${selectedUsers.length} users`, type: 'success' });
+            setSelectedUsers([]);
+            fetchUsers();
+        } catch (error) {
+            setMessage({ text: error.message, type: 'error' });
+        }
+    };
 
     const handleTabChange = (role) => {
         setActiveTab(role);
@@ -166,20 +210,50 @@ const AdminUserManagement = () => {
                     return;
                 }
 
-                const usersPayload = data.map(row => ({
-                    fullName: row.Name || row.fullName || '',
-                    email: row.Email || row.email || '',
-                    password: row.Password || row.password || 'password123',
-                    role: (row.Role || row.role || activeTab).toUpperCase(),
-                    department: row.Department || row.department || importData.department || '',
-                    yearOfStudy: row.YearOfStudy || row.yearOfStudy || '',
-                    batch: row.Batch || row.batch || importData.batch || '',
-                    section: row.Section || row.section || importData.section || '',
-                    designation: row.Designation || row.designation || ''
-                })).filter(u => u.email && u.fullName);
+                // Explicitly check for required columns in the sheet headers
+                const firstRow = data[0] || {};
+                const headers = Object.keys(firstRow).map(h => h.trim().toLowerCase());
+                const missingColumns = [];
+                
+                const hasHeader = (possibleNames) => possibleNames.some(name => headers.includes(name.toLowerCase()));
+
+                if (!hasHeader(['Name', 'fullName', 'full name'])) missingColumns.push('Name');
+                if (!hasHeader(['Register Number', 'registerNumber', 'studentId', 'register no', 'reg no'])) missingColumns.push('Register Number');
+                if (!hasHeader(['Email'])) missingColumns.push('Email');
+                if (!hasHeader(['Password'])) missingColumns.push('Password');
+                if (!hasHeader(['Department'])) missingColumns.push('Department');
+
+                if (missingColumns.length > 0) {
+                    const foundColumns = Object.keys(firstRow).join(', ');
+                    setMessage({ text: `Missing required columns: ${missingColumns.join(', ')}. Found: ${foundColumns || 'None'}`, type: 'error' });
+                    return;
+                }
+
+                const usersPayload = data.map(row => {
+                    const getVal = (keys) => {
+                        for (let key of keys) {
+                            const foundKey = Object.keys(row).find(k => k.trim().toLowerCase() === key.toLowerCase());
+                            if (foundKey) return row[foundKey];
+                        }
+                        return '';
+                    };
+
+                    return {
+                        fullName: getVal(['Name', 'fullName', 'full name']),
+                        email: getVal(['Email', 'email']),
+                        password: getVal(['Password', 'password']) || 'password123',
+                        role: (getVal(['Role', 'role']) || activeTab).toUpperCase(),
+                        department: getVal(['Department', 'department']) || importData.department || '',
+                        yearOfStudy: getVal(['YearOfStudy', 'yearOfStudy', 'year of study']) || '',
+                        batch: getVal(['Batch', 'batch']) || importData.batch || '',
+                        section: getVal(['Section', 'section']) || importData.section || '',
+                        designation: getVal(['Designation', 'designation']) || '',
+                        studentId: getVal(['Register Number', 'registerNumber', 'studentId', 'register no', 'reg no']) || ''
+                    };
+                }).filter(u => u.email && u.fullName && u.studentId && u.department && u.password);
 
                 if (usersPayload.length === 0) {
-                    setMessage({ text: 'No valid rows found. Please ensure "Name" and "Email" columns exist.', type: 'error' });
+                    setMessage({ text: 'No valid rows found. Please ensure all required columns contain values.', type: 'error' });
                     return;
                 }
 
@@ -234,6 +308,11 @@ const AdminUserManagement = () => {
                     <button onClick={() => setIsImportModalOpen(true)} className="flex justify-center items-center gap-2 px-4 py-2 bg-surface border border-border hover:bg-surface/80 rounded-xl font-medium text-text-primary text-sm cursor-pointer transition-colors w-full sm:w-auto">
                         <Upload className="w-4 h-4" /> Import Excel
                     </button>
+                    {selectedUsers.length > 0 && (
+                        <button onClick={handleBulkDelete} className="flex justify-center items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 rounded-xl font-medium text-sm transition-colors w-full sm:w-auto">
+                            <Trash2 className="w-4 h-4" /> Delete Selected ({selectedUsers.length})
+                        </button>
+                    )}
                     <Button onClick={() => handleOpenModal('CREATE')} className="flex justify-center items-center gap-2 w-full sm:w-auto">
                         <Plus className="w-4 h-4" /> Add User
                     </Button>
@@ -277,6 +356,14 @@ const AdminUserManagement = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-surface border-b border-border">
+                                <th className="p-4 w-12">
+                                    <input 
+                                        type="checkbox" 
+                                        className="w-4 h-4 rounded border-border text-accent focus:ring-accent bg-canvas"
+                                        checked={users.length > 0 && selectedUsers.length === users.length}
+                                        onChange={handleSelectAll}
+                                    />
+                                </th>
                                 <th className="p-4 text-sm font-medium text-text-secondary">Name</th>
                                 <th className="p-4 text-sm font-medium text-text-secondary">Email</th>
                                 {activeTab === 'STUDENT' && <th className="p-4 text-sm font-medium text-text-secondary">Dept & Batch</th>}
@@ -289,12 +376,20 @@ const AdminUserManagement = () => {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="7" className="p-8 text-center text-text-secondary">Loading users...</td></tr>
+                                <tr><td colSpan="8" className="p-8 text-center text-text-secondary">Loading users...</td></tr>
                             ) : users.length === 0 ? (
-                                <tr><td colSpan="7" className="p-8 text-center text-text-secondary">No users found.</td></tr>
+                                <tr><td colSpan="8" className="p-8 text-center text-text-secondary">No users found.</td></tr>
                             ) : (
                                 users.map(user => (
                                     <tr key={user.id} className="border-b border-border/50 hover:bg-surface/80">
+                                        <td className="p-4">
+                                            <input 
+                                                type="checkbox" 
+                                                className="w-4 h-4 rounded border-border text-accent focus:ring-accent bg-canvas"
+                                                checked={selectedUsers.includes(user.id)}
+                                                onChange={() => handleSelectUser(user.id)}
+                                            />
+                                        </td>
                                         <td className="p-4 text-sm text-text-primary font-medium">{user.fullName}</td>
                                         <td className="p-4 text-sm text-text-secondary">{user.email}</td>
                                         {activeTab === 'STUDENT' && (
@@ -470,6 +565,9 @@ const AdminUserManagement = () => {
                                         onChange={(e) => setImportData({...importData, file: e.target.files[0]})}
                                     />
                                 </label>
+                            </div>
+                            <div className="text-xs text-text-secondary text-center mb-4">
+                                Expected columns: <span className="font-semibold text-text-primary">Name, Register Number, Email, Password, Department</span>
                             </div>
 
                             {activeTab === 'STUDENT' && (

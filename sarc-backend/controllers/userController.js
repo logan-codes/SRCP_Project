@@ -239,7 +239,16 @@ exports.bulkCreateUsers = async (req, res) => {
                 });
 
                 if (prismaRole === 'STUDENT') {
-                    await prisma.studentProfile.create({ data: { userId: newUser.id, department: u.department, yearOfStudy: u.yearOfStudy, batch: u.batch, section: u.section } });
+                    await prisma.studentProfile.create({ 
+                        data: { 
+                            userId: newUser.id, 
+                            studentId: u.studentId ? String(u.studentId) : null, 
+                            department: u.department ? String(u.department) : null, 
+                            yearOfStudy: u.yearOfStudy ? String(u.yearOfStudy) : null, 
+                            batch: u.batch ? String(u.batch) : null, 
+                            section: u.section ? String(u.section) : null 
+                        } 
+                    });
                 } else if (prismaRole === 'FACULTY') {
                     await prisma.facultyProfile.create({ data: { userId: newUser.id, department: u.department, designation: u.designation } });
                 } else if (prismaRole === 'INDUSTRY') {
@@ -325,6 +334,31 @@ exports.deleteUser = async (req, res) => {
         res.status(500).json({ message: "Server Error" });
     }
 };
+
+// Admin: Bulk delete users
+exports.bulkDeleteUsers = async (req, res) => {
+    try {
+        if (req.user.role !== 'ADMIN') return res.status(403).json({ message: 'Forbidden' });
+
+        const { ids } = req.body;
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'Invalid payload' });
+        }
+
+        await prisma.user.deleteMany({
+            where: {
+                id: { in: ids.map(id => parseInt(id)) }
+            }
+        });
+        
+        await clearCachePattern('faculty');
+        res.json({ message: `Successfully deleted ${ids.length} users` });
+    } catch (error) {
+        console.error("Error:", error.message || error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
 
 // Admin: Analytics
 exports.getAnalytics = async (req, res) => {

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllFaculty, getFacultyById, getAllUsers, createUser, updateUser, deleteUser } = require('../controllers/userController');
+const { getAllFaculty, getFacultyById, getAllUsers, createUser, updateUser, deleteUser, bulkDeleteUsers } = require('../controllers/userController');
 const auth = require('../middleware/auth');
 const cacheResponse = require('../middleware/cacheMiddleware');
 
@@ -16,5 +16,6 @@ router.post('/bulk', auth.checkRole('ADMIN'), require('../controllers/userContro
 router.post('/', auth.checkRole('ADMIN'), createUser);
 router.put('/:id', auth.checkRole('ADMIN'), updateUser);
 router.delete('/:id', auth.checkRole('ADMIN'), deleteUser);
+router.post('/bulk-delete', auth.checkRole('ADMIN'), bulkDeleteUsers);
 
 module.exports = router;

@@ -37,7 +37,7 @@ const TeamCard = ({ team, onAction, actionLabel, showStatus, onReject }) => {
                 <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-accent flex-shrink-0" />
                     <p className="text-sm text-text-secondary">
-                        Members: {team.members?.length || 0}
+                        Members: {team.members?.filter(m => m.inviteStatus !== 'REJECTED').length || 0}
                     </p>
                 </div>
 
@@ -72,7 +72,7 @@ const TeamCard = ({ team, onAction, actionLabel, showStatus, onReject }) => {
                 <div className="mt-4 pt-4 border-t border-border">
                     <p className="text-xs text-text-secondary mb-2 uppercase tracking-wider">Team Members</p>
                     <ul className="space-y-1">
-                        {team.members.map((member) => (
+                        {team.members.filter(m => m.inviteStatus !== 'REJECTED').map((member) => (
                             <li key={member.id} className="text-sm text-text-primary flex items-center justify-between py-1 border-b border-border/30 last:border-0">
                                 <div className="flex flex-col">
                                     <span>{member.student?.fullName || 'Student'} {member.isLeader ? '👑' : ''}</span>

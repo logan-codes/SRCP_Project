@@ -365,36 +365,44 @@ exports.getAnalytics = async (req, res) => {
     try {
         if (req.user.role !== 'ADMIN') return res.status(403).json({ message: 'Forbidden' });
 
-        const totalUsers = await prisma.user.count();
-        const activeProjects = await prisma.project.count({
-            where: { status: { in: ['OPEN', 'IN_PROGRESS'] } }
-        });
+        const [
+            totalUsers,
+            activeProjects,
+            totalTeams,
+            finalizedTeams,
+            systemAlerts,
+            deptGroup,
+            totalStudents,
+            activeStudents
+        ] = await Promise.all([
+            prisma.user.count(),
+            prisma.project.count({
+                where: { status: { in: ['OPEN', 'IN_PROGRESS'] } }
+            }),
+            prisma.guideTeam.count(),
+            prisma.guideTeam.count({ where: { isFinalized: true } }),
+            prisma.notification.count({ where: { read: false, type: 'ALERT' } }),
+            prisma.studentProfile.groupBy({
+                by: ['department'],
+                _count: { department: true },
+                where: { department: { not: null } }
+            }),
+            prisma.user.count({ where: { role: 'STUDENT' } }),
+            prisma.guideTeamMember.count({
+                where: { inviteStatus: 'ACCEPTED' }
+            })
+        ]);
 
         // Compute success rate (e.g. % of finalized teams)
-        const totalTeams = await prisma.guideTeam.count();
-        const finalizedTeams = await prisma.guideTeam.count({ where: { isFinalized: true } });
         const successRate = totalTeams > 0 ? Math.round((finalizedTeams / totalTeams) * 100) : 0;
 
-        const systemAlerts = await prisma.notification.count({ where: { read: false, type: 'ALERT' } });
-
         // Department data based on Student Profiles
-        const deptGroup = await prisma.studentProfile.groupBy({
-            by: ['department'],
-            _count: { department: true },
-            where: { department: { not: null } }
-        });
-
         const departmentData = deptGroup.map(d => ({
             name: d.department || 'Unknown',
             projects: d._count.department
         })).sort((a, b) => b.projects - a.projects).slice(0, 5);
 
         // Participation Data
-        const totalStudents = await prisma.user.count({ where: { role: 'STUDENT' } });
-        const activeStudents = await prisma.guideTeamMember.count({
-            where: { inviteStatus: 'ACCEPTED' }
-        });
-
         const participationData = [
             { name: 'Active Students', value: activeStudents, color: '#800000' },
             { name: 'Inactive/Browsing', value: Math.max(0, totalStudents - activeStudents), color: '#FFD700' },

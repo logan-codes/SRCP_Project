@@ -1,10 +1,12 @@
 const prisma = require('../config/prismaClient');
 exports.getPortalStats = async (req, res) => {
     try {
-        const activeProjects = await prisma.project.count({ where: { status: 'OPEN' } });
-        const facultyCount = await prisma.user.count({ where: { role: 'FACULTY' } });
-        const studentCount = await prisma.user.count({ where: { role: 'STUDENT' } });
-        const industryCount = await prisma.user.count({ where: { role: 'INDUSTRY' } });
+        const [activeProjects, facultyCount, studentCount, industryCount] = await Promise.all([
+            prisma.project.count({ where: { status: 'OPEN' } }),
+            prisma.user.count({ where: { role: 'FACULTY' } }),
+            prisma.user.count({ where: { role: 'STUDENT' } }),
+            prisma.user.count({ where: { role: 'INDUSTRY' } })
+        ]);
 
         res.json({
             activeProjects,

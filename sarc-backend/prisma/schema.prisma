@@ -58,6 +58,8 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([role])
 }
 
 model StudentProfile {
@@ -84,6 +86,8 @@ model StudentProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([department])
 }
 
 model FacultyProfile {
@@ -162,6 +166,7 @@ model Project {
   updatedAt DateTime @updatedAt
 
   @@index([facultyId])
+  @@index([status])
 }
 
 model ProjectIdea {
@@ -199,6 +204,7 @@ model Application {
 
   @@index([studentId])
   @@index([projectId])
+  @@index([status])
 }
 
 model Notification {
@@ -213,6 +219,7 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@index([userId])
+  @@index([read, type])
 }
 
 model Team {
@@ -305,6 +312,9 @@ model GuideTeam {
   abstractFile      String?
   createdAt         DateTime               @default(now())
   facultySelections FacultyTeamSelection[]
+
+  @@index([guideStatus])
+  @@index([isFinalized])
 }
 
 model GuideTeamMember {
@@ -319,6 +329,7 @@ model GuideTeamMember {
   respondedAt  DateTime?
 
   @@unique([teamId, studentId])
+  @@index([inviteStatus])
 }
 
 model FacultyGuideSlot {

@@ -14,6 +14,7 @@ const isAdmin = authMiddleware.checkRole('ADMIN');
 // -----------------------------------------------------
 // Phase 1 — Team Formation (Student)
 // -----------------------------------------------------
+router.get('/phase', authMiddleware, guideTeamController.getPhase);
 router.post('/teams', authMiddleware, isStudent, guideTeamController.createTeam);
 router.post('/teams/invite', authMiddleware, isStudent, guideTeamController.inviteMember);
 router.put('/teams/invite/respond', authMiddleware, isStudent, guideTeamController.respondToInvite);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Button from '../common/Button';
-import { Bell, Check, Settings, LogOut } from 'lucide-react';
+import { Bell, Check, Settings, User } from 'lucide-react';
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -138,8 +138,8 @@ const Navbar = () => {
                                         </div>
                                     )}
                                 </div>
-                                <Button variant="danger-outline" className="hidden sm:flex gap-2 font-bold" onClick={handleLogout}>
-                                    <LogOut size={16} /> Logout
+                                <Button variant="outline" className="hidden sm:flex gap-2 font-bold" onClick={() => navigate(`${dashboardPath}/profile`)}>
+                                    <User size={16} /> Profile
                                 </Button>
                             </>
                         ) : (

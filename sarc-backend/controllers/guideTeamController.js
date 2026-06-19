@@ -1,4 +1,13 @@
 const prisma = require('../config/prismaClient');
+
+exports.getPhase = async (req, res) => {
+    try {
+        const config = await prisma.guideSelectionConfig.findUnique({ where: { id: 'singleton' } });
+        res.json({ phase: config?.phase || 'CLOSED' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
 exports.createTeam = async (req, res) => {
     try {
         const { projectTitle, description, domain } = req.body;
@@ -88,9 +97,7 @@ exports.updateTeam = async (req, res) => {
 
         if (!team) return res.status(404).json({ message: 'Team not found' });
         
-        if (team.isFinalized) {
-            return res.status(400).json({ message: 'Cannot edit a finalized team' });
-        }
+        // Allow editing project details even if finalized
 
         const updatedTeam = await prisma.guideTeam.update({
             where: { id: team.id },
@@ -160,9 +167,20 @@ exports.inviteMember = async (req, res) => {
 
         if (existingInvite) return res.status(400).json({ message: 'Student is already in a team or has a pending invite' });
 
-        // 5. Create GuideTeamMember
-        const invite = await prisma.guideTeamMember.create({
-            data: {
+        // 5. Create or Update GuideTeamMember
+        const invite = await prisma.guideTeamMember.upsert({
+            where: {
+                teamId_studentId: {
+                    teamId: team.id,
+                    studentId: targetStudent.id
+                }
+            },
+            update: {
+                inviteStatus: 'PENDING',
+                invitedAt: new Date(),
+                respondedAt: null
+            },
+            create: {
                 teamId: team.id,
                 studentId: targetStudent.id,
                 inviteStatus: 'PENDING'
@@ -237,9 +255,8 @@ exports.respondToInvite = async (req, res) => {
             });
             res.json({ message: 'Invitation accepted' });
         } else if (action === 'REJECT') {
-            await prisma.guideTeamMember.update({
-                where: { id: invite.id },
-                data: { inviteStatus: 'REJECTED', respondedAt: new Date() }
+            await prisma.guideTeamMember.delete({
+                where: { id: invite.id }
             });
 
             await prisma.notification.create({

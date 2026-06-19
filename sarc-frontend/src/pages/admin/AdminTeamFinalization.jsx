@@ -173,8 +173,9 @@ const AdminTeamFinalization = () => {
                         </thead>
                         <tbody>
                             {filteredTeams.map(team => {
-                                const totalMembers = team.members.length;
-                                const acceptedCount = team.members.filter(m => m.inviteStatus === 'ACCEPTED').length;
+                                const activeMembers = team.members.filter(m => m.inviteStatus !== 'REJECTED');
+                                const totalMembers = activeMembers.length;
+                                const acceptedCount = activeMembers.filter(m => m.inviteStatus === 'ACCEPTED').length;
                                 const isReady = acceptedCount >= 1 && acceptedCount <= 2;
 
                                 return (
@@ -190,7 +191,7 @@ const AdminTeamFinalization = () => {
                                             <div className="mb-1">
                                                 <span className="font-medium text-text-primary">Leader:</span> {team.leader.fullName}
                                             </div>
-                                            {team.members.filter(m => !m.isLeader).map(m => (
+                                            {activeMembers.filter(m => !m.isLeader).map(m => (
                                                 <div key={m.id} className="text-text-secondary text-xs">
                                                     • {m.student.fullName} ({m.inviteStatus})
                                                 </div>

@@ -6,28 +6,25 @@ exports.getConfigAndStats = async (req, res) => {
             config = await prisma.guideSelectionConfig.create({ data: { id: 'singleton', phase: 'CLOSED' } });
         }
 
-        const totalTeams = await prisma.guideTeam.count();
-        const teamsMatchedFaculty = await prisma.guideTeam.count({
-             where: { guideStatus: 'ACCEPTED' } // assuming this means matched in faculty phase if it's ACCEPTED
-        });
-        const teamsMatchedStudent = await prisma.guideTeam.count({
-             where: { guideStatus: 'STUDENT_SELECTED' }
-        });
-        const unmatchedTeams = await prisma.guideTeam.count({
-             where: { guideStatus: { in: ['PENDING', 'FACULTY_SELECTED'] } }
-        });
-
-        const openSlotsFacultyCount = await prisma.facultyGuideSlot.count({
-             where: { usedSlots: { lt: prisma.facultyGuideSlot.fields.totalSlots } }
-        });
-
-        const facultySlots = await prisma.facultyGuideSlot.findMany({
-             include: {
-                 faculty: {
-                     select: { fullName: true, facultyProfile: { select: { department: true } } }
-                 }
-             }
-        });
+        const [
+            totalTeams,
+            teamsMatchedFaculty,
+            teamsMatchedStudent,
+            unmatchedTeams,
+            openSlotsFacultyCount,
+            facultySlots
+        ] = await Promise.all([
+            prisma.guideTeam.count(),
+            prisma.guideTeam.count({ where: { guideStatus: 'ACCEPTED' } }),
+            prisma.guideTeam.count({ where: { guideStatus: 'STUDENT_SELECTED' } }),
+            prisma.guideTeam.count({ where: { guideStatus: { in: ['PENDING', 'FACULTY_SELECTED'] } } }),
+            prisma.facultyGuideSlot.count({ where: { usedSlots: { lt: prisma.facultyGuideSlot.fields.totalSlots } } }),
+            prisma.facultyGuideSlot.findMany({
+                include: {
+                    faculty: { select: { fullName: true, facultyProfile: { select: { department: true } } } }
+                }
+            })
+        ]);
 
         res.json({
             config,

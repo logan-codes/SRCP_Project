@@ -8,6 +8,7 @@ const GuideTeamMy = () => {
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [phase, setPhase] = useState('CLOSED');
 
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({
@@ -55,8 +56,24 @@ const GuideTeamMy = () => {
         }
     };
 
+    const fetchPhase = async () => {
+        try {
+            const token = localStorage.getItem('sarc_token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/phase`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setPhase(data.phase);
+            }
+        } catch (error) {
+            console.error('Error fetching phase:', error);
+        }
+    };
+
     useEffect(() => {
         fetchMyTeam();
+        fetchPhase();
     }, []);
 
     const handleEditSubmit = async (e) => {
@@ -151,8 +168,16 @@ const GuideTeamMy = () => {
             <div className="max-w-4xl mx-auto py-12 px-4 text-center">
                 <div className="bg-surface/50 p-8 rounded-2xl border border-border">
                     <h2 className="text-2xl font-bold text-text-primary mb-4">No Team Found</h2>
-                    <p className="text-text-secondary mb-6">You are not part of any guide selection team yet.</p>
-                    <Button onClick={() => window.location.href='/guide/team/create'}>Create a Team</Button>
+                    {phase === 'CLOSED' ? (
+                        <>
+                            <p className="text-text-secondary mb-6">You are not part of any guide selection team yet.</p>
+                            <Button onClick={() => window.location.href='/guide/team/create'}>Create a Team</Button>
+                        </>
+                    ) : (
+                        <p className="text-text-secondary mb-6 text-yellow-600 bg-yellow-50 p-4 rounded-xl inline-block border border-yellow-200">
+                            The team creation phase is now over.
+                        </p>
+                    )}
                 </div>
             </div>
         );
@@ -161,7 +186,7 @@ const GuideTeamMy = () => {
     const activeMembersCount = team.members?.filter(m => m.inviteStatus === 'PENDING' || m.inviteStatus === 'ACCEPTED').length || 0;
     const canInvite = activeMembersCount < 2 && !team.isFinalized; // Max 2 members
     const isLeader = team.leaderId === getUserId();
-    const canEdit = isLeader && !team.isFinalized;
+    const canEdit = isLeader;
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
@@ -172,9 +197,11 @@ const GuideTeamMy = () => {
                         <Button onClick={() => setIsEditing(true)} variant="outline">
                             Edit Team
                         </Button>
-                        <Button onClick={handleDeleteTeam} variant="outline" className="!text-red-500 !border-red-500 hover:!bg-red-500/10">
-                            Delete Team
-                        </Button>
+                        {!team.isFinalized && (
+                            <Button onClick={handleDeleteTeam} variant="outline" className="!text-red-500 !border-red-500 hover:!bg-red-500/10">
+                                Delete Team
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>

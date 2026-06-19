@@ -555,17 +555,25 @@ exports.deleteMyTeam = async (req, res) => {
             return res.status(400).json({ message: 'Cannot delete a finalized team' });
         }
 
-        // Delete associated records first (if Prisma schema doesn't have cascade delete)
-        await prisma.guideTeamMember.deleteMany({
-            where: { teamId: team.id }
-        });
+        await prisma.$transaction(async (tx) => {
+            if (team.guideId) {
+                await tx.facultyGuideSlot.update({
+                    where: { facultyId: team.guideId },
+                    data: { usedSlots: { decrement: 1 } }
+                });
+            }
 
-        await prisma.facultyTeamSelection.deleteMany({
-            where: { teamId: team.id }
-        });
+            await tx.guideTeamMember.deleteMany({
+                where: { teamId: team.id }
+            });
 
-        await prisma.guideTeam.delete({
-            where: { id: team.id }
+            await tx.facultyTeamSelection.deleteMany({
+                where: { teamId: team.id }
+            });
+
+            await tx.guideTeam.delete({
+                where: { id: team.id }
+            });
         });
 
         res.json({ message: 'Team deleted successfully' });

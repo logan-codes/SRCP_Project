@@ -99,6 +99,18 @@ exports.changePhase = async (req, res) => {
                  }
 
                  if (teamsToDeleteIds.length > 0) {
+                     const teamsToDelete = await tx.guideTeam.findMany({
+                         where: { id: { in: teamsToDeleteIds } }
+                     });
+                     for (const team of teamsToDelete) {
+                         if (team.guideId) {
+                             await tx.facultyGuideSlot.update({
+                                 where: { facultyId: team.guideId },
+                                 data: { usedSlots: { decrement: 1 } }
+                             });
+                         }
+                     }
+
                      await tx.guideTeamMember.deleteMany({ where: { teamId: { in: teamsToDeleteIds } } });
                      await tx.guideTeam.deleteMany({ where: { id: { in: teamsToDeleteIds } } });
                  }
@@ -244,6 +256,14 @@ exports.deleteTeam = async (req, res) => {
         const { teamId } = req.params;
 
         await prisma.$transaction(async (tx) => {
+            const team = await tx.guideTeam.findUnique({ where: { id: teamId } });
+            if (team && team.guideId) {
+                await tx.facultyGuideSlot.update({
+                    where: { facultyId: team.guideId },
+                    data: { usedSlots: { decrement: 1 } }
+                });
+            }
+
             await tx.guideTeamMember.deleteMany({ where: { teamId } });
             await tx.facultyTeamSelection.deleteMany({ where: { teamId } });
             await tx.guideTeam.delete({ where: { id: teamId } });

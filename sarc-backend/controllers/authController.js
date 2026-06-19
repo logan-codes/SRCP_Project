@@ -67,7 +67,7 @@ const sendEmail = async (to, subject, text) => {
 const generateTokens = async (userId, role, sessionId) => {
     const activeSessionId = sessionId || crypto.randomUUID();
     const payload = { user: { id: userId, role, sessionId: activeSessionId } };
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
     const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '30d' });
 
     // Hash refresh token for DB storage
@@ -262,12 +262,15 @@ exports.refreshToken = async (req, res) => {
         }
 
         const payload = { user: { id: user.id, role: user.role, sessionId: tokenSessionId } };
-        const newAccessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
+        const newAccessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
 
         res.json({ token: newAccessToken });
     } catch (err) {
-        console.error(err.message);
-        res.status(401).json({ message: 'Refresh token expired or invalid' });
+        if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError' || err.name === 'NotBeforeError') {
+            return res.status(401).json({ message: 'Refresh token expired or invalid' });
+        }
+        console.error('Refresh token error:', err);
+        return res.status(500).json({ message: 'Internal Server Error' });
     }
 };
 

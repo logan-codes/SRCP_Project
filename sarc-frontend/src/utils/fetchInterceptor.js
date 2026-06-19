@@ -59,8 +59,8 @@ export const setupFetchInterceptor = () => {
                             }
                             response = await originalFetch(input, newInit);
                         }
-                    } else {
-                        // Refresh failed, clear tokens and redirect to login
+                    } else if (refreshRes.status === 401 || refreshRes.status === 403) {
+                        // Refresh failed due to invalid token, clear tokens and redirect to login
                         localStorage.removeItem('sarc_token');
                         localStorage.removeItem('sarc_refreshToken');
                         localStorage.removeItem('sarc_role');

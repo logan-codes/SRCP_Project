@@ -1,7 +1,7 @@
 export const setupFetchInterceptor = () => {
     const originalFetch = window.fetch;
-    window.fetch = async (...args) => {
-        let response = await originalFetch(...args);
+    window.fetch = async (input, init) => {
+        let response = await originalFetch(input, init);
         
         // If unauthorized, try to refresh token
         if (response.status === 401) {
@@ -21,22 +21,44 @@ export const setupFetchInterceptor = () => {
                         if (data.refreshToken) localStorage.setItem('sarc_refreshToken', data.refreshToken);
                         
                         // Retry original request with new token
-                        const [url, options] = args;
-                        const newOptions = { ...options };
-                        if (newOptions.headers) {
-                            // Clone headers and replace Authorization
-                            if (newOptions.headers instanceof Headers) {
-                                newOptions.headers = new Headers(newOptions.headers);
-                                newOptions.headers.set('Authorization', `Bearer ${data.token}`);
-                            } else {
-                                newOptions.headers = { ...newOptions.headers };
-                                if (newOptions.headers['Authorization']) {
-                                    newOptions.headers['Authorization'] = `Bearer ${data.token}`;
-                                }
+                        let newInit = { ...init };
+                        
+                        if (input instanceof Request) {
+                            // If input is a Request object, clone the headers and set Authorization
+                            const newHeaders = new Headers(input.headers);
+                            newHeaders.set('Authorization', `Bearer ${data.token}`);
+                            newInit.headers = newHeaders;
+                            
+                            // Re-create Request with updated headers
+                            const newRequest = new Request(input, newInit);
+                            response = await originalFetch(newRequest);
+                        } else {
+                            // If input is a string URL or similar
+                            if (!newInit.headers) {
+                                newInit.headers = {};
                             }
+                            
+                            if (newInit.headers instanceof Headers) {
+                                newInit.headers = new Headers(newInit.headers);
+                                newInit.headers.set('Authorization', `Bearer ${data.token}`);
+                            } else if (Array.isArray(newInit.headers)) {
+                                // If it's an array of headers
+                                const headersMap = new Map(newInit.headers.map(([k, v]) => [k.toLowerCase(), v]));
+                                headersMap.set('authorization', `Bearer ${data.token}`);
+                                newInit.headers = Array.from(headersMap.entries());
+                            } else {
+                                // Plain object
+                                newInit.headers = { ...newInit.headers };
+                                // Remove any existing case-insensitive authorization header to avoid duplicates
+                                for (const key of Object.keys(newInit.headers)) {
+                                    if (key.toLowerCase() === 'authorization') {
+                                        delete newInit.headers[key];
+                                    }
+                                }
+                                newInit.headers['Authorization'] = `Bearer ${data.token}`;
+                            }
+                            response = await originalFetch(input, newInit);
                         }
-                        // Fire the request again
-                        response = await originalFetch(url, newOptions);
                     } else {
                         // Refresh failed, clear tokens and redirect to login
                         localStorage.removeItem('sarc_token');

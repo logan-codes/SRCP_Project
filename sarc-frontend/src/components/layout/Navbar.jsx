@@ -59,17 +59,6 @@ const Navbar = () => {
         navigate('/');
     };
 
-    const handleProjectsClick = (e) => {
-        e.preventDefault();
-        if (isLoggedIn) {
-            const role = localStorage.getItem('sarc_role');
-            const path = role === 'ADMIN' ? '/admin' : (role === 'FACULTY' ? '/faculty/projects' : '/student/projects');
-            navigate(path);
-        } else {
-            alert("Please log in to browse research projects.");
-            navigate('/login');
-        }
-    };
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -93,7 +82,6 @@ const Navbar = () => {
                         </Link>
                         <div className="hidden md:flex items-center space-x-8 ml-10 border-l border-slate-200 pl-8">
                             <a href="#about" className="text-slate-700 hover:text-primary font-medium transition-colors">About</a>
-                            <button onClick={handleProjectsClick} className="text-slate-700 hover:text-primary font-medium transition-colors cursor-pointer">Research Projects</button>
                             {isLoggedIn && (
                                 <Link to={dashboardPath} className="text-primary font-bold transition-colors">Dashboard</Link>
                             )}

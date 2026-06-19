@@ -11,7 +11,7 @@ const GuideTeamMy = () => {
 
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({
-        teamName: '', projectTitle: '', description: '', domain: ''
+        projectTitle: '', description: '', domain: '', customDomain: ''
     });
     const [editLoading, setEditLoading] = useState(false);
 
@@ -36,11 +36,12 @@ const GuideTeamMy = () => {
                 const data = await res.json();
                 setTeam(data);
                 if (data) {
+                    const isCustomDomain = data.domain && !['AI/ML', 'Web Development', 'Mobile Development', 'Cybersecurity', 'IoT', 'Blockchain'].includes(data.domain);
                     setEditData({
-                        teamName: data.teamName,
                         projectTitle: data.projectTitle,
                         description: data.description,
-                        domain: data.domain
+                        domain: isCustomDomain ? 'Other' : data.domain,
+                        customDomain: isCustomDomain ? data.domain : ''
                     });
                 }
             } else {
@@ -63,13 +64,18 @@ const GuideTeamMy = () => {
         setEditLoading(true);
         try {
             const token = localStorage.getItem('sarc_token');
+            const submitData = {
+                projectTitle: editData.projectTitle,
+                description: editData.description,
+                domain: editData.domain === 'Other' ? editData.customDomain : editData.domain
+            };
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams/my`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(editData)
+                body: JSON.stringify(submitData)
             });
             if (!res.ok) {
                 const data = await res.json();
@@ -177,19 +183,19 @@ const GuideTeamMy = () => {
                 <div className="lg:col-span-2">
                     {isEditing ? (
                         <div className="bg-surface/50 border border-border rounded-2xl p-6 shadow-sm">
-                            <h2 className="text-xl font-bold mb-4">Edit Team Details</h2>
-                            <form onSubmit={handleEditSubmit} className="space-y-4">
+                            <h2 className="text-xl font-bold mb-6 text-text-primary">Edit Team Details</h2>
+                            <form onSubmit={handleEditSubmit} className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Team Name</label>
-                                    <input type="text" value={editData.teamName} onChange={e => setEditData({...editData, teamName: e.target.value})} className="w-full bg-canvas border border-border rounded-xl px-4 py-2" required />
+                                    <label className="block text-sm font-medium text-text-primary mb-2">Project Title</label>
+                                    <input type="text" value={editData.projectTitle} onChange={e => setEditData({...editData, projectTitle: e.target.value})} className="w-full bg-canvas border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all" placeholder="e.g., Smart Attendance System" required />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Project Title</label>
-                                    <input type="text" value={editData.projectTitle} onChange={e => setEditData({...editData, projectTitle: e.target.value})} className="w-full bg-canvas border border-border rounded-xl px-4 py-2" required />
+                                    <label className="block text-sm font-medium text-text-primary mb-2">Project Description</label>
+                                    <textarea value={editData.description} onChange={e => setEditData({...editData, description: e.target.value})} className="w-full bg-canvas border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all min-h-[120px]" placeholder="Briefly describe what your project does..." required />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Domain</label>
-                                    <select value={editData.domain} onChange={e => setEditData({...editData, domain: e.target.value})} className="w-full bg-canvas border border-border rounded-xl px-4 py-2" required>
+                                    <label className="block text-sm font-medium text-text-primary mb-2">Domain</label>
+                                    <select value={editData.domain} onChange={e => setEditData({...editData, domain: e.target.value})} className="w-full bg-canvas border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all" required>
                                         <option value="AI/ML">AI / Machine Learning</option>
                                         <option value="Web Development">Web Development</option>
                                         <option value="Mobile Development">Mobile App Development</option>
@@ -199,11 +205,13 @@ const GuideTeamMy = () => {
                                         <option value="Other">Other</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Description</label>
-                                    <textarea value={editData.description} onChange={e => setEditData({...editData, description: e.target.value})} className="w-full bg-canvas border border-border rounded-xl px-4 py-2 min-h-[100px]" required />
-                                </div>
-                                <div className="flex gap-2 justify-end pt-4">
+                                {editData.domain === 'Other' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-text-primary mb-2">Custom Domain Name</label>
+                                        <input type="text" value={editData.customDomain} onChange={e => setEditData({...editData, customDomain: e.target.value})} className="w-full bg-canvas border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all" placeholder="Enter your domain name" required />
+                                    </div>
+                                )}
+                                <div className="flex gap-2 justify-end pt-4 border-t border-border">
                                     <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
                                     <Button type="submit" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save Changes'}</Button>
                                 </div>

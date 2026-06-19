@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/common/Button';
-import { uploadToCloudinary } from '../../utils/cloudinaryUpload';
 
 const GuideTeamCreate = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        teamName: '',
         projectTitle: '',
         description: '',
         domain: '',
+        customDomain: '',
         inviteMember: ''
     });
-    const [abstractFile, setAbstractFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -28,17 +26,10 @@ const GuideTeamCreate = () => {
         try {
             const token = localStorage.getItem('sarc_token');
 
-            let abstractFileUrl = undefined;
-            if (abstractFile) {
-                abstractFileUrl = await uploadToCloudinary(abstractFile);
-            }
-
             const submitData = {
-                teamName: formData.teamName,
                 projectTitle: formData.projectTitle,
                 description: formData.description,
-                domain: formData.domain,
-                abstractFile: abstractFileUrl
+                domain: formData.domain === 'Other' ? formData.customDomain : formData.domain
             };
 
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/teams`, {
@@ -98,19 +89,6 @@ const GuideTeamCreate = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6 bg-surface/50 p-6 md:p-8 rounded-2xl border border-border">
                 <div>
-                    <label className="block text-sm font-medium text-text-primary mb-2">Team Name</label>
-                    <input 
-                        type="text" 
-                        name="teamName"
-                        value={formData.teamName}
-                        onChange={handleChange}
-                        className="w-full bg-canvas border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                        placeholder="e.g., CodeCrafters"
-                        required
-                    />
-                </div>
-
-                <div>
                     <label className="block text-sm font-medium text-text-primary mb-2">Project Title</label>
                     <input 
                         type="text" 
@@ -155,15 +133,20 @@ const GuideTeamCreate = () => {
                     </select>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-text-primary mb-2">Project Abstract (PDF) <span className="text-text-secondary text-xs font-normal">(Optional)</span></label>
-                    <input 
-                        type="file" 
-                        accept="application/pdf"
-                        onChange={(e) => setAbstractFile(e.target.files[0])}
-                        className="w-full bg-canvas border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent/10 file:text-accent hover:file:bg-accent/20"
-                    />
-                </div>
+                {formData.domain === 'Other' && (
+                    <div>
+                        <label className="block text-sm font-medium text-text-primary mb-2">Custom Domain Name</label>
+                        <input 
+                            type="text" 
+                            name="customDomain"
+                            value={formData.customDomain}
+                            onChange={handleChange}
+                            className="w-full bg-canvas border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                            placeholder="Enter your domain name"
+                            required
+                        />
+                    </div>
+                )}
 
                 <div className="pt-4 border-t border-border">
                     <label className="block text-sm font-medium text-text-primary mb-2">Invite Team Member (Optional)</label>

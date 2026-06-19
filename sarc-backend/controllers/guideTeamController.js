@@ -1,11 +1,16 @@
 const prisma = require('../config/prismaClient');
 exports.createTeam = async (req, res) => {
     try {
-        const { teamName, projectTitle, description, domain } = req.body;
+        const { projectTitle, description, domain } = req.body;
         const studentId = req.user.id; // from auth middleware
 
-        if (!teamName || !projectTitle || !description || !domain) {
+        if (!projectTitle || !description || !domain) {
             return res.status(400).json({ message: 'All fields are required' });
+        }
+        
+        let { teamName } = req.body;
+        if (!teamName) {
+            teamName = projectTitle; // fallback if frontend stops sending teamName
         }
 
         // Check if config phase is CLOSED
@@ -72,9 +77,11 @@ exports.createTeam = async (req, res) => {
 
 exports.updateTeam = async (req, res) => {
     try {
-        const { teamName, projectTitle, description, domain } = req.body;
+        const { projectTitle, description, domain } = req.body;
         const leaderId = req.user.id;
         
+        let { teamName } = req.body;
+
         const team = await prisma.guideTeam.findFirst({
             where: { leaderId }
         });

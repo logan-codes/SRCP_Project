@@ -278,10 +278,10 @@ const Profile = () => {
                         {/* Basic Info */}
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name (Read Only)</label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><User className="h-5 w-5 text-slate-400" /></div>
-                                    <input type="text" name="fullName" value={profileData.fullName} onChange={handleChange} className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary sm:text-sm" />
+                                    <input type="text" name="fullName" value={profileData.fullName} disabled className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 sm:text-sm cursor-not-allowed" />
                                 </div>
                             </div>
                             <div>
@@ -292,10 +292,10 @@ const Profile = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Department</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Department (Read Only)</label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Building className="h-5 w-5 text-slate-400" /></div>
-                                    <input type="text" name="department" value={profileData.department} onChange={handleChange} placeholder="e.g. Computer Science" className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary sm:text-sm" />
+                                    <input type="text" name="department" value={profileData.department} disabled placeholder="e.g. Computer Science" className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 sm:text-sm cursor-not-allowed" />
                                 </div>
                             </div>
                             <div>
@@ -314,7 +314,7 @@ const Profile = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {isStudent && (
                             <>
-                                <div><label className="block text-sm font-medium text-slate-700 mb-1">Register No</label><input type="text" name="studentId" value={profileData.studentId} onChange={handleChange} className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
+                                <div><label className="block text-sm font-medium text-slate-700 mb-1">Register No (Read Only)</label><input type="text" name="studentId" value={profileData.studentId} disabled className="block w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 sm:text-sm cursor-not-allowed" /></div>
                                 <div><label className="block text-sm font-medium text-slate-700 mb-1">Year of Study</label><input type="text" name="yearOfStudy" value={profileData.yearOfStudy} onChange={handleChange} placeholder="e.g. 3rd Year" className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
                                 <div><label className="block text-sm font-medium text-slate-700 mb-1">Section</label><input type="text" name="section" value={profileData.section} onChange={handleChange} placeholder="e.g. A1" className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
                                 <div><label className="block text-sm font-medium text-slate-700 mb-1">Skills (comma separated)</label><input type="text" name="skills" value={profileData.skills} onChange={handleChange} placeholder="e.g. Graphic Design, Figma" className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>

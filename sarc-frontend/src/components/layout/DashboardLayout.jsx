@@ -31,9 +31,6 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
                 title: 'Main Menu',
                 links: [
                     { name: 'Dashboard', icon: LayoutDashboard, path: `/${basePath}` },
-                    { name: 'Browse Projects', icon: Compass, path: `/${basePath}/projects` },
-                    { name: 'Student Applications', icon: Send, path: `/${basePath}/applications` },
-                    { name: 'Team Formation', icon: Users, path: `/${basePath}/teams` },
                     { name: 'Profile', icon: User, path: `/${basePath}/profile` },
                 ]
             },
@@ -52,7 +49,6 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
                 title: 'Admin Controls',
                 links: [
                     { name: 'Dashboard', icon: LayoutDashboard, path: `/${basePath}` },
-                    { name: 'Browse Projects', icon: Compass, path: '/admin/projects' },
                     { name: 'User Management', icon: Users, path: '/admin/users' },
                     { name: 'Team Finalization', icon: Check, path: '/admin/teams/finalize' },
                     { name: 'Global Milestones', icon: Flag, path: '/admin/milestones/config' },
@@ -85,27 +81,12 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
                 ]
             },
             {
-                title: 'Research Collaboration',
-                links: [
-                    { name: 'Browse Projects', icon: Compass, path: `/${basePath}/projects` },
-                    { name: 'My Applications', icon: Send, path: `/${basePath}/applications` },
-                    { name: 'Team Formation', icon: Users, path: `/${basePath}/teams` },
-                    { name: 'Faculty Directory', icon: Building, path: `/${basePath}/directory` },
-                    { name: 'Milestones', icon: Flag, path: `/${basePath}/milestones` },
-                ]
-            },
-            {
                 title: 'Account',
                 links: [
                     { name: 'Profile', icon: User, path: `/${basePath}/profile` },
                 ]
             }
         ];
-
-        // Filter out Research Collaboration if disabled
-        if (systemConfig && systemConfig.isResearchCollaborationActive === false) {
-            menuSections = menuSections.filter(section => section.title !== 'Research Collaboration');
-        }
     }
 
     return (

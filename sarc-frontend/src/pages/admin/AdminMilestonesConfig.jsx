@@ -3,6 +3,36 @@ import { Card, Badge } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
 import { Flag, Plus, Trash2, Edit2, Calendar } from 'lucide-react';
 
+const getPhaseDefaults = (phase) => {
+    switch (phase) {
+        case 'CLOSED':
+            return {
+                title: 'Phase 1: Team Formation',
+                description: 'Team Formation & Project Abstract Submission'
+            };
+        case 'FACULTY_SELECTION':
+            return {
+                title: 'Phase 2: Faculty Selection',
+                description: 'Faculty Review & Selection Window'
+            };
+        case 'STUDENT_SELECTION':
+            return {
+                title: 'Phase 3: Student Selection',
+                description: 'Student Guide Selection Window'
+            };
+        case 'COMPLETED':
+            return {
+                title: 'Phase 4: Completed',
+                description: 'Guide Selection Process Concluded'
+            };
+        default:
+            return {
+                title: 'General Milestone',
+                description: 'General project deadline'
+            };
+    }
+};
+
 const AdminMilestonesConfig = () => {
     const [milestones, setMilestones] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -12,7 +42,7 @@ const AdminMilestonesConfig = () => {
         title: '',
         description: '',
         dueDate: '',
-        status: 'PENDING'
+        relatedPhase: ''
     });
 
     const fetchMilestones = async () => {
@@ -49,19 +79,27 @@ const AdminMilestonesConfig = () => {
                 ? `${import.meta.env.VITE_API_URL}/api/global-milestones/${editingId}`
                 : `${import.meta.env.VITE_API_URL}/api/global-milestones`;
             
+            const defaults = getPhaseDefaults(formData.relatedPhase);
+            const submitData = {
+                ...formData,
+                title: defaults.title,
+                description: defaults.description,
+                relatedPhase: formData.relatedPhase === '' ? null : formData.relatedPhase
+            };
+
             const res = await fetch(url, {
                 method,
                 headers: { 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(submitData)
             });
 
             if (res.ok) {
                 setShowForm(false);
                 setEditingId(null);
-                setFormData({ title: '', description: '', dueDate: '', status: 'PENDING' });
+                setFormData({ title: '', description: '', dueDate: '', relatedPhase: '' });
                 fetchMilestones();
             }
         } catch (err) {
@@ -74,7 +112,7 @@ const AdminMilestonesConfig = () => {
             title: m.title,
             description: m.description,
             dueDate: new Date(m.dueDate).toISOString().slice(0, 16),
-            status: m.status
+            relatedPhase: m.relatedPhase || ''
         });
         setEditingId(m.id);
         setShowForm(true);
@@ -106,7 +144,7 @@ const AdminMilestonesConfig = () => {
                 </div>
                 {!showForm && (
                     <Button variant="gradient" onClick={() => {
-                        setFormData({ title: '', description: '', dueDate: '', status: 'PENDING' });
+                        setFormData({ title: '', description: '', dueDate: '', relatedPhase: '' });
                         setEditingId(null);
                         setShowForm(true);
                     }} className="shadow-md gap-2"><Plus size={18} /> Add Milestone</Button>
@@ -119,23 +157,18 @@ const AdminMilestonesConfig = () => {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-                                <input required type="text" name="title" value={formData.title} onChange={handleInputChange} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Associate Guide Selection Phase</label>
+                                <select required name="relatedPhase" value={formData.relatedPhase} onChange={handleInputChange} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                                    <option value="">Select Phase...</option>
+                                    <option value="CLOSED">Team Formation (CLOSED)</option>
+                                    <option value="FACULTY_SELECTION">Faculty Selection (FACULTY_SELECTION)</option>
+                                    <option value="STUDENT_SELECTION">Student Selection (STUDENT_SELECTION)</option>
+                                    <option value="COMPLETED">Completed (COMPLETED)</option>
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
                                 <input required type="datetime-local" name="dueDate" value={formData.dueDate} onChange={handleInputChange} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
-                            </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                                <textarea required name="description" value={formData.description} onChange={handleInputChange} rows="3" className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"></textarea>
-                            </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                                <select name="status" value={formData.status} onChange={handleInputChange} className="w-full md:w-1/3 px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
-                                    <option value="PENDING">PENDING</option>
-                                    <option value="COMPLETED">COMPLETED</option>
-                                </select>
                             </div>
                         </div>
                         <div className="flex justify-end gap-3 pt-4">
@@ -162,6 +195,9 @@ const AdminMilestonesConfig = () => {
                                 <div className="flex items-center gap-3 mb-1">
                                     <h3 className="text-lg font-bold text-slate-800">{m.title}</h3>
                                     <Badge color={m.status === 'COMPLETED' ? 'green' : 'yellow'}>{m.status}</Badge>
+                                    {m.relatedPhase && (
+                                        <Badge color="blue">Phase: {m.relatedPhase}</Badge>
+                                    )}
                                 </div>
                                 <p className="text-slate-600 text-sm mb-2">{m.description}</p>
                                 <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">

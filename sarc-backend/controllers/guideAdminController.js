@@ -54,11 +54,50 @@ exports.changePhase = async (req, res) => {
         }
 
         await prisma.$transaction(async (tx) => {
+             const currentConfig = await tx.guideSelectionConfig.findUnique({ where: { id: 'singleton' } });
+             const oldPhase = currentConfig?.phase;
+
              await tx.guideSelectionConfig.upsert({
                  where: { id: 'singleton' },
                  update: { phase },
                  create: { id: 'singleton', phase }
              });
+
+             if (oldPhase && oldPhase !== phase) {
+                 const now = new Date();
+                 const pendingOldMilestones = await tx.globalMilestone.findMany({
+                     where: {
+                         relatedPhase: oldPhase,
+                         status: 'PENDING',
+                         dueDate: { gt: now }
+                     }
+                 });
+
+                 if (pendingOldMilestones.length > 0) {
+                     const nextMilestone = await tx.globalMilestone.findFirst({
+                         where: { relatedPhase: phase },
+                         orderBy: { dueDate: 'asc' }
+                     });
+
+                     if (nextMilestone) {
+                         await tx.globalMilestone.updateMany({
+                             where: { relatedPhase: oldPhase, status: 'PENDING' },
+                             data: { 
+                                 dueDate: nextMilestone.dueDate,
+                                 status: 'COMPLETED'
+                             }
+                         });
+                     } else {
+                         await tx.globalMilestone.updateMany({
+                             where: { relatedPhase: oldPhase, status: 'PENDING' },
+                             data: { 
+                                 dueDate: now,
+                                 status: 'COMPLETED'
+                             }
+                         });
+                     }
+                 }
+             }
 
              if (phase === 'FACULTY_SELECTION') {
                  // Finalize teams

@@ -8,6 +8,7 @@ import { Briefcase, Clock, CheckCircle, AlertTriangle, ArrowRight, Send, Users, 
 
 const StudentDashboard = () => {
     const [deadlines, setDeadlines] = useState([]);
+    const [allMilestones, setAllMilestones] = useState([]);
     const [phase, setPhase] = useState('CLOSED');
 
     useEffect(() => {
@@ -25,6 +26,7 @@ const StudentDashboard = () => {
 
                 if (resDeadlines.ok) {
                     const dData = await resDeadlines.json();
+                    setAllMilestones(dData);
                     const upcoming = dData.filter(d => d.status !== 'COMPLETED')
                                           .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
                                           .slice(0, 3);
@@ -103,6 +105,18 @@ const StudentDashboard = () => {
     };
 
 
+    const formatDeadlineDate = (dateString) => {
+        return new Date(dateString).toLocaleString('default', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const activePhaseMilestone = allMilestones.find(m => m.relatedPhase === phase && m.status !== 'COMPLETED');
+
     const getMonthAndDay = (dateString) => {
         const d = new Date(dateString);
         return {
@@ -134,12 +148,20 @@ const StudentDashboard = () => {
                                 </span>
                             </div>
                             <div className="space-y-4">
-                                <p className="text-slate-600 text-sm leading-relaxed">
+                                <p className="text-slate-600 text-sm leading-relaxed mb-4">
                                     {phaseInfo.desc}
                                 </p>
-                                <div className="mt-6 flex justify-end">
-                                    <Link to={phaseInfo.btnPath}>
-                                        <Button className="flex items-center gap-2 hover:translate-x-0.5 transition-transform">
+                                <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-slate-100">
+                                    {activePhaseMilestone ? (
+                                        <div className="flex items-center gap-2 text-xs font-semibold text-red-600 bg-red-50 border border-red-200/50 px-3 py-2 rounded-lg inline-flex self-start sm:self-auto">
+                                            <Clock size={14} className="animate-pulse" />
+                                            <span>Deadline: {formatDeadlineDate(activePhaseMilestone.dueDate)}</span>
+                                        </div>
+                                    ) : (
+                                        <div />
+                                    )}
+                                    <Link to={phaseInfo.btnPath} className="w-full sm:w-auto">
+                                        <Button className="flex items-center gap-2 hover:translate-x-0.5 transition-transform w-full sm:w-auto justify-center">
                                             {phaseInfo.btnText} <ArrowRight size={16} />
                                         </Button>
                                     </Link>

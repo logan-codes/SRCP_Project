@@ -359,13 +359,14 @@ model GuideSelectionConfig {
 }
 
 model GlobalMilestone {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  dueDate     DateTime
-  status      String   @default("PENDING") // PENDING, COMPLETED
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String
+  dueDate      DateTime
+  status       String   @default("PENDING") // PENDING, COMPLETED
+  relatedPhase String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Session {

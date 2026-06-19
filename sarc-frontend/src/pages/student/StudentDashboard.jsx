@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge, StatWidget } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
-import { Briefcase, Clock, CheckCircle, AlertTriangle, ArrowRight, Send } from 'lucide-react';
+import { Briefcase, Clock, CheckCircle, AlertTriangle, ArrowRight, Send, Users, Compass } from 'lucide-react';
 
 
 const StudentDashboard = () => {
     const [deadlines, setDeadlines] = useState([]);
+    const [phase, setPhase] = useState('CLOSED');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -16,9 +17,10 @@ const StudentDashboard = () => {
                 const headers = { 'Authorization': `Bearer ${token}` };
 
                 // Fire all requests concurrently
-                const [resMe, resDeadlines] = await Promise.all([
+                const [resMe, resDeadlines, resPhase] = await Promise.all([
                     fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, { headers }),
-                    fetch(`${import.meta.env.VITE_API_URL}/api/global-milestones`, { headers })
+                    fetch(`${import.meta.env.VITE_API_URL}/api/global-milestones`, { headers }),
+                    fetch(`${import.meta.env.VITE_API_URL}/api/guide/phase`, { headers })
                 ]);
 
                 if (resDeadlines.ok) {
@@ -28,12 +30,77 @@ const StudentDashboard = () => {
                                           .slice(0, 3);
                     setDeadlines(upcoming);
                 }
+
+                if (resPhase.ok) {
+                    const pData = await resPhase.json();
+                    setPhase(pData.phase || 'CLOSED');
+                }
             } catch (err) {
                 console.error(err);
             }
         };
         fetchData();
     }, []);
+
+    const getPhaseInfo = (currentPhase) => {
+        switch (currentPhase) {
+            case 'CLOSED':
+                return {
+                    title: 'Phase 1: Team Formation',
+                    badge: 'Team Formation Active',
+                    badgeBg: 'bg-blue-100 text-blue-800 border-blue-200',
+                    border: 'border-t-blue-500',
+                    desc: 'Students are currently forming groups (up to 2 members) and submitting project details. Ensure your team details are finalized before the next phase.',
+                    btnText: 'Manage Project Team',
+                    btnPath: '/guide/team/my',
+                    icon: <Users size={24} className="text-blue-500" />
+                };
+            case 'FACULTY_SELECTION':
+                return {
+                    title: 'Phase 2: Faculty Selection',
+                    badge: 'Faculty Selection Active',
+                    badgeBg: 'bg-purple-100 text-purple-800 border-purple-200',
+                    border: 'border-t-purple-500',
+                    desc: 'Guides are currently reviewing finalized student teams and sending invitations. Check your project team page for incoming guide offers.',
+                    btnText: 'View Team & Invites',
+                    btnPath: '/guide/team/my',
+                    icon: <Briefcase size={24} className="text-purple-500" />
+                };
+            case 'STUDENT_SELECTION':
+                return {
+                    title: 'Phase 3: Student Selection',
+                    badge: 'Student Selection Active',
+                    badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                    border: 'border-t-emerald-500',
+                    desc: 'You can now browse available faculty members and select a guide for your project from those with open slots. Slots are limited, so act quickly!',
+                    btnText: 'Select Your Guide',
+                    btnPath: '/guide/select',
+                    icon: <Compass size={24} className="text-emerald-500" />
+                };
+            case 'COMPLETED':
+                return {
+                    title: 'Phase 4: Completed',
+                    badge: 'Selection Concluded',
+                    badgeBg: 'bg-slate-100 text-slate-800 border-slate-200',
+                    border: 'border-t-slate-500',
+                    desc: 'The guide selection process has successfully concluded. Your team and assigned guide information is locked. Check your team page to view details.',
+                    btnText: 'View Finalized Team',
+                    btnPath: '/guide/team/my',
+                    icon: <CheckCircle size={24} className="text-slate-500" />
+                };
+            default:
+                return {
+                    title: 'Guide Selection Portal',
+                    badge: 'Portal Active',
+                    badgeBg: 'bg-slate-100 text-slate-800 border-slate-200',
+                    border: 'border-t-primary',
+                    desc: 'Welcome to the Guide Selection Portal. Here you can form teams, invite members, and select a project guide.',
+                    btnText: 'Manage Team',
+                    btnPath: '/guide/team/my',
+                    icon: <CheckCircle size={24} className="text-primary" />
+                };
+        }
+    };
 
 
     const getMonthAndDay = (dateString) => {
@@ -53,17 +120,34 @@ const StudentDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Guide Selection Info - Placeholder or future features */}
-                <Card className="border-t-4 border-t-primary shadow-md hover:shadow-lg transition-shadow">
-                    <h2 className="text-xl font-bold font-heading text-slate-800 mb-6 flex items-center gap-3">
-                        <CheckCircle size={24} className="text-primary" /> Guide Selection Phase
-                    </h2>
-                    <div className="space-y-4">
-                        <div className="text-center py-6 text-slate-500 text-sm">
-                            Welcome to the Guide Selection Portal. Here you can form teams, invite members, and select a project guide. Use the sidebar to navigate to your team and guide selection options.
-                        </div>
-                    </div>
-                </Card>
+                {/* Guide Selection Info - Dynamic phase from admin */}
+                {(() => {
+                    const phaseInfo = getPhaseInfo(phase);
+                    return (
+                        <Card className={`border-t-4 ${phaseInfo.border} shadow-md hover:shadow-lg transition-all duration-300`}>
+                            <div className="flex justify-between items-start mb-4">
+                                <h2 className="text-xl font-bold font-heading text-slate-800 flex items-center gap-3">
+                                    {phaseInfo.icon} {phaseInfo.title}
+                                </h2>
+                                <span className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${phaseInfo.badgeBg} animate-pulse`}>
+                                    {phaseInfo.badge}
+                                </span>
+                            </div>
+                            <div className="space-y-4">
+                                <p className="text-slate-600 text-sm leading-relaxed">
+                                    {phaseInfo.desc}
+                                </p>
+                                <div className="mt-6 flex justify-end">
+                                    <Link to={phaseInfo.btnPath}>
+                                        <Button className="flex items-center gap-2 hover:translate-x-0.5 transition-transform">
+                                            {phaseInfo.btnText} <ArrowRight size={16} />
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </div>
+                        </Card>
+                    );
+                })()}
 
                 {/* Upcoming Deadlines */}
                 <Card className="border-t-4 border-t-red-500 shadow-md hover:shadow-lg transition-shadow">

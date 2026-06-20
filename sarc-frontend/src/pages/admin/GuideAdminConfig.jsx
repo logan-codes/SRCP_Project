@@ -1,47 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import PhaseStepperAdmin from '../../components/guide/PhaseStepperAdmin';
 import Button from '../../components/common/Button';
 import * as XLSX from 'xlsx';
 
 const GuideAdminConfig = () => {
-    const [configData, setConfigData] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
+
     const [message, setMessage] = useState('');
     const [dropIncomplete, setDropIncomplete] = useState(false);
-    const [systemConfig, setSystemConfig] = useState(null);
 
-    const fetchConfig = async () => {
-        try {
+    const { data: configData, isLoading: configLoading } = useQuery({
+        queryKey: ['guideConfig'],
+        queryFn: async () => {
             const token = localStorage.getItem('sarc_token');
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/guide/config`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const data = await res.json();
-            setConfigData(data);
-        } catch (error) {
-            console.error('Error fetching config:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+            if (!res.ok) throw new Error('Failed to fetch guide config');
+            return res.json();
+        },
+        staleTime: 60 * 1000 // 1 min cache
+    });
 
-    const fetchSystemConfig = async () => {
-        try {
+    const { data: systemConfig, isLoading: systemLoading } = useQuery({
+        queryKey: ['systemConfig'],
+        queryFn: async () => {
             const token = localStorage.getItem('sarc_token');
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/system/config`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const data = await res.json();
-            setSystemConfig(data);
-        } catch (error) {
-            console.error('Error fetching system config:', error);
-        }
-    };
-
-    useEffect(() => {
-        fetchConfig();
-        fetchSystemConfig();
-    }, []);
+            if (!res.ok) throw new Error('Failed to fetch system config');
+            return res.json();
+        },
+        staleTime: 5 * 60 * 1000 // Re-uses Dashboard Layout Cache
+    });
 
     const handleToggleResearchCollab = async () => {
         try {
@@ -58,7 +51,7 @@ const GuideAdminConfig = () => {
             if (!res.ok) throw new Error(data.message);
             
             setMessage(data.message);
-            fetchSystemConfig();
+            queryClient.invalidateQueries({ queryKey: ['systemConfig'] });
         } catch (error) {
             setMessage(error.message);
         }
@@ -82,7 +75,7 @@ const GuideAdminConfig = () => {
             if (!res.ok) throw new Error(data.message);
 
             setMessage(data.message);
-            fetchConfig();
+            queryClient.invalidateQueries({ queryKey: ['guideConfig'] });
         } catch (error) {
             setMessage(error.message);
         }
@@ -99,7 +92,7 @@ const GuideAdminConfig = () => {
                 },
                 body: JSON.stringify({ totalSlots: newSlots })
             });
-            fetchConfig();
+            queryClient.invalidateQueries({ queryKey: ['guideConfig'] });
         } catch (error) {
             console.error('Error updating slot:', error);
         }
@@ -118,7 +111,7 @@ const GuideAdminConfig = () => {
             if (!res.ok) throw new Error(data.message);
             
             setMessage(data.message);
-            fetchConfig();
+            queryClient.invalidateQueries({ queryKey: ['guideConfig'] });
         } catch (error) {
             setMessage(error.message);
         }
@@ -159,7 +152,7 @@ const GuideAdminConfig = () => {
         }
     };
 
-    if (loading || !configData) return <div className="p-8 text-center text-text-secondary">Loading...</div>;
+    if (configLoading || systemLoading || !configData) return <div className="p-8 text-center text-text-secondary">Loading...</div>;
 
     const { config, stats, facultySlots } = configData;
 

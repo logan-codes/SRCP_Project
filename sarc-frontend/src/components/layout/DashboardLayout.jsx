@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Compass, Send, Users, Flag, User, Bell, Search, Menu, X, LogOut, Settings, Building, Check } from 'lucide-react';
+import { LayoutDashboard, Compass, Send, Users, Flag, User, Bell, Search, Menu, X, LogOut, Settings, Building, Check, ArrowRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import SupportTicketModal from '../common/SupportTicketModal';
 
 export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
     const location = useLocation();
@@ -37,9 +38,9 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
             {
                 title: 'Guide Selection',
                 links: [
-                    { name: 'Guide Dashboard', icon: LayoutDashboard, path: '/guide/dashboard' },
                     { name: 'Select Project Teams', icon: Users, path: '/guide/faculty/select' },
                     { name: 'My Selected Teams', icon: Flag, path: '/guide/faculty/my-picks' },
+                    { name: 'Allocated Teams', icon: Check, path: '/guide/faculty/allocated' },
                 ]
             }
         ];
@@ -152,6 +153,20 @@ let cachedNotifications = [];
 
 export const DashboardLayout = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [selectedTicket, setSelectedTicket] = useState(null);
+    const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+
+    const handleNotificationClick = (notif) => {
+        if (!notif.read) {
+            markAsRead(notif.id);
+        }
+        if (notif.type === 'SUPPORT_TICKET') {
+            setSelectedTicket(notif);
+            setIsTicketModalOpen(true);
+            setIsNotificationOpen(false);
+        }
+    };
+
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [userData, setUserData] = useState(cachedUserData);
@@ -274,7 +289,6 @@ export const DashboardLayout = ({ children }) => {
                         >
                             <Menu size={24} />
                         </button>
-
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -300,19 +314,36 @@ export const DashboardLayout = ({ children }) => {
                                             <div className="p-4 text-center text-sm text-slate-500">No notifications</div>
                                         ) : (
                                             notifications.map(notif => (
-                                                <div key={notif.id} className={`p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors ${!notif.read ? 'bg-primary/5' : ''}`}>
+                                                <div 
+                                                    key={notif.id} 
+                                                    onClick={() => handleNotificationClick(notif)}
+                                                    className={`p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer group ${!notif.read ? 'bg-primary/5' : ''}`}
+                                                >
                                                     <div className="flex justify-between items-start gap-2">
                                                         <div>
                                                             <p className="text-sm font-medium text-slate-900">{notif.title}</p>
-                                                            <p className="text-xs text-slate-600 mt-1">{notif.message}</p>
-                                                            <span className="text-[10px] text-slate-400 mt-2 block">
-                                                                {new Date(notif.createdAt).toLocaleDateString()}
-                                                            </span>
+                                                            <p className="text-xs text-slate-600 mt-1 line-clamp-2">{notif.message}</p>
+                                                            <div className="flex flex-wrap items-center gap-2 mt-3">
+                                                                <span className="text-[10px] text-slate-400 block">
+                                                                    {new Date(notif.createdAt).toLocaleDateString()}
+                                                                </span>
+                                                                {notif.type === 'SUPPORT_TICKET' && (
+                                                                    <button 
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleNotificationClick(notif);
+                                                                        }}
+                                                                        className="text-[10px] text-white bg-primary hover:bg-primary-dark px-3 py-1.5 rounded-md font-medium transition-colors shadow-sm ml-auto"
+                                                                    >
+                                                                        View & Reply
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         {!notif.read && (
                                                             <button 
-                                                                onClick={() => markAsRead(notif.id)}
-                                                                className="text-primary hover:bg-primary/10 p-1 rounded-md transition-colors"
+                                                                onClick={(e) => { e.stopPropagation(); markAsRead(notif.id); }}
+                                                                className="text-primary hover:bg-primary/10 p-1 rounded-md transition-colors shrink-0"
                                                                 title="Mark as read"
                                                             >
                                                                 <Check size={14} />
@@ -389,6 +420,11 @@ export const DashboardLayout = ({ children }) => {
                     {children}
                 </div>
             </main>
+            <SupportTicketModal 
+                isOpen={isTicketModalOpen} 
+                onClose={() => setIsTicketModalOpen(false)} 
+                notification={selectedTicket} 
+            />
         </div>
     );
 };

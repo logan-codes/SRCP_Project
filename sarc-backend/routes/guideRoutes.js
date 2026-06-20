@@ -30,6 +30,7 @@ router.get('/teams/invites/faculty', authMiddleware, isStudent, guideTeamControl
 router.get('/faculty/teams', authMiddleware, isFaculty, facultyGuideController.getFinalizedTeams);
 router.post('/faculty/select', authMiddleware, isFaculty, facultyGuideController.selectTeams);
 router.get('/faculty/my-selections', authMiddleware, isFaculty, facultyGuideController.getMySelections);
+router.get('/faculty/allocated', authMiddleware, isFaculty, facultyGuideController.getAllocatedTeams);
 router.put('/teams/:id/respond-faculty', authMiddleware, isStudent, guideTeamController.respondToFacultyGuide);
 
 // -----------------------------------------------------

@@ -135,7 +135,6 @@ const GuideAdminConfig = () => {
             
             const formattedData = data.map(team => ({
                 'Team ID': team.teamId,
-                'Team Name': team.teamName,
                 'Project Title': team.projectTitle,
                 'Domain': team.domain,
                 'Guide Name': team.guide?.fullName || 'N/A',

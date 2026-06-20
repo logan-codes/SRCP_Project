@@ -144,3 +144,30 @@ exports.getMySelections = async (req, res) => {
         res.status(500).json({ message: 'Server error fetching selections' });
     }
 };
+
+exports.getAllocatedTeams = async (req, res) => {
+    try {
+        const facultyId = req.user.id;
+
+        const allocatedTeams = await prisma.guideTeam.findMany({
+            where: {
+                guideId: facultyId,
+                guideStatus: { in: ['STUDENT_SELECTED', 'ACCEPTED'] }
+            },
+            include: {
+                leader: { select: { fullName: true, email: true, studentProfile: { select: { studentId: true } } } },
+                members: {
+                    where: { inviteStatus: 'ACCEPTED' },
+                    include: {
+                        student: { select: { fullName: true, email: true, studentProfile: { select: { studentId: true } } } }
+                    }
+                }
+            }
+        });
+
+        res.json(allocatedTeams);
+    } catch (error) {
+        console.error("Error:", error.message || error);
+        res.status(500).json({ message: 'Server error fetching allocated teams' });
+    }
+};

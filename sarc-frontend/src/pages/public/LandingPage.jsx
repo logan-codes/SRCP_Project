@@ -30,9 +30,9 @@ const LandingPage = () => {
                 if (res.ok) {
                     const data = await res.json();
                     setStats({
-                        activeProjects: data.activeProjects > 0 ? data.activeProjects : 240,
-                        facultyResearchers: data.facultyResearchers > 0 ? data.facultyResearchers : 85,
-                        studentCollaborators: data.studentCollaborators > 0 ? data.studentCollaborators : 1200
+                        activeProjects: data.activeProjects !== undefined ? data.activeProjects : 240,
+                        facultyResearchers: data.facultyResearchers !== undefined ? data.facultyResearchers : 85,
+                        studentCollaborators: data.studentCollaborators !== undefined ? data.studentCollaborators : 1200
                     });
                 }
             } catch (error) {

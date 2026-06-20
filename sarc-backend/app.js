@@ -93,6 +93,7 @@ apiRouter.use('/guide', require('./routes/guideRoutes'));
 apiRouter.use('/stats', require('./routes/statsRoutes'));
 apiRouter.use('/global-milestones', require('./routes/globalMilestoneRoutes'));
 apiRouter.use('/system', require('./routes/systemRoutes'));
+apiRouter.use('/support', require('./routes/supportRoutes'));
 
 // Apply the global API limiter to all API routes
 app.use('/api', apiLimiter, apiRouter);

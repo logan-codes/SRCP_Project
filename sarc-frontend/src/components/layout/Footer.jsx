@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import ContactAdminModal from '../common/ContactAdminModal';
 
 const Footer = () => {
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
     return (
         <footer className="bg-primary text-white border-t border-primary-dark mt-20">
             <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -33,12 +36,19 @@ const Footer = () => {
                         </ul>
                     </div>
                     <div>
-                        <h3 className="text-sm font-semibold text-secondary tracking-wider uppercase">Connect</h3>
-                        <div className="flex space-x-6 mt-4">
-                            <span className="text-white/60 hover:text-secondary cursor-pointer transition-colors">Twitter</span>
-                            <span className="text-white/60 hover:text-secondary cursor-pointer transition-colors">LinkedIn</span>
-                            <span className="text-white/60 hover:text-secondary cursor-pointer transition-colors">GitHub</span>
-                        </div>
+                        <h3 className="text-sm font-semibold text-secondary tracking-wider uppercase">Help</h3>
+                        <ul className="mt-4 space-y-4">
+                            <li>
+                                <button 
+                                    onClick={() => setIsContactModalOpen(true)}
+                                    className="text-base text-white/80 hover:text-secondary transition-colors cursor-pointer bg-transparent border-none p-0"
+                                >
+                                    Contact Admin
+                                </button>
+                            </li>
+                            <li><a href="#" className="text-base text-white/80 hover:text-secondary transition-colors">Support Portal</a></li>
+                            <li><a href="#" className="text-base text-white/80 hover:text-secondary transition-colors">FAQs</a></li>
+                        </ul>
                     </div>
                 </div>
                 <div className="mt-12 border-t border-primary-dark pt-8 flex items-center justify-center lg:justify-start">
@@ -47,6 +57,11 @@ const Footer = () => {
                     </p>
                 </div>
             </div>
+            
+            <ContactAdminModal 
+                isOpen={isContactModalOpen} 
+                onClose={() => setIsContactModalOpen(false)} 
+            />
         </footer>
     );
 };

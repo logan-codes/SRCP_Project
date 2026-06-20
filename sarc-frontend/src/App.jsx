@@ -25,6 +25,7 @@ import TeamInvites from './pages/student/TeamInvites';
 import GuideSelect from './pages/student/GuideSelect';
 import FacultyTeamSelect from './pages/faculty/FacultyTeamSelect';
 import FacultyMyPicks from './pages/faculty/FacultyMyPicks';
+import FacultyAllocatedTeams from './pages/faculty/FacultyAllocatedTeams';
 import GuideAdminConfig from './pages/admin/GuideAdminConfig';
 import AdminUserManagement from './pages/admin/AdminUserManagement';
 import AdminTeamFinalization from './pages/admin/AdminTeamFinalization';
@@ -72,6 +73,7 @@ function App() {
                 <Route path="/guide/select" element={<ProtectedRoute allowedRoles={['STUDENT']}><DashboardLayout><GuideSelect /></DashboardLayout></ProtectedRoute>} />
                 <Route path="/guide/faculty/select" element={<ProtectedRoute allowedRoles={['FACULTY']}><DashboardLayout><FacultyTeamSelect /></DashboardLayout></ProtectedRoute>} />
                 <Route path="/guide/faculty/my-picks" element={<ProtectedRoute allowedRoles={['FACULTY']}><DashboardLayout><FacultyMyPicks /></DashboardLayout></ProtectedRoute>} />
+                <Route path="/guide/faculty/allocated" element={<ProtectedRoute allowedRoles={['FACULTY']}><DashboardLayout><FacultyAllocatedTeams /></DashboardLayout></ProtectedRoute>} />
                 <Route path="/admin/guide/config" element={<ProtectedRoute allowedRoles={['ADMIN']}><DashboardLayout><GuideAdminConfig /></DashboardLayout></ProtectedRoute>} />
                 <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><DashboardLayout><AdminUserManagement /></DashboardLayout></ProtectedRoute>} />
                 <Route path="/admin/teams/finalize" element={<ProtectedRoute allowedRoles={['ADMIN']}><DashboardLayout><AdminTeamFinalization /></DashboardLayout></ProtectedRoute>} />

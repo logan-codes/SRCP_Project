@@ -102,7 +102,7 @@ exports.updateTeam = async (req, res) => {
         const updatedTeam = await prisma.guideTeam.update({
             where: { id: team.id },
             data: {
-                teamName: teamName || team.teamName,
+                teamName: teamName || projectTitle || team.teamName,
                 projectTitle: projectTitle || team.projectTitle,
                 description: description || team.description,
                 domain: domain || team.domain

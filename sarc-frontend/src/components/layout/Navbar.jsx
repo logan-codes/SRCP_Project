@@ -74,7 +74,7 @@ const Navbar = () => {
                 <div className="flex justify-between items-center h-16">
                     <div className="flex items-center">
                         <Link to={isLoggedIn ? dashboardPath : "/"} className="text-xl md:text-2xl font-bold font-heading text-primary flex items-center gap-3">
-                            <img src="/images/logo.jpg" alt="Sathyabama Logo" className="h-12 w-auto object-contain" />
+                            <img src="/images/logo.webp" alt="Sathyabama Logo" className="h-12 w-auto object-contain" />
                             <span className="hidden sm:inline">SATHYABAMA</span> <span className="text-slate-500 font-normal text-sm hidden lg:inline border-l border-slate-300 ml-3 pl-3">SARCG Portal</span>
                         </Link>
                         <div className="hidden md:flex items-center space-x-8 ml-10 border-l border-slate-200 pl-8">

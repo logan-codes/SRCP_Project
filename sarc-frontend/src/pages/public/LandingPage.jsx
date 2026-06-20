@@ -50,10 +50,18 @@ const LandingPage = () => {
                 {/* Hero Section */}
                 <section className="relative pt-32 pb-40 overflow-hidden bg-slate-900 border-b-4 border-secondary">
                     {/* Prestigious University Background image from banner */}
-                    <div
-                        className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
-                        style={{ backgroundImage: `url('/images/banner.jpg')` }}
-                    ></div>
+                    <div className="absolute inset-0 z-0">
+                        <picture>
+                            <source media="(max-width: 768px)" srcSet="/images/banner_mobile.webp" />
+                            <img 
+                                src="/images/banner.webp" 
+                                alt="Sathyabama University"
+                                className="w-full h-full object-cover"
+                                loading="eager"
+                                fetchpriority="high"
+                            />
+                        </picture>
+                    </div>
                     {/* Premium dark overlay to ensure text readability and pop */}
                     <div className="absolute inset-0 bg-black opacity-80 z-0 backdrop-blur-sm"></div>
 

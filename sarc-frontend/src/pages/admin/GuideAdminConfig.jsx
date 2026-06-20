@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import PhaseStepperAdmin from '../../components/guide/PhaseStepperAdmin';
 import Button from '../../components/common/Button';
-import * as XLSX from 'xlsx';
-
 const GuideAdminConfig = () => {
     const queryClient = useQueryClient();
 
@@ -140,6 +138,7 @@ const GuideAdminConfig = () => {
                 'Member 2 ID': team.members[1]?.student?.studentProfile?.studentId || '',
             }));
 
+            const XLSX = await import('xlsx');
             const worksheet = XLSX.utils.json_to_sheet(formattedData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Teams');

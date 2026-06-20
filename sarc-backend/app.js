@@ -16,7 +16,7 @@ app.set('trust proxy', 1);
 // Security Middleware
 app.use(helmet());
 app.use(cors({
-    origin: process.env.CORS_ALLOWED_ORIGIN || 'http://localhost:5173',
+    origin: ['http://localhost:5173', 'http://localhost:4173'],
     credentials: true,
 }));
 app.use(express.json({ limit: '5mb' })); // Increased limit for bulk imports

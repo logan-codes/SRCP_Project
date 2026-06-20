@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Plus, Edit, Trash2, X, Upload } from 'lucide-react';
 import Button from '../../components/common/Button';
-import * as XLSX from 'xlsx';
-
 const AdminUserManagement = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -195,10 +193,10 @@ const AdminUserManagement = () => {
             setMessage({ text: 'Please select a file to import', type: 'error' });
             return;
         }
-
         const reader = new FileReader();
         reader.onload = async (evt) => {
             try {
+                const XLSX = await import('xlsx');
                 const bstr = evt.target.result;
                 const wb = XLSX.read(bstr, { type: 'binary' });
                 const wsname = wb.SheetNames[0];

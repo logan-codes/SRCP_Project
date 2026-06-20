@@ -75,7 +75,7 @@ const Login = () => {
             <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
                 <div
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0 opacity-20 fixed"
-                    style={{ backgroundImage: `url('/images/banner2.jpg')` }}
+                    style={{ backgroundImage: `url('/images/banner2.webp')` }}
                 ></div>
                 <div className="absolute inset-0 bg-canvas/90 backdrop-blur-sm z-0 fixed"></div>
 

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge } from '../../components/widgets/DashboardWidgets';
 import { Flag, CheckCircle, Clock, Calendar, AlertCircle } from 'lucide-react';
 import Button from '../../components/common/Button';
@@ -48,7 +47,7 @@ const Milestones = ({ projectId }) => {
     }, [projectId]);
 
     return (
-        <DashboardLayout>
+        <>
             <div className="flex justify-between items-end mb-8 border-b border-primary/10 pb-6">
                 <div>
                     <Badge text="Project Tracking" />
@@ -114,7 +113,7 @@ const Milestones = ({ projectId }) => {
                     </div>
                 </div>
             )}
-        </DashboardLayout>
+        </>
     );
 };
 

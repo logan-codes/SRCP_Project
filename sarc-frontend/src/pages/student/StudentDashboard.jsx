@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge, StatWidget } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
 import { Briefcase, Clock, CheckCircle, AlertTriangle, ArrowRight, Send, Users, Compass } from 'lucide-react';
@@ -126,7 +125,7 @@ const StudentDashboard = () => {
     };
 
     return (
-        <DashboardLayout>
+        <>
             <div className="mb-8">
                 <Badge text="Class of 2026" />
                 <h1 className="text-3xl font-extrabold font-heading text-primary mt-2">Student Dashboard</h1>
@@ -199,7 +198,7 @@ const StudentDashboard = () => {
                     </div>
                 </Card>
             </div>
-        </DashboardLayout>
+        </>
     );
 };
 

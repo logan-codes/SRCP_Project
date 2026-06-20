@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Outlet } from 'react-router-dom';
 import { LayoutDashboard, Compass, Send, Users, Flag, User, Bell, Search, Menu, X, LogOut, Settings, Building, Check, ArrowRight } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import SupportTicketModal from '../common/SupportTicketModal';
 
 export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
@@ -147,11 +147,7 @@ export const Sidebar = ({ isOpen, setIsOpen, userData }) => {
     );
 };
 
-let cachedUserData = null;
-let cachedInitials = 'U';
-let cachedNotifications = [];
-
-export const DashboardLayout = ({ children }) => {
+export const DashboardLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
@@ -167,12 +163,10 @@ export const DashboardLayout = ({ children }) => {
         }
     };
 
+    const queryClient = useQueryClient();
+
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-    const [userData, setUserData] = useState(cachedUserData);
-    const [userInitials, setUserInitials] = useState(cachedInitials);
-    const [notifications, setNotifications] = useState(cachedNotifications);
-    
     const notificationRef = useRef(null);
     const profileRef = useRef(null);
 
@@ -189,72 +183,50 @@ export const DashboardLayout = ({ children }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const fetchNotifications = async () => {
-        try {
+    const { data: userData } = useQuery({
+        queryKey: ['authMe'],
+        queryFn: async () => {
             const token = localStorage.getItem('sarc_token');
-            if (!token) return;
+            if (!token) return null;
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.status === 401 || res.status === 403) {
+                localStorage.removeItem('sarc_token');
+                window.location.href = '/login';
+                return null;
+            }
+            if (!res.ok) throw new Error('Failed to fetch user');
+            const data = await res.json();
+            return data;
+        },
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    });
+
+    const userInitials = React.useMemo(() => {
+        if (!userData?.fullName) return 'U';
+        const nameParts = userData.fullName.trim().split(' ');
+        if (nameParts.length > 1) {
+            return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+        } else if (nameParts.length === 1 && nameParts[0]) {
+            return nameParts[0].substring(0, 2).toUpperCase();
+        }
+        return 'U';
+    }, [userData]);
+
+    const { data: notifications = [] } = useQuery({
+        queryKey: ['notifications'],
+        queryFn: async () => {
+            const token = localStorage.getItem('sarc_token');
+            if (!token) return [];
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notifications`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (res.ok) {
-                const data = await res.json();
-                cachedNotifications = data;
-                setNotifications(data);
-            }
-        } catch (err) {
-            console.error("Error fetching notifications", err);
-        }
-    };
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const token = localStorage.getItem('sarc_token');
-                if (!token) return;
-
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.fullName) {
-                        cachedUserData = data;
-                        setUserData(data);
-                        const nameParts = data.fullName.trim().split(' ');
-                        let initials = '';
-                        if (nameParts.length > 1) {
-                            initials = nameParts[0][0] + nameParts[nameParts.length - 1][0];
-                        } else if (nameParts.length === 1 && nameParts[0]) {
-                            initials = nameParts[0].substring(0, 2);
-                        }
-                        cachedInitials = initials.toUpperCase();
-                        setUserInitials(cachedInitials);
-                    }
-                } else if (response.status === 401 || response.status === 403) {
-                    // Token is invalid or user was deleted from DB. Force logout.
-                    localStorage.removeItem('sarc_token');
-                    window.location.href = '/login';
-                }
-            } catch (err) {
-                console.error("Error fetching user data (possibly server offline):", err);
-                // Do NOT force logout on network errors (e.g. server restarting)
-            }
-        };
-        
-        if (!cachedUserData) {
-            fetchUser();
-        } else {
-            // Still fetch in background to update
-            fetchUser();
-        }
-        
-        if (cachedNotifications.length === 0) {
-            fetchNotifications();
-        } else {
-            fetchNotifications();
-        }
-    }, []);
+            if (!res.ok) throw new Error('Failed to fetch notifications');
+            return res.json();
+        },
+        staleTime: 60 * 1000 // Cache for 1 minute
+    });
 
     const markAsRead = async (id) => {
         try {
@@ -263,7 +235,7 @@ export const DashboardLayout = ({ children }) => {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            fetchNotifications();
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
         } catch (err) {
             console.error("Error marking notification as read", err);
         }
@@ -417,7 +389,7 @@ export const DashboardLayout = ({ children }) => {
                 </header>
 
                 <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-                    {children}
+                    <Outlet />
                 </div>
             </main>
             <SupportTicketModal 

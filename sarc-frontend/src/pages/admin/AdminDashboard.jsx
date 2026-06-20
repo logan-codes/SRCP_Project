@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { useQuery } from '@tanstack/react-query';
 import { Card, StatWidget } from '../../components/widgets/DashboardWidgets';
 import { Users, BookOpen, Activity, AlertTriangle, ArrowRight } from 'lucide-react';
 import {
@@ -8,37 +8,28 @@ import {
 } from 'recharts';
 
 const AdminDashboard = () => {
-    const [analytics, setAnalytics] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [fetchedAt, setFetchedAt] = useState('');
+    const { data: analytics, isLoading: loading } = useQuery({
+        queryKey: ['adminAnalytics'],
+        queryFn: async () => {
+            const token = localStorage.getItem('sarc_token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/analytics`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch analytics');
+            return res.json();
+        },
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    });
 
-    useEffect(() => {
-        const fetchAnalytics = async () => {
-            try {
-                const token = localStorage.getItem('sarc_token');
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/analytics`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setAnalytics(data);
-                    setFetchedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-                }
-            } catch (error) {
-                console.error("Error fetching analytics", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchAnalytics();
-    }, []);
+    const fetchedAt = React.useMemo(() => {
+        return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }, [analytics]);
 
     if (loading || !analytics) {
         return (
-            <DashboardLayout>
+            <>
                 <div className="p-8 text-center text-text-secondary">Loading dashboard...</div>
-            </DashboardLayout>
+            </>
         );
     }
 
@@ -49,7 +40,7 @@ const AdminDashboard = () => {
         : 0;
 
     return (
-        <DashboardLayout>
+        <>
             <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-primary/10 pb-6">
                 <div>
                     <h1 className="text-3xl font-extrabold font-heading text-primary mt-2">Platform Analytics Overview</h1>
@@ -167,7 +158,7 @@ const AdminDashboard = () => {
                 </div>
             </Card>
 
-        </DashboardLayout>
+        </>
     );
 };
 

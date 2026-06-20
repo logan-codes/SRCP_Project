@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
 import { Users, Building, BookOpen, ArrowRight, Search } from 'lucide-react';
@@ -33,7 +32,7 @@ const FacultyDirectory = () => {
     });
 
     return (
-        <DashboardLayout>
+        <>
             <div className="mb-8 border-b border-primary/10 pb-6">
                 <Badge text="Directory" />
                 <h1 className="text-3xl font-extrabold font-heading text-primary mt-2">Faculty & Researchers</h1>
@@ -100,7 +99,7 @@ const FacultyDirectory = () => {
                     ))}
                 </div>
             )}
-        </DashboardLayout>
+        </>
     );
 };
 

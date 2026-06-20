@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge } from '../../components/widgets/DashboardWidgets';
 import { Send, CheckCircle, Clock, XCircle, ArrowRight, FileText } from 'lucide-react';
 import Button from '../../components/common/Button';
@@ -40,7 +39,7 @@ const StudentApplications = () => {
     };
 
     return (
-        <DashboardLayout>
+        <>
             <div className="mb-8 border-b border-primary/10 pb-6">
                 <Badge text="Applications" />
                 <h1 className="text-3xl font-extrabold font-heading text-primary mt-2">My Applications</h1>
@@ -96,7 +95,7 @@ const StudentApplications = () => {
                     })}
                 </div>
             )}
-        </DashboardLayout>
+        </>
     );
 };
 

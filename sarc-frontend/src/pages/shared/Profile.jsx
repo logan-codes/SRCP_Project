@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
 import { User, Mail, Building, FileText, Save, CheckCircle, Camera, Link as LinkIcon, Phone, Plus, Trash2, X } from 'lucide-react';
@@ -36,52 +37,59 @@ const Profile = () => {
     const [successMsg, setSuccessMsg] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
 
-    useEffect(() => { fetchProfile(); }, []);
+    const queryClient = useQueryClient();
 
-    const fetchProfile = async () => {
-        try {
+    const { data: authData, isLoading: queryLoading, isError } = useQuery({
+        queryKey: ['authMe'],
+        queryFn: async () => {
             const token = localStorage.getItem('sarc_token');
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const data = await response.json();
-            if (response.ok) {
-                const profileObj = data.role === 'STUDENT' ? (data.studentProfile || {}) : (data.role === 'FACULTY' ? (data.facultyProfile || {}) : {});
+            if (!response.ok) throw new Error("Failed to load profile data");
+            return response.json();
+        },
+        staleTime: 5 * 60 * 1000
+    });
 
-                setProfileData({
-                    fullName: data.fullName || '',
-                    email: data.email || '',
-                    role: data.role || '',
-                    department: profileObj.department || '',
-                    bio: profileObj.bio || '',
-                    studentId: profileObj.studentId || '',
-                    yearOfStudy: profileObj.yearOfStudy || '',
-                    section: profileObj.section || '',
-                    skills: profileObj.skills ? profileObj.skills.join(', ') : '',
-                    programmingLanguages: profileObj.programmingLanguages ? profileObj.programmingLanguages.join(', ') : '',
-                    projectsCompleted: profileObj.projectsCompleted || '',
-                    githubLink: profileObj.githubLink || '',
-                    areasOfInterest: profileObj.areasOfInterest ? profileObj.areasOfInterest.join(', ') : '',
-                    employeeId: profileObj.employeeId || '',
-                    designation: profileObj.designation || '',
-                    researchAreas: profileObj.researchAreas ? profileObj.researchAreas.join(', ') : '',
-                    yearsOfExperience: profileObj.yearsOfExperience || '',
-                    contactNumber: profileObj.contactNumber || '',
-                    linkedin: profileObj.linkedin || '',
-                    pastProjects: profileObj.pastProjects ? profileObj.pastProjects.map(p => { try { return typeof p === 'string' ? JSON.parse(p) : p; } catch (e) { return { title: p, description: '', domain: '', year: '', fundingAgency: '', link: '' } } }) : [],
-                    profilePhoto: data.profilePhoto || ''
-                });
-                if (data.profilePhoto) {
-                    const isAbsolute = data.profilePhoto.startsWith('http');
-                    setProfilePhotoPreview(isAbsolute ? data.profilePhoto : `${import.meta.env.VITE_API_URL}/uploads/${data.profilePhoto}`);
-                }
+    useEffect(() => {
+        if (authData) {
+            const data = authData;
+            const profileObj = data.role === 'STUDENT' ? (data.studentProfile || {}) : (data.role === 'FACULTY' ? (data.facultyProfile || {}) : {});
+
+            setProfileData({
+                fullName: data.fullName || '',
+                email: data.email || '',
+                role: data.role || '',
+                department: profileObj.department || '',
+                bio: profileObj.bio || '',
+                studentId: profileObj.studentId || '',
+                yearOfStudy: profileObj.yearOfStudy || '',
+                section: profileObj.section || '',
+                skills: profileObj.skills ? profileObj.skills.join(', ') : '',
+                programmingLanguages: profileObj.programmingLanguages ? profileObj.programmingLanguages.join(', ') : '',
+                projectsCompleted: profileObj.projectsCompleted || '',
+                githubLink: profileObj.githubLink || '',
+                areasOfInterest: profileObj.areasOfInterest ? profileObj.areasOfInterest.join(', ') : '',
+                employeeId: profileObj.employeeId || '',
+                designation: profileObj.designation || '',
+                researchAreas: profileObj.researchAreas ? profileObj.researchAreas.join(', ') : '',
+                yearsOfExperience: profileObj.yearsOfExperience || '',
+                contactNumber: profileObj.contactNumber || '',
+                linkedin: profileObj.linkedin || '',
+                pastProjects: profileObj.pastProjects ? profileObj.pastProjects.map(p => { try { return typeof p === 'string' ? JSON.parse(p) : p; } catch (e) { return { title: p, description: '', domain: '', year: '', fundingAgency: '', link: '' } } }) : [],
+                profilePhoto: data.profilePhoto || ''
+            });
+            if (data.profilePhoto) {
+                const isAbsolute = data.profilePhoto.startsWith('http');
+                setProfilePhotoPreview(isAbsolute ? data.profilePhoto : `${import.meta.env.VITE_API_URL}/uploads/${data.profilePhoto.split(/[\\/]/).pop()}`);
             }
-        } catch (error) {
+            setLoading(false);
+        } else if (isError) {
             setErrorMsg("Failed to load profile data");
-        } finally {
             setLoading(false);
         }
-    };
+    }, [authData, isError]);
 
     const handleChange = (e) => setProfileData({ ...profileData, [e.target.name]: e.target.value });
 
@@ -158,6 +166,7 @@ const Profile = () => {
 
             const data = await response.json();
             if (response.ok) {
+                queryClient.invalidateQueries({ queryKey: ['authMe'] });
                 setSuccessMsg("Profile updated successfully!");
                 setTimeout(() => setSuccessMsg(''), 3000);
             } else {

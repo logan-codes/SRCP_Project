@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
 import { Building, BookOpen, ArrowLeft, Lightbulb, GraduationCap } from 'lucide-react';
@@ -31,11 +30,11 @@ const FacultyProfileView = () => {
         fetchFaculty();
     }, [id]);
 
-    if (loading) return <DashboardLayout><div className="text-center py-10">Loading profile...</div></DashboardLayout>;
-    if (!prof) return <DashboardLayout><div className="text-center py-10 text-xl font-bold">Faculty Profile Not Found</div></DashboardLayout>;
+    if (loading) return <><div className="text-center py-10">Loading profile...</div></>;
+    if (!prof) return <><div className="text-center py-10 text-xl font-bold">Faculty Profile Not Found</div></>;
 
     return (
-        <DashboardLayout>
+        <>
             <div className="mb-6">
                 <Button variant="ghost" className="gap-2 pl-0 hover:bg-transparent text-slate-400 hover:text-slate-600 mb-2" onClick={() => navigate(-1)}>
                     <ArrowLeft size={16}/> Back
@@ -128,7 +127,7 @@ const FacultyProfileView = () => {
                     </div>
                 </div>
             </div>
-        </DashboardLayout>
+        </>
     );
 };
 

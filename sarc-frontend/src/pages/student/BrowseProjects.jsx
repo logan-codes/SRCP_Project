@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
 import { Search, Filter, Calendar, Users, ArrowRight, User, FileText } from 'lucide-react';
@@ -179,7 +178,7 @@ const BrowseProjects = () => {
     });
 
     return (
-        <DashboardLayout>
+        <>
             <div className="mb-8">
                 <h1 className="text-3xl font-extrabold font-heading text-slate-900">Browse Opportunities</h1>
                 <p className="text-slate-600 mt-2 text-lg">Discover and apply for active research projects or explore ideas presented by faculty.</p>
@@ -258,7 +257,7 @@ const BrowseProjects = () => {
                     </div>
                 )
             )}
-        </DashboardLayout>
+        </>
     );
 };
 

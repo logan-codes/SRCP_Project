@@ -15,9 +15,6 @@ const Navbar = () => {
         if (token) {
             setIsLoggedIn(true);
             fetchNotifications(token);
-            // Polling for demo purposes
-            const interval = setInterval(() => fetchNotifications(token), 30000);
-            return () => clearInterval(interval);
         } else {
             setIsLoggedIn(false);
         }

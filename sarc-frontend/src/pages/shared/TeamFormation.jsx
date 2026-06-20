@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge } from '../../components/widgets/DashboardWidgets';
 import { Users, UserPlus, Shield, User } from 'lucide-react';
 import Button from '../../components/common/Button';
@@ -52,7 +51,7 @@ const TeamFormation = () => {
     };
 
     return (
-        <DashboardLayout>
+        <>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-primary/10 pb-6 gap-4">
                 <div>
                     <Badge text="Collaboration" />
@@ -112,7 +111,7 @@ const TeamFormation = () => {
                     ))}
                 </div>
             )}
-        </DashboardLayout>
+        </>
     );
 };
 

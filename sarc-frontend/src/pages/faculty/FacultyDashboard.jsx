@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge, StatWidget } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
 import { BookOpen, Users, BellRing, UserPlus, CheckCircle, FileText, X, Upload } from 'lucide-react';
@@ -198,7 +197,7 @@ const FacultyDashboard = () => {
     };
 
     return (
-        <DashboardLayout>
+        <>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-primary/10 pb-6">
                 <div>
                     <Badge text="Faculty Portal" />
@@ -454,7 +453,7 @@ const FacultyDashboard = () => {
                     </Card>
                 </div>
             )}
-        </DashboardLayout>
+        </>
     );
 };
 

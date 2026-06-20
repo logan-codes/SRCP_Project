@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card, Badge } from '../../components/widgets/DashboardWidgets';
 import { Users, FileText, CheckCircle, Clock } from 'lucide-react';
 import Button from '../../components/common/Button';
@@ -44,7 +43,7 @@ const FacultyApplications = () => {
     };
 
     return (
-        <DashboardLayout>
+        <>
             <div className="mb-8 border-b border-primary/10 pb-6">
                 <Badge text="Application Management" />
                 <h1 className="text-3xl font-extrabold font-heading text-primary mt-2">Student Applications</h1>
@@ -134,7 +133,7 @@ const FacultyApplications = () => {
                     ))}
                 </div>
             )}
-        </DashboardLayout>
+        </>
     );
 };
 

@@ -1,5 +1,6 @@
 # SARCG Portal - Current Architecture & Status
 
+This document explains the current state of the application's infrastructure, specifically focusing on the recent architectural decisions, environment configurations, and scalability mechanisms.
 
 ## 1. Database Configuration (Supabase & Prisma)
 

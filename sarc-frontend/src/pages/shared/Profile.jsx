@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card } from '../../components/widgets/DashboardWidgets';
 import Button from '../../components/common/Button';
-import { User, Mail, Building, FileText, Save, CheckCircle, Camera, Link as LinkIcon, Phone, Plus, Trash2, X } from 'lucide-react';
+import { User, Mail, Building, FileText, Save, CheckCircle, Camera, Link as LinkIcon, Phone, Plus, Trash2, X, Calendar, Hash, Users } from 'lucide-react';
 import AvatarEditor from 'react-avatar-editor';
 import { uploadToCloudinary } from '../../utils/cloudinaryUpload';
 
@@ -13,7 +13,7 @@ const Profile = () => {
     const [profileData, setProfileData] = useState({
         fullName: '', email: '', role: '', department: '', bio: '',
         // Student
-        studentId: '', yearOfStudy: '', section: '', skills: '', programmingLanguages: '', projectsCompleted: '', githubLink: '', areasOfInterest: '',
+        studentId: '', yearOfStudy: '', section: '', dateOfBirth: '', skills: '', programmingLanguages: '', projectsCompleted: '', githubLink: '', areasOfInterest: '',
         // Faculty
         employeeId: '', designation: '', researchAreas: '', yearsOfExperience: '', contactNumber: '', linkedin: '', pastProjects: [],
         profilePhoto: ''
@@ -66,6 +66,7 @@ const Profile = () => {
                 studentId: profileObj.studentId || '',
                 yearOfStudy: profileObj.yearOfStudy || '',
                 section: profileObj.section || '',
+                dateOfBirth: profileObj.dateOfBirth || '',
                 skills: profileObj.skills ? profileObj.skills.join(', ') : '',
                 programmingLanguages: profileObj.programmingLanguages ? profileObj.programmingLanguages.join(', ') : '',
                 projectsCompleted: profileObj.projectsCompleted || '',
@@ -194,7 +195,7 @@ const Profile = () => {
             </div>
 
             {/* Crop Modal */}
-            {showCropModal && (
+            {!isStudent && showCropModal && (
                 <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
                         <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
@@ -252,37 +253,49 @@ const Profile = () => {
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Top Section: Photo & Basic Details */}
                     <div className="flex flex-col md:flex-row gap-8 items-start">
-                        {/* Profile Photo Upload */}
-                        <div className="flex flex-col items-center space-y-3">
-                            <div className="relative w-32 h-32 rounded-full border-4 border-slate-100 overflow-hidden bg-slate-100">
-                                <img
-                                    src={profilePhotoPreview || defaultProfilePhoto}
-                                    alt="Profile"
-                                    className="w-full h-full object-cover"
+                        {/* Profile Photo */}
+                        {isStudent ? (
+                            <div className="flex flex-col items-center space-y-3">
+                                <div className="relative w-32 h-32 rounded-full border-4 border-slate-100 overflow-hidden bg-slate-100">
+                                    <img
+                                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profileData.fullName || 'User')}&background=random&size=128`}
+                                        alt="Profile"
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center space-y-3">
+                                <div className="relative w-32 h-32 rounded-full border-4 border-slate-100 overflow-hidden bg-slate-100">
+                                    <img
+                                        src={profilePhotoPreview || defaultProfilePhoto}
+                                        alt="Profile"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current.click()}
+                                        className="absolute inset-0 bg-black/40 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity"
+                                    >
+                                        <Camera size={24} />
+                                    </button>
+                                </div>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    accept="image/jpeg,image/png,image/jpg"
+                                    onChange={handlePhotoChange}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => fileInputRef.current.click()}
-                                    className="absolute inset-0 bg-black/40 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity"
+                                    className="text-sm text-primary hover:text-primary/80 font-medium"
                                 >
-                                    <Camera size={24} />
+                                    Change Photo
                                 </button>
                             </div>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                className="hidden"
-                                accept="image/jpeg,image/png,image/jpg"
-                                onChange={handlePhotoChange}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current.click()}
-                                className="text-sm text-primary hover:text-primary/80 font-medium"
-                            >
-                                Change Photo
-                            </button>
-                        </div>
+                        )}
 
                         {/* Basic Info */}
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
@@ -323,23 +336,26 @@ const Profile = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {isStudent && (
                             <>
-                                <div><label className="block text-sm font-medium text-slate-700 mb-1">Register No (Read Only)</label><input type="text" name="studentId" value={profileData.studentId} disabled className="block w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 sm:text-sm cursor-not-allowed" /></div>
-                                <div><label className="block text-sm font-medium text-slate-700 mb-1">Year of Study</label><input type="text" name="yearOfStudy" value={profileData.yearOfStudy} onChange={handleChange} placeholder="e.g. 3rd Year" className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
-                                <div><label className="block text-sm font-medium text-slate-700 mb-1">Section</label><input type="text" name="section" value={profileData.section} onChange={handleChange} placeholder="e.g. A1" className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
-                                <div><label className="block text-sm font-medium text-slate-700 mb-1">Skills (comma separated)</label><input type="text" name="skills" value={profileData.skills} onChange={handleChange} placeholder="e.g. Graphic Design, Figma" className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
-                                <div><label className="block text-sm font-medium text-slate-700 mb-1">Programming Languages (comma separated)</label><input type="text" name="programmingLanguages" value={profileData.programmingLanguages} onChange={handleChange} placeholder="e.g. Python, JS, C++" className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
-                                <div><label className="block text-sm font-medium text-slate-700 mb-1">Projects Completed</label><input type="number" name="projectsCompleted" value={profileData.projectsCompleted} onChange={handleChange} className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
-                                <div><label className="block text-sm font-medium text-slate-700 mb-1">Areas of Interest (comma separated)</label><input type="text" name="areasOfInterest" value={profileData.areasOfInterest} onChange={handleChange} placeholder="e.g. AI, Cybersec" className="block w-full px-3 py-2 border border-slate-300 rounded-lg sm:text-sm" /></div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">GitHub / Portfolio Link</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Register No (Read Only)</label>
                                     <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><LinkIcon className="h-5 w-5 text-slate-400" /></div>
-                                        <input type="text" name="githubLink" value={profileData.githubLink} onChange={handleChange} placeholder="https://github.com/..." className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg sm:text-sm" />
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Hash className="h-5 w-5 text-slate-400" /></div>
+                                        <input type="text" name="studentId" value={profileData.studentId} disabled className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 sm:text-sm cursor-not-allowed" />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Upload Resume (PDF/DOC)</label>
-                                    <input type="file" ref={resumeInputRef} onChange={handleResumeChange} accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer border border-slate-300 rounded-lg" />
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Section (Read Only)</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Users className="h-5 w-5 text-slate-400" /></div>
+                                        <input type="text" name="section" value={profileData.section} disabled className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 sm:text-sm cursor-not-allowed" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Date of Birth (Read Only)</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Calendar className="h-5 w-5 text-slate-400" /></div>
+                                        <input type="date" name="dateOfBirth" value={profileData.dateOfBirth} disabled className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 sm:text-sm cursor-not-allowed" />
+                                    </div>
                                 </div>
                             </>
                         )}
@@ -426,19 +442,23 @@ const Profile = () => {
                     )}
 
                     {/* Bio Section */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Short Bio / About Section</label>
-                        <div className="relative">
-                            <div className="absolute top-3 left-3 pointer-events-none"><FileText className="h-5 w-5 text-slate-400" /></div>
-                            <textarea name="bio" value={profileData.bio} onChange={handleChange} rows={4} placeholder="Tell us about yourself..." className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary sm:text-sm" />
+                    {!isStudent && (
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Short Bio / About Section</label>
+                            <div className="relative">
+                                <div className="absolute top-3 left-3 pointer-events-none"><FileText className="h-5 w-5 text-slate-400" /></div>
+                                <textarea name="bio" value={profileData.bio} onChange={handleChange} rows={4} placeholder="Tell us about yourself..." className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary sm:text-sm" />
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    <div className="flex justify-end pt-4 border-t border-slate-200">
-                        <Button type="submit" disabled={saving} className="flex items-center gap-2">
-                            {saving ? <>Saving...</> : <><Save size={18} /> Save Changes</>}
-                        </Button>
-                    </div>
+                    {!isStudent && (
+                        <div className="flex justify-end pt-4 border-t border-slate-200">
+                            <Button type="submit" disabled={saving} className="flex items-center gap-2">
+                                {saving ? <>Saving...</> : <><Save size={18} /> Save Changes</>}
+                            </Button>
+                        </div>
+                    )}
                 </form>
             </Card>
         </div>

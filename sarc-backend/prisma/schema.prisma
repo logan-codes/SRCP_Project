@@ -1,0 +1,192 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model AppConfig {
+  id         Int      @id @default(autoincrement())
+  key        String   @unique
+  value      String
+  is_active  Boolean  @default(true)
+  created_on DateTime @default(now())
+  edited_on  DateTime @updatedAt
+}
+
+model Role {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  users      User[]
+  is_active  Boolean  @default(true)
+  created_on DateTime @default(now())
+  edited_on  DateTime @updatedAt
+}
+
+model User {
+  id                       Int       @id @default(autoincrement())
+  username                 String    @unique
+  password                 String
+  dob                      String
+  role_id                  Int
+  role                     Role      @relation(fields: [role_id], references: [id])
+  is_first_login           Boolean   @default(true)
+  failed_login_attempts    Int       @default(0)
+  locked_until             DateTime?
+  password_retry_attempts  Int       @default(0)
+  is_active                Boolean   @default(true)
+  created_on               DateTime  @default(now())
+  last_active_at           DateTime?
+
+  student                  Student?
+  faculty                  Faculty?
+  notifications            Notification[]
+  
+
+  @@index([is_active, role_id])
+  @@index([is_first_login])
+}
+
+model Student {
+  id              Int      @id @default(autoincrement())
+  user_id         Int      @unique
+  user            User     @relation(fields: [user_id], references: [id], onDelete:Cascade)
+  section         String?
+  mail_id         String   @unique
+  phone_number    String?
+  socials         Json?
+  name            String
+  department      String
+  year_of_study   Int
+  bio             String?
+  is_active       Boolean  @default(true)
+  created_on      DateTime @default(now())
+  edited_on       DateTime @updatedAt
+
+  invites Invite[]
+  team_memberships TeamMember[]
+
+  @@index([department, year_of_study])
+}
+
+model Faculty {
+  id              Int      @id @default(autoincrement())
+  emp_no          String   @unique
+  user_id         Int      @unique
+  user            User     @relation(fields: [user_id], references: [id], onDelete:Cascade)
+  name            String
+  mail_id         String   @unique
+  phone_number    String?
+  designation     String
+  department      String
+  profile_photo   String?
+  total_capacity  Int
+  selection_capacity Int
+  remaining_capacity Int
+  is_active       Boolean  @default(true)
+  created_on      DateTime @default(now())
+  edited_on       DateTime @updatedAt
+
+  teams Team[]
+
+  @@index([is_active, department])
+  @@index(remaining_capacity)
+}
+
+model Domain {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  teams      Team[]
+  is_active  Boolean  @default(true)
+  created_on DateTime @default(now())
+  edited_on  DateTime @updatedAt
+}
+
+model Team {
+  id               Int      @id @default(autoincrement())
+  project_title    String
+
+  faculty_id       Int
+  faculty          Faculty  @relation(fields: [faculty_id], references: [id])
+
+  domain_id        Int
+  domain           Domain   @relation(fields: [domain_id], references: [id])
+
+  members TeamMember[]
+  invites       Invite[]
+
+  is_active        Boolean  @default(true)
+  created_on       DateTime @default(now())
+  edited_on        DateTime @updatedAt
+
+  @@index([faculty_id])
+  @@index([domain_id])
+}
+
+enum TeamRole {
+    LEADER
+    MEMBER
+}
+
+model TeamMember {
+  id        Int @id @default(autoincrement())
+
+  team_id   Int
+  team      Team @relation(fields: [team_id], references: [id])
+
+  student_id   Int
+  student      Student @relation(fields: [student_id], references: [id])
+
+  role TeamRole @default(MEMBER)
+
+  joined_at DateTime @default(now())
+  edited_on DateTime @updatedAt
+
+  @@unique([team_id, student_id])
+
+  @@index([team_id])
+  @@index([student_id])
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  title      String
+  content    String
+  is_read    Boolean  @default(false)
+  created_on DateTime @default(now())
+  edited_on  DateTime @updatedAt
+
+  @@index([user_id])
+  @@index([user_id, is_read])
+  @@index([user_id, is_read, created_on(sort: Desc)])
+}
+
+enum InviteResponse {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Invite {
+  id         Int      @id @default(autoincrement())
+  student_id    Int
+  student       Student     @relation(fields: [student_id], references: [id])
+
+  team_id    Int
+  team        Team     @relation(fields: [team_id], references: [id],onDelete: Cascade)
+
+  response InviteResponse @default(PENDING)
+  is_active  Boolean  @default(true)
+  created_on DateTime @default(now())
+  edited_on  DateTime @updatedAt
+
+  @@unique([student_id, team_id])
+  @@index([student_id])
+  @@index([team_id])
+  @@index([student_id, is_active]) // compound — active invites per user
+}
+

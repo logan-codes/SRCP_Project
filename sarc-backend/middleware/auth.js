@@ -2,79 +2,104 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../config/prismaClient');
 const redisClient = require('../config/redisClient');
 
-const authMiddleware = async (req, res, next) => {
-    // Get token from header
-    const token = req.header('Authorization')?.replace('Bearer ', '');
 
-    // Check if not token
-    if (!token) {
-        return res.status(401).json({ message: 'No token, authorization denied' });
-    }
-
+/**
+ * Authentication Middleware
+ * Enforces JWT validation and checks database session active status.
+ */
+async function authenticate(req, res, next) {
     try {
-        // Verify token with clock tolerance to prevent "issued in future" errors on serverless functions
-        const decoded = jwt.verify(token, process.env.JWT_SECRET, { clockTolerance: 30 });
-        req.user = decoded.user;
-
-        // Verify sessionId is present in token
-        if (!req.user || !req.user.sessionId) {
-            return res.status(401).json({ message: 'Session is not valid. Please log in again.' });
-        }
-
-        // Retrieve active session ID
-        let activeSessionId = null;
-        if (redisClient) {
-            try {
-                activeSessionId = await redisClient.get(`session:user:${req.user.id}`);
-            } catch (err) {
-                console.error('Redis error in auth middleware:', err);
-            }
-        }
-
-        if (!activeSessionId) {
-            const dbSession = await prisma.session.findUnique({
-                where: { userId: req.user.id }
-            });
-            activeSessionId = dbSession?.id;
-
-            // Backfill Redis if session exists
-            if (activeSessionId && redisClient) {
-                try {
-                    await redisClient.set(`session:user:${req.user.id}`, activeSessionId, 'EX', 30 * 24 * 60 * 60);
-                } catch (err) {
-                    console.error('Redis backfill error in auth middleware:', err);
-                }
-            }
-        }
-
-        // Compare session IDs
-        if (!activeSessionId || activeSessionId !== req.user.sessionId) {
-            return res.status(401).json({ 
-                message: 'Session invalidated. Your account has been logged in from another device.' 
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                success: false,
+                message: 'Access token missing or invalid format.'
             });
         }
+
+        const token = authHeader.split(' ')[1];
+        const secret = process.env.JWT_SECRET || 'gsp_jwt_secret_key_default';
+        
+        let decoded;
+        try {
+            decoded = jwt.verify(token, secret);
+        } catch (err) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid or expired token.'
+            });
+        }
+
+        // Verify session status in Redis (Single Session & Active Check)
+        const sessionData = await redisClient.get(`session:${decoded.sessionId}`);
+        if (!sessionData) {
+            return res.status(401).json({
+                success: false,
+                message: 'Session not found or expired. Please log in again.'
+            });
+        }
+
+        const session = JSON.parse(sessionData);
+
+        // Fetch current user details from DB to verify status and roles
+        const user = await prisma.user.findUnique({
+            where: { id: session.userId },
+            include: {
+                role: true,
+                student: true,
+                faculty: true
+            }
+        });
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Session owner not found.'
+            });
+        }
+
+        if (!user.is_active) {
+            return res.status(401).json({
+                success: false,
+                message: 'User account is deactivated.'
+            });
+        }
+
+        // Attach user, role, and session info to request
+        req.user = user;
+        req.sessionId = decoded.sessionId;
+        req.userRole = user.role.name;
 
         next();
-    } catch (err) {
-        if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError' || err.name === 'NotBeforeError') {
-            return res.status(401).json({ message: 'Token is not valid or expired' });
-        }
-        console.error('Auth middleware error:', err);
-        return res.status(500).json({ message: 'Internal Server Error' });
+    } catch (error) {
+        next(error);
     }
-};
+}
 
-authMiddleware.checkRole = (roles) => {
+/**
+ * Role Authorization Middleware Helper
+ */
+function authorizeRoles(...allowedRoles) {
     return (req, res, next) => {
-        if (!req.user) {
-            return res.status(401).json({ message: 'Unauthorized' });
+        if (!req.user || !req.userRole) {
+            return res.status(401).json({
+                success: false,
+                message: 'User authentication required.'
+            });
         }
-        const allowedRoles = Array.isArray(roles) ? roles : [roles];
-        if (!allowedRoles.includes(req.user.role)) {
-            return res.status(403).json({ message: 'Access denied: insufficient permissions' });
+
+        if (!allowedRoles.includes(req.userRole)) {
+            return res.status(403).json({
+                success: false,
+                message: 'Unauthorized access to this resource.'
+            });
         }
+
         next();
     };
-};
+}
 
-module.exports = authMiddleware;
+module.exports = {
+    authenticate,
+    authorizeRoles
+};

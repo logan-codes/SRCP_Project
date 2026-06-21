@@ -2,121 +2,54 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
-
-dotenv.config();
-
-const app = express();
 const path = require('path');
 
-const rateLimit = require('express-rate-limit');
-const xss = require('xss-clean');
-// Trust proxy is required if you are behind a reverse proxy (Heroku, Render, Netlify, Nginx, etc.)
-app.set('trust proxy', 1);
+// Load envs
+dotenv.config();
 
-// Security Middleware
+// Initialize Express app
+const app = express();
+
+// Security middlewares
 app.use(helmet());
+
+// CORS configuration
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:4173'],
-    credentials: true,
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    credentials: true
 }));
-app.use(express.json({ limit: '5mb' })); // Increased limit for bulk imports
-// Custom XSS Middleware for Express 5
-const { clean } = require('xss-clean/lib/xss');
-app.use((req, res, next) => {
-    if (req.body) {
-        const cleaned = clean(req.body);
-        for (const key in req.body) delete req.body[key];
-        Object.assign(req.body, cleaned);
-    }
-    if (req.query) {
-        const cleaned = clean(req.query);
-        for (const key in req.query) delete req.query[key];
-        Object.assign(req.query, cleaned);
-    }
-    if (req.params) {
-        const cleaned = clean(req.params);
-        for (const key in req.params) delete req.params[key];
-        Object.assign(req.params, cleaned);
-    }
-    next();
+
+// Body parsing middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Load Custom Middleware
+const rateLimiter = require('./middleware/rateLimiter');
+const errorHandler = require('./middleware/errorHandler');
+
+// Apply rate limiting to all API requests
+app.use('/api/', rateLimiter);
+
+// Import Routers
+const authRoutes = require('./routes/authRoutes');
+const guideRoutes = require('./routes/guideRoutes');
+const teamRoutes = require('./routes/teamRoutes');
+const systemRoutes = require('./routes/systemRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+
+// Mount API Routers
+app.use('/api/auth', authRoutes);
+app.use('/api/guide', guideRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api', systemRoutes);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ success: true, status: 'healthy', timestamp: new Date() });
 });
 
-// Custom HPP Middleware for Express 5 (req.query is a getter, so we modify the object instead of reassigning)
-app.use((req, res, next) => {
-    if (req.query) {
-        for (let key in req.query) {
-            if (Array.isArray(req.query[key])) {
-                req.query[key] = req.query[key][req.query[key].length - 1];
-            }
-        }
-    }
-    next();
-});
-
-// ─── Rate Limiting & Caching ──────────────────────────────────────────────────
-const { RedisStore } = require('rate-limit-redis');
-const redisClient = require('./config/redisClient');
-
-let limiterStore = undefined; // defaults to memory
-if (redisClient) {
-    limiterStore = new RedisStore({
-        sendCommand: (...args) => redisClient.call(...args),
-    });
-}
-
-const apiLimiter = rateLimit({
-    store: limiterStore,
-    max: 5000, // Production level: 5000 requests per 15 mins
-    windowMs: 15 * 60 * 1000,
-    message: { message: 'Too many requests from this IP, please slow down.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-    skip: (req) => {
-        return req.path.startsWith('/uploads') || process.env.NODE_ENV === 'test';
-    }
-});
-
-// Local static file serving removed for Serverless architecture
-
-// ─── Routes ───────────────────────────────────────────────────────────────────
-// We mount routes on a Router so they can be served both on /api (local) and /.netlify/functions/api (Netlify)
-const apiRouter = express.Router();
-apiRouter.use('/auth', require('./routes/authRoutes'));
-apiRouter.use('/upload', require('./routes/uploadRoutes'));
-apiRouter.use('/projects', require('./routes/projectRoutes'));
-apiRouter.use('/applications', require('./routes/applicationRoutes'));
-apiRouter.use('/notifications', require('./routes/notificationRoutes'));
-apiRouter.use('/teams', require('./routes/teamRoutes'));
-apiRouter.use('/milestones', require('./routes/milestoneRoutes'));
-apiRouter.use('/users', require('./routes/userRoutes'));
-apiRouter.use('/guide', require('./routes/guideRoutes'));
-apiRouter.use('/stats', require('./routes/statsRoutes'));
-apiRouter.use('/global-milestones', require('./routes/globalMilestoneRoutes'));
-apiRouter.use('/system', require('./routes/systemRoutes'));
-apiRouter.use('/support', require('./routes/supportRoutes'));
-
-// Apply the global API limiter to all API routes
-app.use('/api', apiLimiter, apiRouter);
-// Mount for Netlify Functions mapping
-app.use('/.netlify/functions/api', apiLimiter, apiRouter);
-
-// Basic health check route
-app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to the SARCG API', status: 'OK' });
-});
-
-// ─── Global Error Handler ─────────────────────────────────────────────────────
-app.use((err, req, res, next) => {
-    console.error('Unhandled Error:', err.stack);
-    if (res.headersSent) {
-        return next(err);
-    }
-    
-    const isProduction = process.env.NODE_ENV === 'production';
-    res.status(err.status || 500).json({
-        message: isProduction ? 'Internal Server Error' : (err.message || 'Internal Server Error'),
-        ...(isProduction ? {} : { stack: err.stack })
-    });
-});
+// Centralized error handler (must be registered last)
+app.use(errorHandler);
 
 module.exports = app;

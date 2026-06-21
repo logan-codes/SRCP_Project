@@ -24,6 +24,16 @@ const LandingPage = () => {
     });
 
     useEffect(() => {
+        const token = localStorage.getItem('sarc_token');
+        const role = localStorage.getItem('sarc_role');
+        if (token && role) {
+            if (role === 'FACULTY') navigate('/faculty');
+            else if (role === 'ADMIN') navigate('/admin');
+            else navigate('/student');
+        }
+    }, [navigate]);
+
+    useEffect(() => {
         const fetchStats = async () => {
             try {
                 const res = await fetch(`${import.meta.env.VITE_API_URL}/api/stats`);

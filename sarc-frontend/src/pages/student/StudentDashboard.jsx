@@ -9,6 +9,7 @@ const StudentDashboard = () => {
     const [deadlines, setDeadlines] = useState([]);
     const [allMilestones, setAllMilestones] = useState([]);
     const [phase, setPhase] = useState('CLOSED');
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -38,6 +39,8 @@ const StudentDashboard = () => {
                 }
             } catch (err) {
                 console.error(err);
+            } finally {
+                setLoading(false);
             }
         };
         fetchData();
@@ -134,7 +137,14 @@ const StudentDashboard = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Guide Selection Info - Dynamic phase from admin */}
-                {(() => {
+                {loading ? (
+                    <Card className="border-t-4 border-t-slate-200 shadow-md h-full min-h-[200px] flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-3 text-slate-400">
+                            <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+                            <span className="text-sm font-medium">Loading phase info...</span>
+                        </div>
+                    </Card>
+                ) : (() => {
                     const phaseInfo = getPhaseInfo(phase);
                     return (
                         <Card className={`border-t-4 ${phaseInfo.border} shadow-md hover:shadow-lg transition-all duration-300`}>
@@ -171,32 +181,41 @@ const StudentDashboard = () => {
                 })()}
 
                 {/* Upcoming Deadlines */}
-                <Card className="border-t-4 border-t-red-500 shadow-md hover:shadow-lg transition-shadow">
-                    <h2 className="text-xl font-bold font-heading text-slate-800 mb-6 flex items-center gap-3">
-                        <Clock size={24} className="text-red-500" /> Upcoming Deadlines
-                    </h2>
-                    <div className="space-y-4">
-                        {deadlines.length === 0 ? (
-                            <div className="text-center py-6 text-slate-500 text-sm">No upcoming deadlines configured by the administration.</div>
-                        ) : (
-                            deadlines.map((deadline) => {
-                                const { month, day } = getMonthAndDay(deadline.dueDate);
-                                return (
-                                    <div key={deadline.id} className="flex gap-4 p-4 border border-red-100 bg-red-50 rounded-xl hover:shadow-sm transition-shadow">
-                                        <div className="bg-white p-3 rounded-xl shadow-sm border border-red-100 text-center min-w-[70px] flex flex-col justify-center">
-                                            <span className="block text-xs font-bold text-red-500 uppercase tracking-widest">{month}</span>
-                                            <span className="block text-2xl font-black text-slate-900">{day}</span>
+                {loading ? (
+                    <Card className="border-t-4 border-t-slate-200 shadow-md h-full min-h-[200px] flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-3 text-slate-400">
+                            <div className="w-8 h-8 border-4 border-slate-200 border-t-red-500 rounded-full animate-spin"></div>
+                            <span className="text-sm font-medium">Loading deadlines...</span>
+                        </div>
+                    </Card>
+                ) : (
+                    <Card className="border-t-4 border-t-red-500 shadow-md hover:shadow-lg transition-shadow">
+                        <h2 className="text-xl font-bold font-heading text-slate-800 mb-6 flex items-center gap-3">
+                            <Clock size={24} className="text-red-500" /> Upcoming Deadlines
+                        </h2>
+                        <div className="space-y-4">
+                            {deadlines.length === 0 ? (
+                                <div className="text-center py-6 text-slate-500 text-sm">No upcoming deadlines configured by the administration.</div>
+                            ) : (
+                                deadlines.map((deadline) => {
+                                    const { month, day } = getMonthAndDay(deadline.dueDate);
+                                    return (
+                                        <div key={deadline.id} className="flex gap-4 p-4 border border-red-100 bg-red-50 rounded-xl hover:shadow-sm transition-shadow">
+                                            <div className="bg-white p-3 rounded-xl shadow-sm border border-red-100 text-center min-w-[70px] flex flex-col justify-center">
+                                                <span className="block text-xs font-bold text-red-500 uppercase tracking-widest">{month}</span>
+                                                <span className="block text-2xl font-black text-slate-900">{day}</span>
+                                            </div>
+                                            <div className="flex flex-col justify-center">
+                                                <h4 className="font-bold text-slate-900 text-lg">{deadline.title}</h4>
+                                                <p className="text-sm text-slate-600 mt-1 font-medium">{deadline.description}</p>
+                                            </div>
                                         </div>
-                                        <div className="flex flex-col justify-center">
-                                            <h4 className="font-bold text-slate-900 text-lg">{deadline.title}</h4>
-                                            <p className="text-sm text-slate-600 mt-1 font-medium">{deadline.description}</p>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-                </Card>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </Card>
+                )}
             </div>
         </>
     );

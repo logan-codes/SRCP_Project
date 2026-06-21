@@ -8,7 +8,7 @@ import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({ email: '', password: '' });
+    const [formData, setFormData] = useState({ username: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -103,9 +103,9 @@ const Login = () => {
                                         <Mail className="h-5 w-5 text-slate-400" />
                                     </div>
                                     <input
-                                        type="email"
-                                        name="email"
-                                        value={formData.email}
+                                        type="username"
+                                        name="username"
+                                        value={formData.username}
                                         onChange={handleChange}
                                         required
                                         className="appearance-none block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
